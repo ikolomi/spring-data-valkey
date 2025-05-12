@@ -1,0 +1,166 @@
+= Spring Data Redis image:https://jenkins.spring.io/buildStatus/icon?job=spring-data-redis%2Fmain&subject=Build[link=https://jenkins.spring.io/view/SpringData/job/spring-data-redis/] image:https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A["Revved up by Develocity", link="https://ge.spring.io/scans?search.rootProjectNames=Spring Data Redis"]
+
+The primary goal of the https://spring.io/projects/spring-data/[Spring Data] project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
+
+This module provides integration with the https://redis.io/[Redis] store.
+It is also tested to work with https://valkey.io/[Valkey] on a best-effort basis as long as Valkey remains largely compatible with Redis.
+
+== Features
+
+* Connection package as low-level abstraction across multiple Redis drivers (https://github.com/lettuce-io/lettuce-core[Lettuce] and https://github.com/redis/jedis[Jedis]).
+* Exception translation to Spring’s portable Data Access exception hierarchy for Redis driver exceptions
+* https://docs.spring.io/spring-data/redis/reference/redis/template.html[`RedisTemplate`] that provides a high level abstraction for performing various Redis operations, exception translation and serialization support.
+* Pubsub support (such as a MessageListenerContainer for message-driven POJOs).
+* https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#redis:sentinel[Redis Sentinel] and https://docs.spring.io/spring-data/redis/reference/redis/connection-modes.html#cluster.enable[Redis Cluster] support.
+* Reactive API using the Lettuce driver.
+* JDK, String, JSON and Spring Object/XML mapping serializers.
+* JDK Collection implementations on top of Redis.
+* Atomic counter support classes.
+* Sorting and Pipelining functionality.
+* Dedicated support for SORT, SORT/GET pattern and returned bulk values.
+* Redis implementation for Spring 3.1 cache abstraction.
+* Automatic implementation of `Repository` interfaces including support for custom finder methods using `@EnableRedisRepositories`.
+* CDI support for repositories.
+
+== Code of Conduct
+
+This project is governed by the https://github.com/spring-projects/.github/blob/e3cc2ff230d8f1dca06535aa6b5a4a23815861d4/CODE_OF_CONDUCT.md[Spring Code of Conduct]. By participating, you are expected to uphold this code of conduct. Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
+
+== Getting Started
+
+Here is a quick teaser of an application using Spring Data Redis in Java:
+
+[source,java]
+----
+public class Example {
+
+    // inject the actual template
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    // inject the template as ListOperations
+    // can also inject as Value, Set, ZSet, and HashOperations
+    @Resource(name="redisTemplate")
+    private ListOperations<String, String> listOps;
+
+    public void addLink(String userId, URL url) {
+        listOps.leftPush(userId, url.toExternalForm());
+        // or use template directly
+        redisTemplate.boundListOps(userId).leftPush(url.toExternalForm());
+    }
+}
+
+@Configuration
+class ApplicationConfig {
+
+  @Bean
+  public RedisConnectionFactory redisConnectionFactory() {
+    return new LettuceConnectionFactory();
+  }
+}
+----
+
+=== Maven configuration
+
+Add the Maven dependency:
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-redis</artifactId>
+  <version>${version}</version>
+</dependency>
+----
+
+If you'd rather like the latest snapshots of the upcoming major version, use our Maven snapshot repository and declare the appropriate dependency version.
+
+[source,xml]
+----
+<dependency>
+  <groupId>org.springframework.data</groupId>
+  <artifactId>spring-data-redis</artifactId>
+  <version>${version}-SNAPSHOT</version>
+</dependency>
+
+<repository>
+  <id>spring-snapshot</id>
+  <name>Spring Snapshot Repository</name>
+  <url>https://repo.spring.io/snapshot</url>
+</repository>
+----
+
+== Getting Help
+
+Having trouble with Spring Data? We’d love to help!
+
+* Check the
+https://docs.spring.io/spring-data/redis/reference/[reference documentation], and https://docs.spring.io/spring-data/redis/docs/current/api/[Javadocs].
+* Learn the Spring basics – Spring Data builds on Spring Framework, check the https://spring.io[spring.io] web-site for a wealth of reference documentation.
+If you are just starting out with Spring, try one of the https://spring.io/guides[guides].
+* If you are upgrading, check out the https://github.com/spring-projects/spring-data-commons/wiki#release-notes[Release notes] for "`new and noteworthy`" features.
+* Ask a question - we monitor https://stackoverflow.com[stackoverflow.com] for questions tagged with https://stackoverflow.com/tags/spring-data[`spring-data-redis`].
+* Report bugs with Spring Data Redis at https://github.com/spring-projects/spring-data-redis/issues/new[github.com/spring-projects/spring-data-redis].
+
+== Reporting Issues
+
+Spring Data uses Github as issue tracking system to record bugs and feature requests.
+If you want to raise an issue, please follow the recommendations below:
+
+* Before you log a bug, please search the https://github.com/spring-projects/spring-data-redis/issues[issue tracker] to see if someone has already reported the problem.
+* If the issue does not already exist, https://github.com/spring-projects/spring-data-redis/issues/new[create a new issue].
+* Please provide as much information as possible with the issue report, we like to know the version of Spring Data that you are using, the JVM version, Stacktrace, etc.
+* If you need to paste code, or include a stack trace use https://guides.github.com/features/mastering-markdown/[Markdown] code fences +++```+++.
+* If possible try to create a test-case or project that replicates the issue.
+Attach a link to your code or a compressed file containing your code.
+
+== Building from Source
+
+You don’t need to build from source to use Spring Data (binaries in https://repo.spring.io[repo.spring.io]), but if you want to try out the latest and greatest, Spring Data can be easily built with the https://github.com/takari/maven-wrapper[maven wrapper].
+You also need JDK 17 or above and `make`.
+The local build environment is managed within a `Makefile` to download, build and spin up Redis in various configurations (Standalone, Sentinel, Cluster, etc.)
+
+[source,bash]
+----
+ $ make test
+----
+
+The preceding command runs a full build.
+You can use `make start`, `make stop`, and `make clean` commands to control the environment yourself.
+This is useful if you want to avoid constant server restarts.
+Once all Redis instances have been started, you can either run tests in your IDE or the full Maven build:
+
+[source,bash]
+----
+ $ ./mvnw clean install
+----
+
+If you want to build with the regular `mvn` command, you will need https://maven.apache.org/run-maven/index.html[Maven v3.8.0 or above].
+
+_Also see link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] if you wish to submit pull requests, and in particular please sign the https://cla.pivotal.io/sign/spring[Contributor’s Agreement] before your first non-trivial change._
+
+=== Building reference documentation
+
+Building the documentation builds also the project without running tests.
+
+[source,bash]
+----
+ $ ./mvnw clean install -Pantora
+----
+
+The generated documentation is available from `target/antora/site/index.html`.
+
+== Guides
+
+The https://spring.io/[spring.io] site contains several guides that show how to use Spring Data step-by-step:
+
+* https://spring.io/guides/gs/messaging-redis/[Messaging with Redis]: Learn how to use Redis as a message broker.
+* https://spring.io/guides/gs/spring-data-reactive-redis/[Accessing Data Reactively with Redis]: Learn how to reactively interface with Redis and Spring Data.
+
+== Examples
+
+* https://github.com/spring-projects/spring-data-examples/[Spring Data Examples] contains example projects that explain specific features in more detail.
+
+== License
+
+Spring Data Redis is Open Source software released under the https://www.apache.org/licenses/LICENSE-2.0.html[Apache 2.0 license].

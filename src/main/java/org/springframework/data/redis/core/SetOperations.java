@@ -1,0 +1,387 @@
+/*
+ * Copyright 2011-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springframework.data.redis.core;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.springframework.lang.Nullable;
+
+/**
+ * Redis set specific operations.
+ *
+ * @author Costin Leau
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ * @author Roman Bezpalko
+ */
+public interface SetOperations<K, V> {
+
+	/**
+	 * Add given {@code values} to set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sadd">Redis Documentation: SADD</a>
+	 */
+	@Nullable
+	Long add(K key, V... values);
+
+	/**
+	 * Remove given {@code values} from set at {@code key} and return the number of removed elements.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param values
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/srem">Redis Documentation: SREM</a>
+	 */
+	@Nullable
+	Long remove(K key, Object... values);
+
+	/**
+	 * Remove and return a random member from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 */
+	@Nullable
+	V pop(K key);
+
+	/**
+	 * Remove and return {@code count} random members from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count number of random members to pop from the set.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/spop">Redis Documentation: SPOP</a>
+	 * @since 2.0
+	 */
+	@Nullable
+	List<V> pop(K key, long count);
+
+	/**
+	 * Move {@code value} from {@code key} to {@code destKey}
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param value
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/smove">Redis Documentation: SMOVE</a>
+	 */
+	@Nullable
+	Boolean move(K key, V value, K destKey);
+
+	/**
+	 * Get size of set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/scard">Redis Documentation: SCARD</a>
+	 */
+	@Nullable
+	Long size(K key);
+
+	/**
+	 * Check if set at {@code key} contains {@code value}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param o
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sismember">Redis Documentation: SISMEMBER</a>
+	 */
+	@Nullable
+	Boolean isMember(K key, Object o);
+
+	/**
+	 * Check if set at {@code key} contains one or more {@code values}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param objects
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @since 2.6
+	 * @see <a href="https://redis.io/commands/smismember">Redis Documentation: SMISMEMBER</a>
+	 */
+	@Nullable
+	Map<Object, Boolean> isMember(K key, Object... objects);
+
+	/**
+	 * Returns the members intersecting all given sets at {@code key} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 */
+	@Nullable
+	Set<V> intersect(K key, K otherKey);
+
+	/**
+	 * Returns the members intersecting all given sets at {@code key} and {@code otherKeys}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 */
+	@Nullable
+	Set<V> intersect(K key, Collection<K> otherKeys);
+
+	/**
+	 * Returns the members intersecting all given sets at {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sinter">Redis Documentation: SINTER</a>
+	 * @since 2.2
+	 */
+	@Nullable
+	Set<V> intersect(Collection<K> keys);
+
+	/**
+	 * Intersect all given sets at {@code key} and {@code otherKey} and store result in {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 */
+	@Nullable
+	Long intersectAndStore(K key, K otherKey, K destKey);
+
+	/**
+	 * Intersect all given sets at {@code key} and {@code otherKeys} and store result in {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 */
+	@Nullable
+	Long intersectAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Intersect all given sets at {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sinterstore">Redis Documentation: SINTERSTORE</a>
+	 * @since 2.2
+	 */
+	@Nullable
+	Long intersectAndStore(Collection<K> keys, K destKey);
+
+	/**
+	 * Union all sets at given {@code keys} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 */
+	@Nullable
+	Set<V> union(K key, K otherKey);
+
+	/**
+	 * Union all sets at given {@code keys} and {@code otherKeys}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 */
+	@Nullable
+	Set<V> union(K key, Collection<K> otherKeys);
+
+	/**
+	 * Union all sets at given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sunion">Redis Documentation: SUNION</a>
+	 * @since 2.2
+	 */
+	@Nullable
+	Set<V> union(Collection<K> keys);
+
+	/**
+	 * Union all sets at given {@code key} and {@code otherKey} and store result in {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(K key, K otherKey, K destKey);
+
+	/**
+	 * Union all sets at given {@code key} and {@code otherKeys} and store result in {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 */
+	@Nullable
+	Long unionAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Union all sets at given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sunionstore">Redis Documentation: SUNIONSTORE</a>
+	 * @since 2.2
+	 */
+	@Nullable
+	Long unionAndStore(Collection<K> keys, K destKey);
+
+	/**
+	 * Diff all sets for given {@code key} and {@code otherKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(K key, K otherKey);
+
+	/**
+	 * Diff all sets for given {@code key} and {@code otherKeys}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 */
+	@Nullable
+	Set<V> difference(K key, Collection<K> otherKeys);
+
+	/**
+	 * Diff all sets for given {@code keys}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiff">Redis Documentation: SDIFF</a>
+	 * @since 2.2
+	 */
+	@Nullable
+	Set<V> difference(Collection<K> keys);
+
+	/**
+	 * Diff all sets for given {@code key} and {@code otherKey} and store result in {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKey must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	@Nullable
+	Long differenceAndStore(K key, K otherKey, K destKey);
+
+	/**
+	 * Diff all sets for given {@code key} and {@code otherKeys} and store result in {@code destKey}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param otherKeys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 */
+	@Nullable
+	Long differenceAndStore(K key, Collection<K> otherKeys, K destKey);
+
+	/**
+	 * Diff all sets for given {@code keys} and store result in {@code destKey}.
+	 *
+	 * @param keys must not be {@literal null}.
+	 * @param destKey must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/sdiffstore">Redis Documentation: SDIFFSTORE</a>
+	 * @since 2.2
+	 */
+	@Nullable
+	Long differenceAndStore(Collection<K> keys, K destKey);
+
+	/**
+	 * Get all elements of set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/smembers">Redis Documentation: SMEMBERS</a>
+	 */
+	@Nullable
+	Set<V> members(K key);
+
+	/**
+	 * Get random element from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @return {@literal null} when used in pipeline / transaction.
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 */
+	V randomMember(K key);
+
+	/**
+	 * Get {@code count} distinct random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return
+	 * @return empty {@link Set} if {@code key} does not exist.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 */
+	@Nullable
+	Set<V> distinctRandomMembers(K key, long count);
+
+	/**
+	 * Get {@code count} random elements from set at {@code key}.
+	 *
+	 * @param key must not be {@literal null}.
+	 * @param count nr of members to return.
+	 * @return empty {@link List} if {@code key} does not exist or {@literal null} when used in pipeline / transaction.
+	 * @throws IllegalArgumentException if count is negative.
+	 * @see <a href="https://redis.io/commands/srandmember">Redis Documentation: SRANDMEMBER</a>
+	 */
+	@Nullable
+	List<V> randomMembers(K key, long count);
+
+	/**
+	 * Use a {@link Cursor} to iterate over entries set at {@code key}. <br />
+	 * <strong>Important:</strong> Call {@link Cursor#close()} when done to avoid resource leaks.
+	 *
+	 * @param key
+	 * @param options must not be {@literal null}.
+	 * @return the result cursor providing access to the scan result. Must be closed once fully processed (e.g. through a
+	 *         try-with-resources clause).
+	 * @since 1.4
+	 */
+	Cursor<V> scan(K key, ScanOptions options);
+
+	RedisOperations<K, V> getOperations();
+}
