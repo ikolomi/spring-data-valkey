@@ -1,0 +1,7 @@
+[
+  {
+    "openjdk-versions": ["17", "21", "23", "24"],
+    "redis-versions": ["6.2.18", "7.2.9"],
+    "valkey-versions": ["8.0.3", "8.1.1"]
+  }
+]

@@ -1,0 +1,27 @@
+name: lint-github-workflows
+description: Lint GitHub workflow files using Prettier
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+    paths:
+      - ".github/**"
+  pull_request:
+    paths:
+      - ".github/**"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Prettier on .github workflow files
+        run: |
+          npx prettier --check .github/

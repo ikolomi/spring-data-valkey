@@ -1,0 +1,91 @@
+name: CI
+description: Continuous Integration for Spring Data Valkey
+
+on:
+  push:
+    branches:
+      - main
+      - release-*
+  pull_request:
+    branches:
+      - main
+      - release-*
+  workflow_dispatch:
+
+jobs:
+  generate-tests-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-tests-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read and expand tests-matrix.json
+        id: set-tests-matrix
+        run: |
+          jq -n '
+            [inputs[] |
+              .["openjdk-versions"][] as $jdk |
+              (
+                ["redis", "valkey"][] as $engine |
+                (
+                  if $engine == "redis" then .["redis-versions"] else .["valkey-versions"] end
+                )[] as $version |
+                {
+                  jdk: $jdk,
+                  engine: $engine,
+                  version: $version
+                }
+              )
+            ]
+          ' .github/workflows/tests-matrix.json > tests-matrix-expanded.json
+          echo "matrix=$(cat tests-matrix-expanded.json | jq -c .)" >> $GITHUB_OUTPUT
+
+  ci-tests:
+    needs: generate-tests-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.generate-tests-matrix.outputs.matrix) }}
+    name: Test JDK ${{ matrix.jdk }} with ${{ matrix.engine }} ${{ matrix.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.jdk }}
+          distribution: "temurin"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Install engine
+        uses: ./.github/workflows/actions/install-engine
+        with:
+          engine-type: ${{ matrix.engine }}
+          engine-tag: ${{ matrix.version }}
+
+      - name: Start engine
+        run: |
+          make start
+
+      - name: Test baseline
+        run: |
+          ./mvnw -s settings.xml \
+            -Ddevelocity.storage.directory=$HOME/.develocity-root \
+            -Dmaven.repo.local=$HOME/.m2/spring-data-redis \
+            test -Pnone \
+            -DrunLongTests=true \
+            -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
+            -U -B
