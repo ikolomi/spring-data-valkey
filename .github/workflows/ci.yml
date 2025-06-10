@@ -47,6 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
         include: ${{ fromJson(needs.generate-tests-matrix.outputs.matrix) }}
     name: Test JDK ${{ matrix.jdk }} with ${{ matrix.engine }} ${{ matrix.version }}
