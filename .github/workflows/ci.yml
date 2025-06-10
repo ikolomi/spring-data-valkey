@@ -70,7 +70,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Install engine
-        uses: ./.github/actions/install-engine
+        uses: ./.github/workflows/actions/install-engine
         with:
           engine-type: ${{ matrix.engine }}
           engine-tag: ${{ matrix.version }}

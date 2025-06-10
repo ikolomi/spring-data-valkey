@@ -20,7 +20,6 @@ inputs:
 env:
   ENGINE_REPO_VALKEY_URL: https://github.com/valkey-io/valkey.git
   ENGINE_REPO_REDIS_URL: https://github.com/redis/redis.git
-  PATH: /usr/local/bin:${{ env.PATH }}
 
 runs:
   using: "composite"
