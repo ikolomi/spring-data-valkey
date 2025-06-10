@@ -39,7 +39,7 @@ jobs:
                 }
               )
             ]
-          ' .github/tests-matrix.json > tests-matrix-expanded.json
+          ' .github/workflows/tests-matrix.json > tests-matrix-expanded.json
           echo "matrix=$(cat tests-matrix-expanded.json | jq -c .)" >> $GITHUB_OUTPUT
 
   ci-tests:
