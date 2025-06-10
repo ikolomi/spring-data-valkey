@@ -17,10 +17,6 @@ inputs:
     type: string
     required: true
 
-env:
-  ENGINE_REPO_VALKEY_URL: https://github.com/valkey-io/valkey.git
-  ENGINE_REPO_REDIS_URL: https://github.com/redis/redis.git
-
 runs:
   using: "composite"
 
@@ -39,9 +35,9 @@ runs:
       shell: bash
       run: |
         if [[ "${{ inputs.engine-type }}" == "valkey" ]]; then
-            ENGINE_REPO_URL="$ENGINE_REPO_VALKEY_URL"
+            ENGINE_REPO_URL="https://github.com/valkey-io/valkey.git"
         elif [[ "${{ inputs.engine-type }}" == "redis" ]]; then
-            ENGINE_REPO_URL="$ENGINE_REPO_REDIS_URL"
+            ENGINE_REPO_URL="https://github.com/redis/redis.git"
         else
             echo "Unknown engine-type: ${{ inputs.engine-type }}"
             exit 1
