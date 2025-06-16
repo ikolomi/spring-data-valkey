@@ -5,7 +5,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-redis</artifactId>
-	<version>3.5.0-RC1</version>
+	<version>3.5.1</version>
 
 	<name>Spring Data Redis</name>
 	<description>Spring Data module for Redis</description>
@@ -14,19 +14,19 @@
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>3.5.0-RC1</version>
+		<version>3.5.1</version>
 	</parent>
 
 	<properties>
-		<springdata.keyvalue>3.5.0-RC1</springdata.keyvalue>
-		<springdata.commons>3.5.0-RC1</springdata.commons>
+		<springdata.keyvalue>3.5.1</springdata.keyvalue>
+		<springdata.commons>3.5.1</springdata.commons>
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
-		<lettuce>6.5.5.RELEASE</lettuce>
-		<jedis>5.2.0</jedis>
+		<lettuce>6.6.0.RELEASE</lettuce>
+		<jedis>6.0.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
-		<netty>4.1.119.Final</netty>
+		<netty>4.1.121.Final</netty>
 		<java-module-name>spring.data.redis</java-module-name>
 	</properties>
 
@@ -388,9 +388,7 @@
 	</profiles>
 
 	<repositories>
-		<repository>
-			<id>spring-milestone</id>
-			<url>https://repo.spring.io/milestone</url>
-		</repository>
+		
+		
 	</repositories>
 </project>
