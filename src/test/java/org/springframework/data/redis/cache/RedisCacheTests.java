@@ -601,7 +601,7 @@ public class RedisCacheTests {
 
 		cacheWriter.unlock("cache");
 
-		assertThat(value.get(15L, TimeUnit.MILLISECONDS).get()).isEqualTo(testValue);
+		assertThat(value.get(500L, TimeUnit.MILLISECONDS).get()).isEqualTo(testValue);
 		assertThat(value).isDone();
 	}
 

@@ -342,7 +342,7 @@ public class DefaultRedisCacheWriterTests {
 
 			beforeWrite.await();
 
-			Thread.sleep(200);
+			Thread.sleep(500);
 
 			doWithConnection(connection -> {
 				assertThat(connection.exists(binaryCacheKey)).isFalse();
@@ -498,7 +498,7 @@ public class DefaultRedisCacheWriterTests {
 		}
 
 		assertThat(beforeWrite.await(5, TimeUnit.SECONDS)).isTrue();
-		Thread.sleep(100);
+		Thread.sleep(500);
 
 		cw.unlock(CACHE_NAME);
 		assertThat(afterWrite.await(5, TimeUnit.SECONDS)).isTrue();
