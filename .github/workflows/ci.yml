@@ -89,3 +89,13 @@ jobs:
             -DrunLongTests=true \
             -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
             -U -B
+
+      - name: Test baseline
+        run: |
+          ./mvnw -s settings.xml \
+            -Ddevelocity.storage.directory=$HOME/.develocity-root \
+            -Dmaven.repo.local=$HOME/.m2/spring-data-redis \
+            test -Pruntimehints \
+            -DrunLongTests=false \
+            -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
+            -U -B
