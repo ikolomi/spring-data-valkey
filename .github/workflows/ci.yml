@@ -13,16 +13,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-tests-matrix:
+  generate-test-matrices:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-tests-matrix.outputs.matrix }}
+      full-matrix: ${{ steps.set-full-matrix.outputs.full-matrix }}
+      jdk-matrix: ${{ steps.set-jdk-matrix.outputs.jdk-matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Read and expand tests-matrix.json
-        id: set-tests-matrix
+      - name: Read and expand full tests-matrix.json
+        id: set-full-matrix
         run: |
           jq -n '
             [inputs[] |
@@ -40,17 +41,25 @@ jobs:
               )
             ]
           ' .github/workflows/tests-matrix.json > tests-matrix-expanded.json
-          echo "matrix=$(cat tests-matrix-expanded.json | jq -c .)" >> $GITHUB_OUTPUT
+          echo "full-matrix=$(cat tests-matrix-expanded.json | jq -c .)" >> $GITHUB_OUTPUT
 
-  ci-tests:
-    needs: generate-tests-matrix
+      - name: Extract JDK versions only
+        id: set-jdk-matrix
+        run: |
+          jq -n '
+            [inputs[].["openjdk-versions"][] | { jdk: . }]
+          ' .github/workflows/tests-matrix.json > jdk-matrix-expanded.json
+          echo "jdk-matrix=$(cat jdk-matrix-expanded.json | jq -c .)" >> $GITHUB_OUTPUT
+
+  ci-baseline-tests:
+    needs: generate-test-matrices
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.generate-tests-matrix.outputs.matrix) }}
-    name: Test JDK ${{ matrix.jdk }} with ${{ matrix.engine }} ${{ matrix.version }}
+        include: ${{ fromJson(needs.generate-test-matrices.outputs.full-matrix) }}
+    name: Baseline test with JDK ${{ matrix.jdk }} and ${{ matrix.engine }} ${{ matrix.version }}
 
     steps:
       - name: Checkout
@@ -90,12 +99,50 @@ jobs:
             -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
             -U -B
 
-      - name: Test baseline
+  ci-runtimehints-tests:
+    needs: generate-test-matrices
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.generate-test-matrices.outputs.jdk-matrix) }}
+    name: Runtime hints tests with JDK ${{ matrix.jdk }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.jdk }}
+          distribution: "temurin"
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+            
+      # Runtime hints tests still need an engine, but can use a single version
+      - name: Install Valkey
+        uses: ./.github/workflows/actions/install-engine
+        with:
+          engine-type: "valkey"
+          engine-tag: "8.0.3"  # Use oldest valkey version for runtime hints tests
+
+      - name: Start Valkey
+        run: |
+          make start
+
+      - name: Test runtimehints
         run: |
           ./mvnw -s settings.xml \
             -Ddevelocity.storage.directory=$HOME/.develocity-root \
             -Dmaven.repo.local=$HOME/.m2/spring-data-redis \
             test -Pruntimehints \
             -DrunLongTests=false \
-            -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
             -U -B
