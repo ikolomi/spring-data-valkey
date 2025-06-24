@@ -61,7 +61,6 @@ class LettuceReactiveSubscriptionUnitTests {
 	@BeforeEach
 	void before() {
 		when(connectionMock.reactive()).thenReturn(commandsMock);
-		when(commandsMock.ping()).thenReturn(Mono.empty());
 		subscription = new LettuceReactiveSubscription(mock(SubscriptionListener.class), connectionMock, pubSubMock,
 				e -> new RedisSystemException(e.getMessage(), e));
 	}
@@ -196,6 +195,7 @@ class LettuceReactiveSubscriptionUnitTests {
 
 		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
 		when(pubSubMock.pUnsubscribe(any())).thenReturn(Mono.empty());
+		when(commandsMock.ping()).thenReturn(Mono.empty());
 		subscription.pSubscribe(getByteBuffer("foo*")).as(StepVerifier::create).verifyComplete();
 
 		when(commandsMock.observeChannels()).thenReturn(Flux.never());
