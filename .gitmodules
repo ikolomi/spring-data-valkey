@@ -1,0 +1,3 @@
+[submodule "valkey-glide"]
+	path = valkey-glide
+	url = https://github.com/valkey-io/valkey-glide
