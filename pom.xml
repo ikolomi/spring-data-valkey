@@ -3,13 +3,13 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.springframework.data</groupId>
-	<artifactId>spring-data-redis</artifactId>
+	<groupId>io.valkey.springframework.data</groupId>
+	<artifactId>spring-data-valkey</artifactId>
 	<version>3.5.1</version>
 
-	<name>Spring Data Redis</name>
-	<description>Spring Data module for Redis</description>
-	<url>https://spring.io/projects/spring-data-redis</url>
+	<name>Spring Data Valkey</name>
+	<description>Spring Data module for Valkey</description>
+	<url>https://spring.io/projects/spring-data-valkey</url>
 
 	<parent>
 		<groupId>org.springframework.data.build</groupId>
@@ -27,18 +27,18 @@
 		<jedis>6.0.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
 		<netty>4.1.121.Final</netty>
-		<java-module-name>spring.data.redis</java-module-name>
+		<java-module-name>io.valkey.springframework.data.valkey</java-module-name>
 	</properties>
 
 	<scm>
-		<connection>scm:git:https://github.com/spring-projects/spring-data-redis.git</connection>
-		<developerConnection>scm:git:git@github.com:spring-projects/spring-data-redis.git</developerConnection>
-		<url>https://github.com/spring-projects/spring-data-redis</url>
+		<connection>scm:git:https://github.com/ikolomi/spring-data-valkey.git</connection>
+		<developerConnection>scm:git:git@github.com:ikolomi/spring-data-valkey.git</developerConnection>
+		<url>https://github.com/ikolomi/spring-data-valkey</url>
 	</scm>
 
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/spring-projects/spring-data-redis/issues</url>
+		<url>https://github.com/ikolomi/spring-data-valkey/issues</url>
 	</issueManagement>
 
 	<dependencyManagement>
@@ -105,6 +105,13 @@
 			<artifactId>lettuce-core</artifactId>
 			<version>${lettuce}</version>
 			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>io.valkey</groupId>
+			<artifactId>valkey-glide</artifactId>
+			<classifier>${os.detected.classifier}</classifier>
+			<version>[2.0.0,)</version>
 		</dependency>
 
 		<dependency>
@@ -303,6 +310,13 @@
 	</dependencies>
 
 	<build>
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.7.1</version>
+			</extension>
+		</extensions>	
 		<plugins>
 
 			<plugin>
