@@ -479,7 +479,10 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
             }
             
             // Use the client's customCommand method to execute arbitrary commands
-            return execute(client.customCommand(glideArgs));
+            Object result = execute(client.customCommand(glideArgs));
+            
+            // Convert the result properly
+            return ValkeyGlideConverters.fromGlideResult(result);
             
         } catch (Exception e) {
             throw new DataAccessException("Error executing Redis command: " + command, e) {};

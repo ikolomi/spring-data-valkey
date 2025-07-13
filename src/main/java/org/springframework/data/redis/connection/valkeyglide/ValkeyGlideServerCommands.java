@@ -25,6 +25,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+
 /**
  * Stub implementation of {@link RedisServerCommands} for Valkey-Glide.
  * All methods throw UnsupportedOperationException as placeholder.
@@ -96,13 +97,81 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     @Nullable
     public Properties info() {
-        throw new UnsupportedOperationException("Not implemented yet");
+        try {
+            Object result = connection.execute("INFO");
+            String infoResponse = convertResultToString(result);
+            return parseInfoResponse(infoResponse);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
+        }
     }
 
     @Override
     @Nullable
     public Properties info(String section) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        Assert.notNull(section, "Section must not be null");
+        
+        try {
+            Object result = connection.execute("INFO", section);
+            String infoResponse = convertResultToString(result);
+            return parseInfoResponse(infoResponse);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
+        }
+    }
+
+    /**
+     * Converts the command result to a String, handling both byte[] and String types.
+     * 
+     * @param result the result from the command execution
+     * @return String representation of the result
+     */
+    private String convertResultToString(Object result) {
+        Object convertedResult = ValkeyGlideConverters.fromGlideResult(result);
+        if (convertedResult instanceof byte[]) {
+            return ValkeyGlideConverters.toString((byte[]) convertedResult);
+        } else if (convertedResult instanceof String) {
+            return (String) convertedResult;
+        } else if (convertedResult == null) {
+            return null;
+        } else {
+            return convertedResult.toString();
+        }
+    }
+
+    /**
+     * Parses the INFO command response string into Properties.
+     * 
+     * @param infoResponse the response from the INFO command
+     * @return Properties containing the parsed key-value pairs
+     */
+    private Properties parseInfoResponse(String infoResponse) {
+        Properties properties = new Properties();
+        
+        if (infoResponse == null) {
+            return properties;
+        }
+        
+        String[] lines = infoResponse.split("\r?\n");
+        
+        for (String line : lines) {
+            line = line.trim();
+            
+            // Skip empty lines and comments (lines starting with #)
+            if (line.isEmpty() || line.startsWith("#")) {
+                continue;
+            }
+            
+            // Parse key:value pairs
+            int colonIndex = line.indexOf(':');
+            if (colonIndex > 0 && colonIndex < line.length() - 1) {
+                String key = line.substring(0, colonIndex).trim();
+                String value = line.substring(colonIndex + 1).trim();
+                properties.setProperty(key, value);
+            }
+        }
+        
+        return properties;
     }
 
     @Override
