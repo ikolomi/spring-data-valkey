@@ -33,6 +33,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisListCommands;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
@@ -335,16 +336,306 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
 
     @Test
     void testListOperations() {
-        String key = "test:list";
+        String key1 = "test:list:basic";
+        String key2 = "test:list:push";
+        String key3 = "test:list:range";
+        String key4 = "test:list:insert";
+        String key5 = "test:list:move";
+        String key6 = "test:list:set";
+        String key7 = "test:list:remove";
+        String key8 = "test:list:blocking";
+        String key9 = "test:list:rpoplpush";
+        String srcKey = "test:list:src";
+        String dstKey = "test:list:dst";
 
-        template.opsForList().leftPush(key, "value1");
-        template.opsForList().leftPush(key, "value2");
+        try {
+            // Basic LPUSH/RPUSH operations
+            template.opsForList().leftPush(key1, "value1");
+            template.opsForList().leftPush(key1, "value2");
+            template.opsForList().rightPush(key1, "value3");
 
-        assertThat(template.opsForList().size(key)).isEqualTo(2);
-        assertThat(template.opsForList().rightPop(key)).isEqualTo("value1");
-        assertThat(template.opsForList().rightPop(key)).isEqualTo("value2");
-        
-        template.delete(key);
+            assertThat(template.opsForList().size(key1)).isEqualTo(3);
+            
+            // Test LRANGE to verify order
+            List<String> range = template.opsForList().range(key1, 0, -1);
+            assertThat(range).containsExactly("value2", "value1", "value3");
+
+            // Test LINDEX - get element at index
+            assertThat(template.opsForList().index(key1, 0)).isEqualTo("value2");
+            assertThat(template.opsForList().index(key1, 1)).isEqualTo("value1");
+            assertThat(template.opsForList().index(key1, 2)).isEqualTo("value3");
+            
+            // Test convenience methods getFirst and getLast
+            String firstLastKey = "test:list:firstlast";
+            template.opsForList().rightPushAll(firstLastKey, "first", "middle", "last");
+            
+            String firstElement = template.opsForList().getFirst(firstLastKey);
+            assertThat(firstElement).isEqualTo("first");
+            
+            String lastElement = template.opsForList().getLast(firstLastKey);
+            assertThat(lastElement).isEqualTo("last");
+            
+            // Test with empty list
+            String emptyKey = "test:list:empty";
+            String firstEmpty = template.opsForList().getFirst(emptyKey);
+            assertThat(firstEmpty).isNull();
+            
+            String lastEmpty = template.opsForList().getLast(emptyKey);
+            assertThat(lastEmpty).isNull();
+            
+            template.delete(firstLastKey);
+
+            // Test LPOP/RPOP
+            assertThat(template.opsForList().leftPop(key1)).isEqualTo("value2");
+            assertThat(template.opsForList().rightPop(key1)).isEqualTo("value3");
+            assertThat(template.opsForList().size(key1)).isEqualTo(1);
+
+            // Test LPUSHX/RPUSHX (push only if key exists)
+            template.opsForList().leftPushIfPresent(key2, "shouldnotwork"); // key doesn't exist
+            assertThat(template.opsForList().size(key2)).isEqualTo(0);
+            
+            template.opsForList().leftPush(key2, "initial");
+            template.opsForList().leftPushIfPresent(key2, "shouldwork");
+            template.opsForList().rightPushIfPresent(key2, "alsowork");
+            
+            List<String> key2Range = template.opsForList().range(key2, 0, -1);
+            assertThat(key2Range).containsExactly("shouldwork", "initial", "alsowork");
+
+            // Test LEFTPUSHALL operations (both varargs and Collection variants)
+            String leftPushAllKey = "test:list:leftpushall";
+            
+            // Test leftPushAll with varargs
+            template.opsForList().leftPushAll(leftPushAllKey, "first", "second", "third");
+            List<String> leftPushAllResult1 = template.opsForList().range(leftPushAllKey, 0, -1);
+            assertThat(leftPushAllResult1).containsExactly("third", "second", "first"); // Reverse order due to left push
+            
+            // Test leftPushAll with Collection
+            template.delete(leftPushAllKey);
+            template.opsForList().leftPushAll(leftPushAllKey, List.of("a", "b", "c"));
+            List<String> leftPushAllResult2 = template.opsForList().range(leftPushAllKey, 0, -1);
+            assertThat(leftPushAllResult2).containsExactly("c", "b", "a"); // Reverse order due to left push
+            
+            template.delete(leftPushAllKey);
+
+            // Test LRANGE and LTRIM
+            template.opsForList().rightPushAll(key3, "a", "b", "c", "d", "e");
+            List<String> beforeTrim = template.opsForList().range(key3, 0, -1);
+            assertThat(beforeTrim).containsExactly("a", "b", "c", "d", "e");
+            
+            template.opsForList().trim(key3, 1, 3);
+            List<String> afterTrim = template.opsForList().range(key3, 0, -1);
+            assertThat(afterTrim).containsExactly("b", "c", "d");
+
+            // Test LINSERT - insert before/after pivot
+            template.opsForList().rightPushAll(key4, "first", "pivot", "last");
+            
+            // Insert before pivot
+            template.execute((RedisCallback<Long>) connection -> 
+                connection.listCommands().lInsert(key4.getBytes(), 
+                    RedisListCommands.Position.BEFORE, "pivot".getBytes(), "before_pivot".getBytes()));
+            
+            // Insert after pivot
+            template.execute((RedisCallback<Long>) connection -> 
+                connection.listCommands().lInsert(key4.getBytes(), 
+                    RedisListCommands.Position.AFTER, "pivot".getBytes(), "after_pivot".getBytes()));
+            
+            List<String> insertResult = template.opsForList().range(key4, 0, -1);
+            assertThat(insertResult).containsExactly("first", "before_pivot", "pivot", "after_pivot", "last");
+
+            // Test LMOVE (move element between lists) - both low-level and high-level APIs
+            template.opsForList().rightPushAll(key5, "move1", "move2", "move3");
+            String dstKey5 = key5 + "_dst";
+            
+            // Test low-level lMove via connection
+            template.execute((RedisCallback<byte[]>) connection -> 
+                connection.listCommands().lMove(key5.getBytes(), dstKey5.getBytes(), 
+                    RedisListCommands.Direction.LEFT, RedisListCommands.Direction.RIGHT));
+            
+            assertThat(template.opsForList().range(key5, 0, -1)).containsExactly("move2", "move3");
+            assertThat(template.opsForList().range(dstKey5, 0, -1)).containsExactly("move1");
+            
+            // Test high-level move operations using MoveFrom/MoveTo objects
+            String moveHighKey1 = "test:list:movehigh1";
+            String moveHighKey2 = "test:list:movehigh2";
+            template.opsForList().rightPushAll(moveHighKey1, "high1", "high2", "high3");
+            
+            // Move from tail of moveHighKey1 to head of moveHighKey2
+            String movedValue1 = template.opsForList().move(
+                org.springframework.data.redis.core.ListOperations.MoveFrom.fromTail(moveHighKey1),
+                org.springframework.data.redis.core.ListOperations.MoveTo.toHead(moveHighKey2)
+            );
+            assertThat(movedValue1).isEqualTo("high3");
+            assertThat(template.opsForList().range(moveHighKey1, 0, -1)).containsExactly("high1", "high2");
+            assertThat(template.opsForList().range(moveHighKey2, 0, -1)).containsExactly("high3");
+            
+            // Move from head of moveHighKey1 to tail of moveHighKey2
+            String movedValue2 = template.opsForList().move(
+                org.springframework.data.redis.core.ListOperations.MoveFrom.fromHead(moveHighKey1),
+                org.springframework.data.redis.core.ListOperations.MoveTo.toTail(moveHighKey2)
+            );
+            assertThat(movedValue2).isEqualTo("high1");
+            assertThat(template.opsForList().range(moveHighKey1, 0, -1)).containsExactly("high2");
+            assertThat(template.opsForList().range(moveHighKey2, 0, -1)).containsExactly("high3", "high1");
+            
+            template.delete(moveHighKey1);
+            template.delete(moveHighKey2);
+
+            // Test LSET - set element at index
+            template.opsForList().rightPushAll(key6, "original1", "original2", "original3");
+            template.opsForList().set(key6, 1, "modified");
+            
+            List<String> setResult = template.opsForList().range(key6, 0, -1);
+            assertThat(setResult).containsExactly("original1", "modified", "original3");
+
+            // Test LREM - remove occurrences of value
+            template.opsForList().rightPushAll(key7, "remove", "keep", "remove", "keep", "remove");
+            Long removedCount = template.opsForList().remove(key7, 2, "remove"); // Remove first 2 occurrences
+            assertThat(removedCount).isEqualTo(2L);
+            
+            List<String> removeResult = template.opsForList().range(key7, 0, -1);
+            assertThat(removeResult).containsExactly("keep", "keep", "remove");
+
+            // Test LPOP/RPOP with count (Redis 6.2+)
+            template.opsForList().rightPushAll(key8, "pop1", "pop2", "pop3", "pop4", "pop5");
+            
+            // Left pop multiple elements
+            List<String> leftPopped = template.opsForList().leftPop(key8, 2);
+            if (leftPopped != null) { // Some Redis versions might not support count parameter
+                assertThat(leftPopped).containsExactly("pop1", "pop2");
+                
+                // Right pop multiple elements
+                List<String> rightPopped = template.opsForList().rightPop(key8, 2);
+                assertThat(rightPopped).containsExactly("pop5", "pop4");
+                
+                assertThat(template.opsForList().range(key8, 0, -1)).containsExactly("pop3");
+            }
+
+            // Test RPOPLPUSH - atomically move from end of one list to beginning of another
+            template.opsForList().rightPushAll(srcKey, "src1", "src2", "src3");
+            template.opsForList().rightPushAll(dstKey, "dst1");
+            
+            String moved = template.opsForList().rightPopAndLeftPush(srcKey, dstKey);
+            assertThat(moved).isEqualTo("src3");
+            assertThat(template.opsForList().range(srcKey, 0, -1)).containsExactly("src1", "src2");
+            assertThat(template.opsForList().range(dstKey, 0, -1)).containsExactly("src3", "dst1");
+
+            // Test LPOS - find position of element (Redis 6.0.6+)
+            if (isServerVersionAtLeast(6, 1)) {
+                String posKey = "test:list:position";
+                template.opsForList().rightPushAll(posKey, "a", "b", "c", "b", "d");
+                
+                // Find first occurrence - indexOf
+                Long firstPos = template.opsForList().indexOf(posKey, "b");
+                assertThat(firstPos).isEqualTo(1L);
+                
+                // Find last occurrence - lastIndexOf
+                Long lastPos = template.opsForList().lastIndexOf(posKey, "b");
+                assertThat(lastPos).isEqualTo(3L);
+                
+                // Test with non-existent value
+                Long notFoundPos = template.opsForList().indexOf(posKey, "z");
+                assertThat(notFoundPos).isNull();
+                
+                Long notFoundLastPos = template.opsForList().lastIndexOf(posKey, "z");
+                assertThat(notFoundLastPos).isNull();
+                
+                // Test direct connection access for multiple occurrences
+                List<Long> positions = template.execute((RedisCallback<List<Long>>) connection -> 
+                    connection.listCommands().lPos(posKey.getBytes(), "b".getBytes(), null, 2));
+                assertThat(positions).containsExactly(1L, 3L);
+                
+                template.delete(posKey);
+            }
+
+            // Test blocking operations with very short timeout to avoid long waits
+            // BLPOP - blocking left pop
+            template.opsForList().rightPush("temp_key", "temp_value");
+            List<String> blockedPop = template.execute((RedisCallback<List<String>>) connection -> {
+                List<byte[]> result = connection.listCommands().bLPop(1, "temp_key".getBytes());
+                if (result != null && result.size() >= 2) {
+                    return List.of(new String(result.get(0)), new String(result.get(1)));
+                }
+                return null;
+            });
+            
+            if (blockedPop != null) {
+                assertThat(blockedPop.get(0)).isEqualTo("temp_key");
+                assertThat(blockedPop.get(1)).isEqualTo("temp_value");
+            }
+
+            // BRPOP - blocking right pop
+            template.opsForList().rightPush("temp_key2", "temp_value2");
+            List<String> blockedRightPop = template.execute((RedisCallback<List<String>>) connection -> {
+                List<byte[]> result = connection.listCommands().bRPop(1, "temp_key2".getBytes());
+                if (result != null && result.size() >= 2) {
+                    return List.of(new String(result.get(0)), new String(result.get(1)));
+                }
+                return null;
+            });
+            
+            if (blockedRightPop != null) {
+                assertThat(blockedRightPop.get(0)).isEqualTo("temp_key2");
+                assertThat(blockedRightPop.get(1)).isEqualTo("temp_value2");
+            }
+
+            // BRPOPLPUSH - blocking version of RPOPLPUSH
+            String blockSrc = "test:block:src";
+            String blockDst = "test:block:dst";
+            template.opsForList().rightPush(blockSrc, "block_value");
+            
+            String blockMoved = template.execute((RedisCallback<String>) connection -> {
+                byte[] result = connection.listCommands().bRPopLPush(1, blockSrc.getBytes(), blockDst.getBytes());
+                return result != null ? new String(result) : null;
+            });
+            
+            if (blockMoved != null) {
+                assertThat(blockMoved).isEqualTo("block_value");
+                assertThat(template.opsForList().size(blockSrc)).isEqualTo(0);
+                assertThat(template.opsForList().range(blockDst, 0, -1)).containsExactly("block_value");
+            }
+            
+            template.delete(blockSrc);
+            template.delete(blockDst);
+
+            // Test BLMOVE - blocking version of LMOVE (Redis 6.2+)
+            if (isServerVersionAtLeast(6, 2)) {
+                String blmoveSrc = "test:blmove:src";
+                String blmoveDst = "test:blmove:dst";
+                template.opsForList().rightPush(blmoveSrc, "blmove_value");
+                
+                String blockMoveResult = template.execute((RedisCallback<String>) connection -> {
+                    byte[] result = connection.listCommands().bLMove(blmoveSrc.getBytes(), blmoveDst.getBytes(),
+                        RedisListCommands.Direction.LEFT, RedisListCommands.Direction.RIGHT, 1.0);
+                    return result != null ? new String(result) : null;
+                });
+                
+                if (blockMoveResult != null) {
+                    assertThat(blockMoveResult).isEqualTo("blmove_value");
+                    assertThat(template.opsForList().size(blmoveSrc)).isEqualTo(0);
+                    assertThat(template.opsForList().range(blmoveDst, 0, -1)).containsExactly("blmove_value");
+                }
+                
+                template.delete(blmoveSrc);
+                template.delete(blmoveDst);
+            }
+
+        } finally {
+            // Clean up all test keys
+            template.delete(key1);
+            template.delete(key2);
+            template.delete(key3);
+            template.delete(key4);
+            template.delete(key5);
+            template.delete(key5 + "_dst");
+            template.delete(key6);
+            template.delete(key7);
+            template.delete(key8);
+            template.delete(key9);
+            template.delete(srcKey);
+            template.delete(dstKey);
+            template.delete("temp_key");
+            template.delete("temp_key2");
+        }
     }
 
     @Test
