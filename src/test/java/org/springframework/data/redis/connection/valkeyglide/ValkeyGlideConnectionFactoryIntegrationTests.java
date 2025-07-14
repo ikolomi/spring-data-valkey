@@ -640,14 +640,218 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
 
     @Test
     void testSetOperations() {
-        String key = "test:set";
+        String key1 = "test:set:basic";
+        String key2 = "test:set:operations";
+        String key3 = "test:set:union";
+        String key4 = "test:set:intersection";
+        String key5 = "test:set:difference";
+        String key6 = "test:set:random";
+        String key7 = "test:set:pop";
+        String key8 = "test:set:move";
+        String key9 = "test:set:scan";
+        String key10 = "test:set:scanhigh";
+        String destKey = "test:set:dest";
 
-        template.opsForSet().add(key, "value1", "value2", "value3");
+        try {
+            // Basic SADD operations
+            Long addResult1 = template.opsForSet().add(key1, "value1", "value2", "value3");
+            assertThat(addResult1).isEqualTo(3L);
 
-        assertThat(template.opsForSet().size(key)).isEqualTo(3);
-        assertThat(template.opsForSet().isMember(key, "value2")).isTrue();
-        
-        template.delete(key);
+            // Add duplicate - should return 0
+            Long addResult2 = template.opsForSet().add(key1, "value2");
+            assertThat(addResult2).isEqualTo(0L);
+
+            // SCARD - Set cardinality (size)
+            assertThat(template.opsForSet().size(key1)).isEqualTo(3);
+
+            // SISMEMBER - Check membership
+            assertThat(template.opsForSet().isMember(key1, "value2")).isTrue();
+            assertThat(template.opsForSet().isMember(key1, "nonexistent")).isFalse();
+
+            // SMISMEMBER - Check multiple membership (Redis 6.2+)
+            if (isServerVersionAtLeast(6, 2)) {
+                template.execute((RedisCallback<List<Boolean>>) connection -> {
+                    Map<Object, Boolean> membershipMap = template.opsForSet().isMember(key1, "value1", "nonexistent", "value3");
+                    assertThat(membershipMap.get("value1")).isTrue();
+                    assertThat(membershipMap.get("nonexistent")).isFalse();
+                    assertThat(membershipMap.get("value3")).isTrue();
+                    return null;
+                });
+            }
+
+            // SMEMBERS - Get all members
+            Set<String> members = template.opsForSet().members(key1);
+            assertThat(members).containsExactlyInAnyOrder("value1", "value2", "value3");
+
+            // SREM - Remove members
+            Long remResult1 = template.opsForSet().remove(key1, "value2");
+            assertThat(remResult1).isEqualTo(1L);
+            assertThat(template.opsForSet().size(key1)).isEqualTo(2);
+
+            Long remResult2 = template.opsForSet().remove(key1, "value1", "nonexistent");
+            assertThat(remResult2).isEqualTo(1L); // Only value1 was actually removed
+            assertThat(template.opsForSet().size(key1)).isEqualTo(1);
+
+            // Set up sets for set operations
+            template.opsForSet().add(key2, "a", "b", "c");
+            template.opsForSet().add(key3, "b", "c", "d");
+            template.opsForSet().add(key4, "c", "d", "e");
+
+            // SUNION - Union of sets
+            Set<String> unionResult = template.opsForSet().union(key2, key3);
+            assertThat(unionResult).containsExactlyInAnyOrder("a", "b", "c", "d");
+
+            // SUNION with multiple keys
+            Set<String> unionMultiResult = template.opsForSet().union(key2, List.of(key3, key4));
+            assertThat(unionMultiResult).containsExactlyInAnyOrder("a", "b", "c", "d", "e");
+
+            // SUNIONSTORE - Store union result
+            Long unionStoreResult = template.opsForSet().unionAndStore(key2, key3, destKey);
+            assertThat(unionStoreResult).isEqualTo(4L);
+            assertThat(template.opsForSet().members(destKey)).containsExactlyInAnyOrder("a", "b", "c", "d");
+            template.delete(destKey);
+
+            // SUNIONSTORE with multiple keys
+            Long unionStoreMultiResult = template.opsForSet().unionAndStore(key2, List.of(key3, key4), destKey);
+            assertThat(unionStoreMultiResult).isEqualTo(5L);
+            assertThat(template.opsForSet().members(destKey)).containsExactlyInAnyOrder("a", "b", "c", "d", "e");
+            template.delete(destKey);
+
+            // SINTER - Intersection of sets
+            Set<String> intersectResult = template.opsForSet().intersect(key2, key3);
+            assertThat(intersectResult).containsExactlyInAnyOrder("b", "c");
+
+            // SINTER with multiple keys
+            Set<String> intersectMultiResult = template.opsForSet().intersect(key2, List.of(key3, key4));
+            assertThat(intersectMultiResult).containsExactlyInAnyOrder("c");
+
+            // SINTERSTORE - Store intersection result
+            Long intersectStoreResult = template.opsForSet().intersectAndStore(key2, key3, destKey);
+            assertThat(intersectStoreResult).isEqualTo(2L);
+            assertThat(template.opsForSet().members(destKey)).containsExactlyInAnyOrder("b", "c");
+            template.delete(destKey);
+
+            // SINTERSTORE with multiple keys
+            Long intersectStoreMultiResult = template.opsForSet().intersectAndStore(key2, List.of(key3, key4), destKey);
+            assertThat(intersectStoreMultiResult).isEqualTo(1L);
+            assertThat(template.opsForSet().members(destKey)).containsExactlyInAnyOrder("c");
+            template.delete(destKey);
+
+            // SDIFF - Difference of sets (elements in first set but not in others)
+            Set<String> diffResult = template.opsForSet().difference(key2, key3);
+            assertThat(diffResult).containsExactlyInAnyOrder("a");
+
+            // SDIFF with multiple keys
+            Set<String> diffMultiResult = template.opsForSet().difference(key2, List.of(key3, key4));
+            assertThat(diffMultiResult).containsExactlyInAnyOrder("a");
+
+            // SDIFFSTORE - Store difference result
+            Long diffStoreResult = template.opsForSet().differenceAndStore(key2, key3, destKey);
+            assertThat(diffStoreResult).isEqualTo(1L);
+            assertThat(template.opsForSet().members(destKey)).containsExactlyInAnyOrder("a");
+            template.delete(destKey);
+
+            // SDIFFSTORE with multiple keys
+            Long diffStoreMultiResult = template.opsForSet().differenceAndStore(key2, List.of(key3, key4), destKey);
+            assertThat(diffStoreMultiResult).isEqualTo(1L);
+            assertThat(template.opsForSet().members(destKey)).containsExactlyInAnyOrder("a");
+            template.delete(destKey);
+
+            // SRANDMEMBER operations
+            template.opsForSet().add(key6, "rand1", "rand2", "rand3", "rand4", "rand5");
+            
+            // SRANDMEMBER - Single random member
+            String randomMember = template.opsForSet().randomMember(key6);
+            assertThat(randomMember).isIn("rand1", "rand2", "rand3", "rand4", "rand5");
+
+            // SRANDMEMBER with count (positive - distinct elements)
+            List<String> randomMembers = template.opsForSet().randomMembers(key6, 3);
+            assertThat(randomMembers).hasSize(3);
+            assertThat(randomMembers).allMatch(member -> 
+                List.of("rand1", "rand2", "rand3", "rand4", "rand5").contains(member));
+            
+            // SRANDMEMBER with negative count (allow duplicates)
+            Set<String> randomDistinct = template.opsForSet().distinctRandomMembers(key6, 3);
+            assertThat(randomDistinct).hasSizeLessThanOrEqualTo(3);
+            assertThat(randomDistinct).allMatch(member -> 
+                List.of("rand1", "rand2", "rand3", "rand4", "rand5").contains(member));
+
+            // SPOP operations
+            template.opsForSet().add(key7, "pop1", "pop2", "pop3", "pop4");
+            
+            // SPOP - Single pop
+            String poppedMember = template.opsForSet().pop(key7);
+            assertThat(poppedMember).isIn("pop1", "pop2", "pop3", "pop4");
+            assertThat(template.opsForSet().size(key7)).isEqualTo(3);
+
+            // SPOP with count (Redis 3.2+)
+            List<String> poppedMembers = template.opsForSet().pop(key7, 2);
+            if (poppedMembers != null) { // Some versions might not support count parameter
+                assertThat(poppedMembers).hasSize(2);
+                assertThat(template.opsForSet().size(key7)).isEqualTo(1);
+            }
+
+            // SMOVE - Move member between sets
+            template.opsForSet().add(key8, "move1", "move2", "move3");
+            String moveDestKey = key8 + "_dest";
+            
+            Boolean moveResult = template.opsForSet().move(key8, "move2", moveDestKey);
+            assertThat(moveResult).isTrue();
+            assertThat(template.opsForSet().isMember(key8, "move2")).isFalse();
+            assertThat(template.opsForSet().isMember(moveDestKey, "move2")).isTrue();
+
+            // Try to move non-existent member
+            Boolean moveResult2 = template.opsForSet().move(key8, "nonexistent", moveDestKey);
+            assertThat(moveResult2).isFalse();
+            
+            template.delete(moveDestKey);
+
+            // SSCAN operation (using RedisCallback for direct access to connection)
+            template.opsForSet().add(key9, "scan1", "scan2", "scan3", "scan4", "scan5");
+            
+            // Test sScan using connection directly
+            template.execute((RedisCallback<Void>) connection -> {
+                try (var cursor = connection.setCommands().sScan(key9.getBytes(), 
+                        org.springframework.data.redis.core.ScanOptions.scanOptions().count(10).build())) {
+                    Set<String> scannedMembers = new java.util.HashSet<>();
+                    while (cursor.hasNext()) {
+                        byte[] member = cursor.next();
+                        scannedMembers.add(new String(member));
+                    }
+                    assertThat(scannedMembers).containsExactlyInAnyOrder("scan1", "scan2", "scan3", "scan4", "scan5");
+                }
+                return null;
+            });
+
+            // Test high-level SetOperations.scan() method
+            template.opsForSet().add(key10, "high1", "high2", "high3", "high4", "high5");
+            
+            try (org.springframework.data.redis.core.Cursor<String> cursor = 
+                    template.opsForSet().scan(key10, 
+                        org.springframework.data.redis.core.ScanOptions.scanOptions().count(10).build())) {
+                Set<String> scannedHighMembers = new java.util.HashSet<>();
+                while (cursor.hasNext()) {
+                    String member = cursor.next();
+                    scannedHighMembers.add(member);
+                }
+                assertThat(scannedHighMembers).containsExactlyInAnyOrder("high1", "high2", "high3", "high4", "high5");
+            }
+
+        } finally {
+            // Clean up all test keys
+            template.delete(key1);
+            template.delete(key2);
+            template.delete(key3);
+            template.delete(key4);
+            template.delete(key5);
+            template.delete(key6);
+            template.delete(key7);
+            template.delete(key8);
+            template.delete(key9);
+            template.delete(key10);
+            template.delete(destKey);
+            template.delete(key8 + "_dest");
+        }
     }
 
     @Test
