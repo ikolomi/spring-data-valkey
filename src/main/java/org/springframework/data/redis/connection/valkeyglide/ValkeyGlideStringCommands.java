@@ -571,21 +571,36 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
             }
             
             Object result = connection.execute("BITFIELD", args.toArray());
-            @SuppressWarnings("unchecked")
-            List<Object> list = (List<Object>) ValkeyGlideConverters.fromGlideResult(result);
-            if (list == null) {
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            if (converted == null) {
                 return null;
             }
             
-            List<Long> converted = new ArrayList<>(list.size());
+            List<Object> list;
+            if (converted instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Object> castList = (List<Object>) converted;
+                list = castList;
+            } else if (converted instanceof Object[]) {
+                // Handle case where Glide returns Object[] instead of List
+                Object[] array = (Object[]) converted;
+                list = new ArrayList<>(array.length);
+                for (Object item : array) {
+                    list.add(item);
+                }
+            } else {
+                throw new IllegalStateException("Unexpected result type from BITFIELD: " + converted.getClass());
+            }
+            
+            List<Long> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
                 if (item instanceof Number) {
-                    converted.add(((Number) item).longValue());
+                    resultList.add(((Number) item).longValue());
                 } else {
-                    converted.add(null);
+                    resultList.add(null);
                 }
             }
-            return converted;
+            return resultList;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
