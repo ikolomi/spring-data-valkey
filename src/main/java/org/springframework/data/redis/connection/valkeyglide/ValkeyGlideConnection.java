@@ -38,13 +38,17 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 // Imports from valkey-glide library
 import glide.api.GlideClient;
 import glide.api.models.GlideString;
+import glide.api.models.Batch;
 
 /**
  * Connection to a Redis server using Valkey-Glide client. The connection
@@ -63,6 +67,8 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     private boolean pipelined = false;
     private @Nullable List<Object> pipelinedResults;
     private boolean multi = false;
+    private @Nullable Batch currentBatch;
+    private final Set<GlideString> watchedKeys = new HashSet<>();
     private @Nullable Subscription subscription;
 
     // Command interfaces
@@ -289,13 +295,15 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     @Override
     public void multi() {
         if (pipelined) {
-            // Add MULTI command to pipeline
-            pipeline(execute("MULTI"));
+            // For pipelined mode, we would need to handle this differently
+            // For now, just indicate we're in pipelined transaction mode
+            pipeline("MULTI");
             return;
         }
         
         if (!isQueueing()) {
-            execute("MULTI");
+            // Create atomic batch (transaction)
+            currentBatch = new Batch(true);
             multi = true;
         }
     }
@@ -303,12 +311,13 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     @Override
     public void discard() {
         if (pipelined) {
-            pipeline(execute("DISCARD"));
+            pipeline("DISCARD");
             return;
         }
         
         if (isQueueing()) {
-            execute("DISCARD");
+            // Clear the current batch and reset transaction state
+            currentBatch = null;
             multi = false;
         }
     }
@@ -316,22 +325,66 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     @Override
     public List<Object> exec() {
         if (pipelined) {
-            pipeline(execute("EXEC"));
+            pipeline("EXEC");
             return null;
         }
         
-        if (isQueueing()) {
+        if (isQueueing() && currentBatch != null) {
             try {
-                Object result = execute("EXEC");
-                @SuppressWarnings("unchecked")
-                List<Object> results = (result instanceof List) ? (List<Object>) result : null;
-                return results;
+                // Execute the batch with raiseOnError = true to get proper null for WATCH conflicts
+                Object[] results = ValkeyGlideFutureUtils.get(
+                    client.exec(currentBatch, true), 
+                    timeout, 
+                    new ValkeyGlideExceptionConverter()
+                );
+                
+                // Handle transaction abort cases - valkey-glide returns null for WATCH conflicts
+                if (results == null) {
+                    // Check if we're being called from RedisTemplate context
+                    if (isCalledFromRedisTemplate()) {
+                        // For RedisTemplate compatibility, throw exception that can be caught
+                        throw new ValkeyGlideWatchConflictException("Transaction aborted due to WATCH conflict");
+                    } else {
+                        // For direct connection usage, return null as per Redis specification
+                        return null;
+                    }
+                }
+                
+                // Convert results from Glide format to Spring Data Redis format
+                List<Object> resultList = new ArrayList<>(results.length);
+                for (Object item : results) {
+                    resultList.add(ValkeyGlideConverters.fromGlideResult(item));
+                }
+                return resultList;
+                
+            } catch (Exception ex) {
+                throw ex;
             } finally {
+                // Clean up transaction state
+                currentBatch = null;
                 multi = false;
+                // Watches are automatically cleared after EXEC
+                watchedKeys.clear();
             }
         }
         
         return null;
+    }
+    
+    /**
+     * Checks if this method is being called from RedisTemplate context.
+     * This helps us adapt behavior for template vs direct connection usage.
+     */
+    private boolean isCalledFromRedisTemplate() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+            if (element.getClassName().contains("RedisTemplate") &&
+                (element.getMethodName().equals("execRaw") || 
+                 element.getMethodName().equals("exec"))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -380,7 +433,11 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
             return;
         }
         
+        // Execute WATCH immediately to set up key monitoring at connection level
         execute(client.watch(glideKeys));
+        
+        // Track watched keys for cleanup
+        Collections.addAll(watchedKeys, glideKeys);
     }
 
     @Override
@@ -478,10 +535,23 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
                 }
             }
             
-            // Use the client's customCommand method to execute arbitrary commands
-            Object result = execute(client.customCommand(glideArgs));
+            // Handle transaction mode - add command to batch instead of executing
+            if (isQueueing() && currentBatch != null) {
+                // Add command to the current batch
+                currentBatch.customCommand(glideArgs);
+                return null; // Return null for queued commands in transaction
+            }
             
-            // Convert the result properly
+            // Handle pipelined mode
+            if (isPipelined()) {
+                Object result = execute(client.customCommand(glideArgs));
+                Object converted = ValkeyGlideConverters.fromGlideResult(result);
+                pipeline(converted);
+                return null; // Return null for pipelined commands
+            }
+            
+            // Normal execution
+            Object result = execute(client.customCommand(glideArgs));
             return ValkeyGlideConverters.fromGlideResult(result);
             
         } catch (Exception e) {
