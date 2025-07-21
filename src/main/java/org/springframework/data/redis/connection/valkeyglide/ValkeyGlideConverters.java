@@ -25,7 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Collection;
+
+import org.springframework.data.redis.connection.DataType;
+import org.springframework.data.redis.connection.SortParameters;
+import org.springframework.data.redis.connection.ValueEncoding;
 
 import glide.api.models.GlideString;
 
@@ -85,6 +90,7 @@ public abstract class ValkeyGlideConverters {
         if (result instanceof GlideString) {
             // Convert GlideString back to byte[]
             return ((GlideString) result).getBytes();
+            //return ((GlideString) result).toString();
         } else if (result instanceof ByteBuffer) {
             // Convert ByteBuffer back to byte[]
             ByteBuffer buffer = (ByteBuffer) result;
@@ -92,7 +98,7 @@ public abstract class ValkeyGlideConverters {
             buffer.get(bytes);
             return bytes;
         } else if (result instanceof List) {
-            // Convert list elements
+            // Convert list elements recursively
             List<?> list = (List<?>) result;
             List<Object> converted = new ArrayList<>(list.size());
             for (Object item : list) {
@@ -100,18 +106,34 @@ public abstract class ValkeyGlideConverters {
             }
             return converted;
         } else if (result instanceof Set) {
-            // Convert set elements
+            // Convert set elements recursively, but return as Set
             Set<?> set = (Set<?>) result;
-            List<Object> converted = new ArrayList<>(set.size());
+            Set<Object> converted = new HashSet<>(set.size());
             for (Object item : set) {
                 converted.add(fromGlideResult(item));
             }
-            return set;
+            return converted;
+        } else if (result instanceof Object[]) {
+            // Convert array elements recursively
+            Object[] array = (Object[]) result;
+            List<Object> converted = new ArrayList<>(array.length);
+            for (Object item : array) {
+                converted.add(fromGlideResult(item));
+            }
+            return converted;
         } else if (result instanceof Map) {
-            // Convert map entries
-            return result;
+            // Convert map entries recursively
+            Map<?, ?> map = (Map<?, ?>) result;
+            Map<Object, Object> converted = new java.util.HashMap<>(map.size());
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                converted.put(fromGlideResult(entry.getKey()), fromGlideResult(entry.getValue()));
+            }
+            return converted;
         } else if (result instanceof Number || result instanceof Boolean || result instanceof String) {
             // Simple types can be passed as-is
+            return result;
+        } else if (result instanceof byte[]) {
+            // byte[] should be passed as-is (already in Spring format)
             return result;
         }
         
@@ -163,5 +185,256 @@ public abstract class ValkeyGlideConverters {
             return ((Number) result).longValue() != 0;
         }
         return result != null;
+    }
+
+    /**
+     * Convert Redis TYPE command result to DataType enum.
+     *
+     * @param result The TYPE command result (GlideString is converted to byte[])
+     * @return The corresponding DataType
+     */
+    public static DataType toDataType(@Nullable byte[] result) {
+        if (result == null) {
+            return DataType.NONE;
+        }
+        
+
+        // Convert byte[] to String using UTF-8 encoding
+        String resultStr = new String(result, StandardCharsets.UTF_8);
+        switch (resultStr.toLowerCase()) {
+            case "string":
+                return DataType.STRING;
+            case "list":
+                return DataType.LIST;
+            case "set":
+                return DataType.SET;
+            case "zset":
+                return DataType.ZSET;
+            case "hash":
+                return DataType.HASH;
+            case "stream":
+                return DataType.STREAM;
+            case "none":
+            default:
+                return DataType.NONE;
+        }
+    }
+
+    /**
+     * Convert result to Set<byte[]>.
+     *
+     * @param result The command result
+     * @return Set of byte arrays
+     */
+    @Nullable
+    public static Set<byte[]> toBytesSet(@Nullable Object result) {
+        if (result == null) {
+            return new HashSet<>();
+        }
+        
+        if (result instanceof Collection) {
+            Set<byte[]> set = new HashSet<>();
+            for (Object item : (Collection<?>) result) {
+                if (item instanceof byte[]) {
+                    set.add((byte[]) item);
+                } else if (item instanceof String) {
+                    set.add(((String) item).getBytes(StandardCharsets.UTF_8));
+                } else if (item != null) {
+                    set.add(item.toString().getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            return set;
+        }
+        
+        // Handle array types (Object[] and specific array types)
+        if (result instanceof Object[]) {
+            Set<byte[]> set = new HashSet<>();
+            for (Object item : (Object[]) result) {
+                if (item instanceof byte[]) {
+                    set.add((byte[]) item);
+                } else if (item instanceof String) {
+                    set.add(((String) item).getBytes(StandardCharsets.UTF_8));
+                } else if (item != null) {
+                    set.add(item.toString().getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            return set;
+        }
+        
+        // Handle byte[][] specifically
+        if (result instanceof byte[][]) {
+            Set<byte[]> set = new HashSet<>();
+            for (byte[] item : (byte[][]) result) {
+                if (item != null) {
+                    set.add(item);
+                }
+            }
+            return set;
+        }
+        
+        // Handle String[] specifically
+        if (result instanceof String[]) {
+            Set<byte[]> set = new HashSet<>();
+            for (String item : (String[]) result) {
+                if (item != null) {
+                    set.add(item.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            return set;
+        }
+        
+        return new HashSet<>();
+    }
+
+    /**
+     * Convert result to List<byte[]>.
+     *
+     * @param result The command result
+     * @return List of byte arrays
+     */
+    @Nullable
+    public static List<byte[]> toBytesList(@Nullable Object result) {
+        if (result == null) {
+            return new ArrayList<>();
+        }
+        
+        if (result instanceof Collection) {
+            List<byte[]> list = new ArrayList<>();
+            for (Object item : (Collection<?>) result) {
+                if (item instanceof byte[]) {
+                    list.add((byte[]) item);
+                } else if (item instanceof String) {
+                    list.add(((String) item).getBytes(StandardCharsets.UTF_8));
+                } else if (item != null) {
+                    list.add(item.toString().getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            return list;
+        }
+        
+        // Handle array types (Object[] and specific array types)
+        if (result instanceof Object[]) {
+            List<byte[]> list = new ArrayList<>();
+            for (Object item : (Object[]) result) {
+                if (item instanceof byte[]) {
+                    list.add((byte[]) item);
+                } else if (item instanceof String) {
+                    list.add(((String) item).getBytes(StandardCharsets.UTF_8));
+                } else if (item != null) {
+                    list.add(item.toString().getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            return list;
+        }
+        
+        // Handle byte[][] specifically
+        if (result instanceof byte[][]) {
+            List<byte[]> list = new ArrayList<>();
+            for (byte[] item : (byte[][]) result) {
+                if (item != null) {
+                    list.add(item);
+                }
+            }
+            return list;
+        }
+        
+        // Handle String[] specifically
+        if (result instanceof String[]) {
+            List<byte[]> list = new ArrayList<>();
+            for (String item : (String[]) result) {
+                if (item != null) {
+                    list.add(item.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            return list;
+        }
+        
+        return new ArrayList<>();
+    }
+
+    /**
+     * Append sort parameters to the command arguments.
+     *
+     * @param args The command arguments list
+     * @param params The sort parameters
+     */
+    public static void appendSortParameters(List<Object> args, SortParameters params) {
+        if (params == null) {
+            return;
+        }
+        
+        // Add BY pattern if specified
+        if (params.getByPattern() != null) {
+            args.add("BY");
+            args.add(params.getByPattern());
+        }
+        
+        // Add LIMIT if specified
+        if (params.getLimit() != null) {
+            args.add("LIMIT");
+            args.add(params.getLimit().getStart());
+            args.add(params.getLimit().getCount());
+        }
+        
+        // Add GET patterns if specified
+        if (params.getGetPattern() != null) {
+            for (byte[] pattern : params.getGetPattern()) {
+                args.add("GET");
+                args.add(pattern);
+            }
+        }
+        
+        // Add ORDER if specified
+        if (params.getOrder() != null) {
+            args.add(params.getOrder().name());
+        }
+        
+        // Add ALPHA if specified
+        if (params.isAlphabetic()) {
+            args.add("ALPHA");
+        }
+    }
+
+    /**
+     * Convert OBJECT ENCODING result to ValueEncoding.
+     *
+     * @param result The OBJECT ENCODING command result
+     * @return The corresponding ValueEncoding
+     */
+    @Nullable
+    public static ValueEncoding toValueEncoding(@Nullable Object result) {
+        if (result == null) {
+            return ValueEncoding.RedisValueEncoding.VACANT;
+        }
+        
+        if (result instanceof String) {
+            String encoding = (String) result;
+            switch (encoding.toLowerCase()) {
+                case "raw":
+                    return ValueEncoding.RedisValueEncoding.RAW;
+                case "int":
+                    return ValueEncoding.RedisValueEncoding.INT;
+                case "hashtable":
+                    return ValueEncoding.RedisValueEncoding.HASHTABLE;
+                case "zipmap":
+                case "linkedlist":
+                    return ValueEncoding.RedisValueEncoding.LINKEDLIST;
+                case "ziplist":
+                case "listpack":
+                    return ValueEncoding.RedisValueEncoding.ZIPLIST;
+                case "intset":
+                    return ValueEncoding.RedisValueEncoding.INTSET;
+                case "skiplist":
+                    return ValueEncoding.RedisValueEncoding.SKIPLIST;
+                case "embstr":
+                case "quicklist":
+                case "stream":
+                    return ValueEncoding.RedisValueEncoding.RAW;
+                default:
+                    return ValueEncoding.RedisValueEncoding.VACANT;
+            }
+        }
+        
+        return ValueEncoding.RedisValueEncoding.VACANT;
     }
 }
