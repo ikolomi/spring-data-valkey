@@ -49,7 +49,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
     /**
      * Helper method to convert various object types to byte arrays.
      */
-    private byte[] convertToByteArray(Object obj) {
+    private static byte[] convertToByteArray(Object obj) {
         if (obj == null) {
             return null;
         }
@@ -123,6 +123,10 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(values, "Values must not be null");
         Assert.noNullElements(values, "Values must not contain null elements");
         
+        if (key.length == 0) {
+            throw new IllegalArgumentException("Key must not be empty");
+        }
+        
         try {
             List<Object> args = new ArrayList<>();
             args.add(key);
@@ -143,6 +147,10 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(values, "Values must not be null");
         Assert.noNullElements(values, "Values must not contain null elements");
+        
+        if (key.length == 0) {
+            throw new IllegalArgumentException("Key must not be empty");
+        }
         
         try {
             List<Object> args = new ArrayList<>();
@@ -212,6 +220,10 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
     public Long sCard(byte[] key) {
         Assert.notNull(key, "Key must not be null");
         
+        if (key.length == 0) {
+            throw new IllegalArgumentException("Key must not be empty");
+        }
+        
         try {
             Object result = connection.execute("SCARD", key);
             return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
@@ -250,11 +262,26 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SMISMEMBER", args.toArray());
-            Object[] objectArray = (Object[]) ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
             
-            List<Boolean> resultList = new ArrayList<>(objectArray.length);
-            for (Object item : objectArray) {
-                resultList.add((Boolean) item);
+            List<Object> list;
+            if (converted instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Object> castList = (List<Object>) converted;
+                list = castList;
+            } else if (converted instanceof Object[]) {
+                Object[] array = (Object[]) converted;
+                list = new ArrayList<>(array.length);
+                for (Object item : array) {
+                    list.add(item);
+                }
+            } else {
+                throw new IllegalStateException("Unexpected result type from SMISMEMBER: " + converted.getClass());
+            }
+            
+            List<Boolean> resultList = new ArrayList<>(list.size());
+            for (Object item : list) {
+                resultList.add((Boolean) ValkeyGlideConverters.fromGlideResult(item));
             }
             return resultList;
         } catch (Exception ex) {
@@ -616,47 +643,86 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                 args.add(key);
                 args.add(String.valueOf(cursor));
                 
-                if (options.getCount() != null) {
-                    args.add("COUNT");
-                    args.add(options.getCount());
-                }
-                
                 if (options.getPattern() != null) {
                     args.add("MATCH");
                     args.add(options.getPattern());
                 }
                 
+                if (options.getCount() != null) {
+                    args.add("COUNT");
+                    args.add(options.getCount());
+                }
+                
                 Object result = connection.execute("SSCAN", args.toArray());
                 Object converted = ValkeyGlideConverters.fromGlideResult(result);
                 
-                if (converted instanceof Object[]) {
-                    Object[] scanResult = (Object[]) converted;
-                    if (scanResult.length >= 2) {
-                        // First element is the new cursor
-                        Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResult[0]);
-                        if (cursorObj instanceof String) {
-                            cursor = Long.parseLong((String) cursorObj);
-                        } else if (cursorObj instanceof Number) {
-                            cursor = ((Number) cursorObj).longValue();
+                List<Object> scanResultList;
+                if (converted instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Object> castList = (List<Object>) converted;
+                    scanResultList = castList;
+                } else if (converted instanceof Object[]) {
+                    Object[] array = (Object[]) converted;
+                    scanResultList = new ArrayList<>(array.length);
+                    for (Object item : array) {
+                        scanResultList.add(item);
+                    }
+                } else {
+                    throw new IllegalStateException("Unexpected SSCAN result type: " + (converted != null ? converted.getClass() : "null"));
+                }
+                
+                if (scanResultList.size() >= 2) {
+                    // First element is the new cursor
+                    Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResultList.get(0));
+                    
+                    if (cursorObj instanceof String) {
+                        cursor = Long.parseLong((String) cursorObj);
+                    } else if (cursorObj instanceof Number) {
+                        cursor = ((Number) cursorObj).longValue();
+                    } else if (cursorObj instanceof byte[]) {
+                        cursor = Long.parseLong(new String((byte[]) cursorObj));
+                    }
+                    
+                    if (cursor == 0) {
+                        finished = true;
+                    }
+                    
+                    // Second element is the array/list of members
+                    Object membersObj = ValkeyGlideConverters.fromGlideResult(scanResultList.get(1));
+                    
+                    // Reset members for this batch
+                    members.clear();
+                    currentIndex = 0;
+                    
+                    if (membersObj instanceof Object[]) {
+                        Object[] memberArray = (Object[]) membersObj;
+                        // Process members
+                        for (Object memberObj : memberArray) {
+                            Object convertedMember = ValkeyGlideConverters.fromGlideResult(memberObj);
+                            if (convertedMember instanceof byte[]) {
+                                members.add((byte[]) convertedMember);
+                            } else {
+                                // Handle other types that can be converted to byte[]
+                                byte[] memberBytes = convertToByteArray(convertedMember);
+                                if (memberBytes != null) {
+                                    members.add(memberBytes);
+                                }
+                            }
                         }
-                        
-                        if (cursor == 0) {
-                            finished = true;
-                        }
-                        
-                        // Second element is the array of members
-                        Object membersObj = ValkeyGlideConverters.fromGlideResult(scanResult[1]);
-                        if (membersObj instanceof Object[]) {
-                            Object[] memberArray = (Object[]) membersObj;
-                            // Reset members for this batch
-                            members.clear();
-                            currentIndex = 0;
-                            
-                            // Process members
-                            for (Object memberObj : memberArray) {
-                                Object convertedMember = ValkeyGlideConverters.fromGlideResult(memberObj);
-                                byte[] memberBytes = (byte[]) convertedMember;
-                                members.add(memberBytes);
+                    } else if (membersObj instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> memberList = (List<Object>) membersObj;
+                        // Process members
+                        for (Object memberObj : memberList) {
+                            Object convertedMember = ValkeyGlideConverters.fromGlideResult(memberObj);
+                            if (convertedMember instanceof byte[]) {
+                                members.add((byte[]) convertedMember);
+                            } else {
+                                // Handle other types that can be converted to byte[]
+                                byte[] memberBytes = convertToByteArray(convertedMember);
+                                if (memberBytes != null) {
+                                    members.add(memberBytes);
+                                }
                             }
                         }
                     }
