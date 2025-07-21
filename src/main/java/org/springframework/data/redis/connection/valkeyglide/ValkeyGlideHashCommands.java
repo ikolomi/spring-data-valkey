@@ -756,41 +756,70 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 Object result = connection.execute("HSCAN", args.toArray());
                 Object converted = ValkeyGlideConverters.fromGlideResult(result);
                 
-                if (converted instanceof Object[]) {
-                    Object[] scanResult = (Object[]) converted;
-                    if (scanResult.length >= 2) {
-                        // First element is the new cursor
-                        Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResult[0]);
-                        if (cursorObj instanceof String) {
-                            cursor = Long.parseLong((String) cursorObj);
-                        } else if (cursorObj instanceof Number) {
-                            cursor = ((Number) cursorObj).longValue();
+                // Handle both Object[] and List since fromGlideResult might convert Object[] to List
+                List<Object> scanResult;
+                if (converted instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Object> castList = (List<Object>) converted;
+                    scanResult = castList;
+                } else if (converted instanceof Object[]) {
+                    Object[] array = (Object[]) converted;
+                    scanResult = new ArrayList<>(array.length);
+                    for (Object item : array) {
+                        scanResult.add(item);
+                    }
+                } else {
+                    return;
+                }
+                
+                if (scanResult.size() >= 2) {
+                    // First element is the new cursor
+                    Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResult.get(0));
+                    
+                    if (cursorObj instanceof String) {
+                        cursor = Long.parseLong((String) cursorObj);
+                    } else if (cursorObj instanceof Number) {
+                        cursor = ((Number) cursorObj).longValue();
+                    }
+                    
+                    if (cursor == 0) {
+                        finished = true;
+                    }
+                    
+                    // Second element is the array of field-value pairs
+                    Object fieldsObj = ValkeyGlideConverters.fromGlideResult(scanResult.get(1));
+                    
+                    // Reset entries for this batch
+                    entries.clear();
+                    currentIndex = 0;
+                    
+                    // Handle different possible structures for field-value pairs
+                    List<Object> fieldsList;
+                    if (fieldsObj instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> castList = (List<Object>) fieldsObj;
+                        fieldsList = castList;
+                    } else if (fieldsObj instanceof Object[]) {
+                        Object[] fieldsArray = (Object[]) fieldsObj;
+                        fieldsList = new ArrayList<>(fieldsArray.length);
+                        for (Object item : fieldsArray) {
+                            fieldsList.add(item);
                         }
-                        
-                        if (cursor == 0) {
-                            finished = true;
-                        }
-                        
-                        // Second element is the array of field-value pairs
-                        Object fieldsObj = ValkeyGlideConverters.fromGlideResult(scanResult[1]);
-                        if (fieldsObj instanceof Object[]) {
-                            Object[] fields = (Object[]) fieldsObj;
-                            // Reset entries for this batch
-                            entries.clear();
-                            currentIndex = 0;
+                    } else {
+                        // If fieldsObj is null or unexpected type, skip processing
+                        fieldsList = new ArrayList<>();
+                    }
+                    
+                    // Process field-value pairs
+                    for (int i = 0; i < fieldsList.size(); i += 2) {
+                        if (i + 1 < fieldsList.size()) {
+                            Object fieldObj = ValkeyGlideConverters.fromGlideResult(fieldsList.get(i));
+                            Object valueObj = ValkeyGlideConverters.fromGlideResult(fieldsList.get(i + 1));
                             
-                            // Process field-value pairs
-                            for (int i = 0; i < fields.length; i += 2) {
-                                if (i + 1 < fields.length) {
-                                    Object fieldObj = ValkeyGlideConverters.fromGlideResult(fields[i]);
-                                    Object valueObj = ValkeyGlideConverters.fromGlideResult(fields[i + 1]);
-                                    
-                                    byte[] fieldBytes = (byte[]) fieldObj;
-                                    byte[] valueBytes = (byte[]) valueObj;
-                                    
-                                    entries.add(new HashMap.SimpleEntry<>(fieldBytes, valueBytes));
-                                }
-                            }
+                            byte[] fieldBytes = (byte[]) fieldObj;
+                            byte[] valueBytes = (byte[]) valueObj;
+                            
+                            entries.add(new HashMap.SimpleEntry<>(fieldBytes, valueBytes));
                         }
                     }
                 }

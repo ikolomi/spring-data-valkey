@@ -351,11 +351,11 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests {
             Map<byte[], byte[]> all = connection.hashCommands().hGetAll(keyBytes);
             assertThat(all).hasSize(3);
 
-            for (Map.Entry<byte[], byte[]> entry : all.entrySet()) {
-                String keyStr = new String(entry.getKey(), StandardCharsets.UTF_8);
-                String valueStr = new String(entry.getValue(), StandardCharsets.UTF_8);
-                System.out.println("Key: " + keyStr + ", Value: " + valueStr);
-            }
+            // for (Map.Entry<byte[], byte[]> entry : all.entrySet()) {
+            //     String keyStr = new String(entry.getKey(), StandardCharsets.UTF_8);
+            //     String valueStr = new String(entry.getValue(), StandardCharsets.UTF_8);
+            //     System.out.println("Key: " + keyStr + ", Value: " + valueStr);
+            // }
 
             // Since byte arrays are compared by reference, not content, we need to check the content differently
             boolean foundField1 = false, foundField2 = false, foundField3 = false;
