@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.time.Duration;
 import java.util.List;
@@ -67,9 +66,7 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
         template.afterPropertiesSet();
 
         // Check if server is available and log the result
-        boolean serverAvailable = isServerAvailable(connectionFactory);
-        // Skip tests if server is not available
-        assumeTrue(serverAvailable, "Redis server is not available");
+        validateServerExistance(connectionFactory);
     }
 
     @AfterAll
@@ -1049,11 +1046,12 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
     }
 
     /**
-     * Checks if the Redis server is available.
+     * Validates that the Redis server exists and is accessible.
      */
-    private boolean isServerAvailable(RedisConnectionFactory factory) {
-        RedisConnection connection = factory.getConnection();
-        return connection.ping().equals("PONG");
+    private void validateServerExistance(RedisConnectionFactory factory) {
+        try (RedisConnection connection = factory.getConnection()) {
+            assertThat(connection.ping()).isEqualTo("PONG");
+        }
     }
 
     /**

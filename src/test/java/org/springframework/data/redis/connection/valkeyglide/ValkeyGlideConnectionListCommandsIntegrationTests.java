@@ -16,25 +16,15 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 
 /**
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
@@ -55,44 +45,19 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
  * @author Ilya Kolomin
  * @since 2.0
  */
-@TestInstance(Lifecycle.PER_CLASS)
-public class ValkeyGlideConnectionListCommandsIntegrationTests {
+public class ValkeyGlideConnectionListCommandsIntegrationTests extends AbstractValkeyGlideIntegrationTests {
 
-    private ValkeyGlideConnectionFactory connectionFactory;
-    private RedisConnection connection;
-
-    @BeforeAll
-    void setUpAll() {
-        // Create connection factory
-        connectionFactory = createConnectionFactory();
-        
-        // Check if server is available
-        boolean serverAvailable = isServerAvailable(connectionFactory);
-        assumeTrue(serverAvailable, "Redis server is not available");
-    }
-
-    @BeforeEach
-    void setUp() {
-        connection = connectionFactory.getConnection();
-        
-        // Clean up any existing test keys
-        cleanupTestKeys();
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (connection != null && !connection.isClosed()) {
-            // Clean up any remaining test keys
-            cleanupTestKeys();
-            connection.close();
-        }
-    }
-
-    @AfterAll
-    void tearDownAll() {
-        if (connectionFactory != null) {
-            connectionFactory.destroy();
-        }
+    @Override
+    protected String[] getTestKeyPatterns() {
+        return new String[]{
+            "test:list:pushpop", "test:list:pushx:existing", "test:list:pushx:nonexistent",
+            "test:list:lpos", "test:list:len:range", "test:list:trim", "test:list:index",
+            "test:list:insert", "test:list:move:source", "test:list:move:dest",
+            "test:list:blmove:source", "test:list:blmove:dest", "test:list:rem", "test:list:pop",
+            "test:list:blpop:key1", "test:list:blpop:key2", "test:list:rpoplpush:source",
+            "test:list:rpoplpush:dest", "test:list:brpoplpush:source", "test:list:brpoplpush:dest",
+            "test:list:error:string", "test:list:empty", "test:list:binary", "non:existent:key"
+        };
     }
 
     // ==================== Basic List Operations ====================
@@ -861,57 +826,4 @@ public class ValkeyGlideConnectionListCommandsIntegrationTests {
         }
     }
 
-    // ==================== Helper Methods ====================
-
-    private ValkeyGlideConnectionFactory createConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(getRedisHost());
-        config.setPort(getRedisPort());
-        return ValkeyGlideConnectionFactory.createValkeyGlideConnectionFactory(config);
-    }
-
-    private boolean isServerAvailable(RedisConnectionFactory factory) {
-        try (RedisConnection connection = factory.getConnection()) {
-            return "PONG".equals(connection.ping());
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private String getRedisHost() {
-        return System.getProperty("redis.host", "localhost");
-    }
-
-    private int getRedisPort() {
-        return Integer.parseInt(System.getProperty("redis.port", "6379"));
-    }
-
-    private void cleanupTestKeys() {
-        // Clean up specific test key patterns
-        String[] testKeys = {
-            "test:list:pushpop", "test:list:pushx:existing", "test:list:pushx:nonexistent",
-            "test:list:lpos", "test:list:len:range", "test:list:trim", "test:list:index",
-            "test:list:insert", "test:list:move:source", "test:list:move:dest",
-            "test:list:blmove:source", "test:list:blmove:dest", "test:list:rem", "test:list:pop",
-            "test:list:blpop:key1", "test:list:blpop:key2", "test:list:rpoplpush:source",
-            "test:list:rpoplpush:dest", "test:list:brpoplpush:source", "test:list:brpoplpush:dest",
-            "test:list:error:string", "test:list:empty", "test:list:binary", "non:existent:key"
-        };
-        
-        for (String key : testKeys) {
-            try {
-                connection.keyCommands().del(key.getBytes());
-            } catch (Exception e) {
-                // Ignore cleanup errors
-            }
-        }
-    }
-    
-    private void cleanupKey(String key) {
-        try {
-            connection.keyCommands().del(key.getBytes());
-        } catch (Exception e) {
-            // Ignore cleanup errors
-        }
-    }
 }

@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -24,19 +23,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.core.Cursor;
@@ -61,44 +51,25 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Ilya Kolomin
  * @since 2.0
  */
-@TestInstance(Lifecycle.PER_CLASS)
-public class ValkeyGlideConnectionKeyCommandsIntegrationTests {
+public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractValkeyGlideIntegrationTests {
 
-    private ValkeyGlideConnectionFactory connectionFactory;
-    private RedisConnection connection;
-
-    @BeforeAll
-    void setUpAll() {
-        // Create connection factory
-        connectionFactory = createConnectionFactory();
-        
-        // Check if server is available
-        boolean serverAvailable = isServerAvailable(connectionFactory);
-        assumeTrue(serverAvailable, "Redis server is not available");
-    }
-
-    @BeforeEach
-    void setUp() {
-        connection = connectionFactory.getConnection();
-        
-        // Clean up any existing test keys
-        cleanupTestKeys();
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (connection != null && !connection.isClosed()) {
-            // Clean up any remaining test keys
-            cleanupTestKeys();
-            connection.close();
-        }
-    }
-
-    @AfterAll
-    void tearDownAll() {
-        if (connectionFactory != null) {
-            connectionFactory.destroy();
-        }
+    @Override
+    protected String[] getTestKeyPatterns() {
+        return new String[]{
+            "test:key:exists:key1", "test:key:exists:key2", "test:key:exists:key3",
+            "test:key:copy:source", "test:key:copy:target", "test:key:copy:existing",
+            "test:key:type:string", "test:key:type:list", "test:key:type:hash", 
+            "test:key:touch:key1", "test:key:touch:key2", "test:key:touch:key3",
+            "test:key:keys:abc", "test:key:keys:def", "test:key:keys:xyz", "test:other:pattern",
+            "test:key:random:key1", "test:key:random:key2",
+            "test:key:scan:item1", "test:key:scan:item2", "test:key:scan:other1",
+            "test:key:rename:old", "test:key:rename:new",
+            "test:key:renamenx:old", "test:key:renamenx:new", "test:key:renamenx:existing",
+            "test:key:expire", "test:key:pexpire", "test:key:expireat", "test:key:pexpireat",
+            "test:key:persist", "test:key:ttl", "test:key:pttl",
+            "test:key:error:same", "test:key:expiration:edge",
+            "non:existent:key", "new:key"
+        };
     }
 
     // ==================== Basic Key Operations ====================
@@ -749,63 +720,4 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests {
         }
     }
 
-    // ==================== Helper Methods ====================
-
-    private ValkeyGlideConnectionFactory createConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(getRedisHost());
-        config.setPort(getRedisPort());
-        return ValkeyGlideConnectionFactory.createValkeyGlideConnectionFactory(config);
-    }
-
-    private boolean isServerAvailable(RedisConnectionFactory factory) {
-        try (RedisConnection connection = factory.getConnection()) {
-            return "PONG".equals(connection.ping());
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private String getRedisHost() {
-        return System.getProperty("redis.host", "localhost");
-    }
-
-    private int getRedisPort() {
-        return Integer.parseInt(System.getProperty("redis.port", "6379"));
-    }
-
-    private void cleanupTestKeys() {
-        // Clean up specific test key patterns
-        String[] testKeys = {
-            "test:key:exists:key1", "test:key:exists:key2", "test:key:exists:key3",
-            "test:key:copy:source", "test:key:copy:target", "test:key:copy:existing",
-            "test:key:type:string", "test:key:type:list", "test:key:type:hash", 
-            "test:key:touch:key1", "test:key:touch:key2", "test:key:touch:key3",
-            "test:key:keys:abc", "test:key:keys:def", "test:key:keys:xyz", "test:other:pattern",
-            "test:key:random:key1", "test:key:random:key2",
-            "test:key:scan:item1", "test:key:scan:item2", "test:key:scan:other1",
-            "test:key:rename:old", "test:key:rename:new",
-            "test:key:renamenx:old", "test:key:renamenx:new", "test:key:renamenx:existing",
-            "test:key:expire", "test:key:pexpire", "test:key:expireat", "test:key:pexpireat",
-            "test:key:persist", "test:key:ttl", "test:key:pttl",
-            "test:key:error:same", "test:key:expiration:edge",
-            "non:existent:key", "non:existent:key"
-        };
-        
-        for (String key : testKeys) {
-            try {
-                connection.keyCommands().del(key.getBytes());
-            } catch (Exception e) {
-                // Ignore cleanup errors
-            }
-        }
-    }
-    
-    private void cleanupKey(String key) {
-        try {
-            connection.keyCommands().del(key.getBytes());
-        } catch (Exception e) {
-            // Ignore cleanup errors
-        }
-    }
 }

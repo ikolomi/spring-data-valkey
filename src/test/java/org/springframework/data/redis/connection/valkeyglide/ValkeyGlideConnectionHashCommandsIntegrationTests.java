@@ -16,7 +16,6 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -27,18 +26,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import org.springframework.data.redis.connection.ExpirationOptions;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 
@@ -59,44 +49,17 @@ import org.springframework.data.redis.core.ScanOptions;
  * @author Ilya Kolomin
  * @since 2.0
  */
-@TestInstance(Lifecycle.PER_CLASS)
-public class ValkeyGlideConnectionHashCommandsIntegrationTests {
+public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractValkeyGlideIntegrationTests {
 
-    private ValkeyGlideConnectionFactory connectionFactory;
-    private RedisConnection connection;
-
-    @BeforeAll
-    void setUpAll() {
-        // Create connection factory
-        connectionFactory = createConnectionFactory();
-        
-        // Check if server is available
-        boolean serverAvailable = isServerAvailable(connectionFactory);
-        assumeTrue(serverAvailable, "Redis server is not available");
-    }
-
-    @BeforeEach
-    void setUp() {
-        connection = connectionFactory.getConnection();
-        
-        // Clean up any existing test keys
-        cleanupTestKeys();
-    }
-
-    @AfterEach
-    void tearDown() {
-        if (connection != null && !connection.isClosed()) {
-            // Clean up any remaining test keys
-            cleanupTestKeys();
-            connection.close();
-        }
-    }
-
-    @AfterAll
-    void tearDownAll() {
-        if (connectionFactory != null) {
-            connectionFactory.destroy();
-        }
+    @Override
+    protected String[] getTestKeyPatterns() {
+        return new String[]{
+            "test:hash:basic", "test:hash:setnx", "test:hash:multi", "test:hash:incr",
+            "test:hash:exists", "test:hash:structure", "test:hash:random", "test:hash:randomwithvals",
+            "test:hash:scan", "test:hash:strlen", "test:hash:expire", "test:hash:expireat",
+            "test:hash:persist", "test:hash:ttl", "test:hash:error:string", "test:hash:empty",
+            "test:hash:binary", "non:existent:key"
+        };
     }
 
     // ==================== Basic Hash Operations ====================
@@ -798,55 +761,4 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests {
         }
     }
 
-    // ==================== Helper Methods ====================
-
-    private ValkeyGlideConnectionFactory createConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(getRedisHost());
-        config.setPort(getRedisPort());
-        return ValkeyGlideConnectionFactory.createValkeyGlideConnectionFactory(config);
-    }
-
-    private boolean isServerAvailable(RedisConnectionFactory factory) {
-        try (RedisConnection connection = factory.getConnection()) {
-            return "PONG".equals(connection.ping());
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private String getRedisHost() {
-        return System.getProperty("redis.host", "localhost");
-    }
-
-    private int getRedisPort() {
-        return Integer.parseInt(System.getProperty("redis.port", "6379"));
-    }
-
-    private void cleanupTestKeys() {
-        // Clean up specific test key patterns
-        String[] testKeys = {
-            "test:hash:basic", "test:hash:setnx", "test:hash:multi", "test:hash:incr",
-            "test:hash:exists", "test:hash:structure", "test:hash:random", "test:hash:randomwithvals",
-            "test:hash:scan", "test:hash:strlen", "test:hash:expire", "test:hash:expireat",
-            "test:hash:persist", "test:hash:ttl", "test:hash:error:string", "test:hash:empty",
-            "test:hash:binary", "non:existent:key"
-        };
-        
-        for (String key : testKeys) {
-            try {
-                connection.keyCommands().del(key.getBytes());
-            } catch (Exception e) {
-                // Ignore cleanup errors
-            }
-        }
-    }
-    
-    private void cleanupKey(String key) {
-        try {
-            connection.keyCommands().del(key.getBytes());
-        } catch (Exception e) {
-            // Ignore cleanup errors
-        }
-    }
 }

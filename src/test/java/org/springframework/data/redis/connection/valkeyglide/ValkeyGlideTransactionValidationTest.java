@@ -16,19 +16,14 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -42,18 +37,24 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  * 
  * @author Ilya Kolomin
  */
-@TestInstance(Lifecycle.PER_CLASS)
-public class ValkeyGlideTransactionValidationTest {
+public class ValkeyGlideTransactionValidationTest extends AbstractValkeyGlideIntegrationTests {
 
-    private ValkeyGlideConnectionFactory connectionFactory;
     private RedisTemplate<String, String> template;
 
-    @BeforeAll
-    void setup() {
-        // Create a connection factory for tests
-        connectionFactory = createConnectionFactory();
+    @Override
+    protected String[] getTestKeyPatterns() {
+        return new String[]{
+            "test:tx:basic:key1", "test:tx:basic:key2",
+            "test:tx:discard:key", "test:tx:watch:key", "test:tx:watch:conflict",
+            "test:tx:lowlevel:key", "test:tx:lowlevel:key2",
+            "test:tx:pipeline:key1", "test:tx:pipeline:key2",
+            "test:tx:nested:key"
+        };
+    }
 
-        // Create a template for easier testing
+    @BeforeAll
+    void setupTemplate() {
+        // Create a template for easier testing using the inherited connection factory
         template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(StringRedisSerializer.UTF_8);
@@ -61,18 +62,12 @@ public class ValkeyGlideTransactionValidationTest {
         template.setHashKeySerializer(StringRedisSerializer.UTF_8);
         template.setHashValueSerializer(StringRedisSerializer.UTF_8);
         template.afterPropertiesSet();
-
-        // Check if server is available and log the result
-        boolean serverAvailable = isServerAvailable(connectionFactory);
-        // Skip tests if server is not available
-        assumeTrue(serverAvailable, "Redis server is not available");
     }
 
     @AfterAll
-    void teardown() {
-        if (connectionFactory != null) {
-            connectionFactory.destroy();
-        }
+    void teardownTemplate() {
+        // Template cleanup - connection factory is handled by abstract class
+        template = null;
     }
 
     @Test
@@ -342,40 +337,5 @@ public class ValkeyGlideTransactionValidationTest {
             // Clean up test key
             template.delete(key);
         }
-    }
-
-    /**
-     * Creates a connection factory for testing.
-     */
-    private ValkeyGlideConnectionFactory createConnectionFactory() {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(getRedisHost());
-        config.setPort(getRedisPort());
-        return ValkeyGlideConnectionFactory.createValkeyGlideConnectionFactory(config);
-    }
-
-    /**
-     * Checks if the Redis server is available.
-     */
-    private boolean isServerAvailable(RedisConnectionFactory factory) {
-        try (RedisConnection connection = factory.getConnection()) {
-            return connection.ping().equals("PONG");
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    /**
-     * Gets the Redis host from environment or uses default.
-     */
-    private String getRedisHost() {
-        return System.getProperty("redis.host", "localhost");
-    }
-
-    /**
-     * Gets the Redis port from environment or uses default.
-     */
-    private int getRedisPort() {
-        return Integer.parseInt(System.getProperty("redis.port", "6379"));
     }
 }
