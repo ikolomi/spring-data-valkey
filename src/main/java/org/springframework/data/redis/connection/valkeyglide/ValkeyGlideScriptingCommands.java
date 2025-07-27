@@ -58,16 +58,6 @@ public class ValkeyGlideScriptingCommands implements RedisScriptingCommands {
         args[1] = String.valueOf(numKeys);
         System.arraycopy(keysAndArgs, 0, args, 2, keysAndArgs.length);
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("EVAL", args));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("EVAL", args);
-            return null;
-        }
-        
         return convertResult(connection.execute("EVAL", args), returnType);
     }
 
@@ -82,16 +72,6 @@ public class ValkeyGlideScriptingCommands implements RedisScriptingCommands {
         args[1] = String.valueOf(numKeys);
         System.arraycopy(keysAndArgs, 0, args, 2, keysAndArgs.length);
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("EVALSHA", args));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("EVALSHA", args);
-            return null;
-        }
-        
         return convertResult(connection.execute("EVALSHA", args), returnType);
     }
 
@@ -102,16 +82,6 @@ public class ValkeyGlideScriptingCommands implements RedisScriptingCommands {
 
     @Override
     public void scriptFlush() {
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("SCRIPT", "FLUSH"));
-            return;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("SCRIPT", "FLUSH");
-            return;
-        }
-        
         connection.execute("SCRIPT", "FLUSH");
     }
 
@@ -129,16 +99,6 @@ public class ValkeyGlideScriptingCommands implements RedisScriptingCommands {
             args[i + 1] = scriptSha1s[i];
         }
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("SCRIPT", args));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("SCRIPT", args);
-            return null;
-        }
-        
         List<Long> result = (List<Long>) connection.execute("SCRIPT", args);
         List<Boolean> exists = new ArrayList<>(result.size());
         for (Long value : result) {
@@ -159,31 +119,11 @@ public class ValkeyGlideScriptingCommands implements RedisScriptingCommands {
     public String scriptLoad(byte[] script) {
         Assert.notNull(script, "Script must not be null!");
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("SCRIPT", "LOAD", script));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("SCRIPT", "LOAD", script);
-            return null;
-        }
-        
         return new String((byte[]) connection.execute("SCRIPT", "LOAD", script));
     }
 
     @Override
     public void scriptKill() {
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("SCRIPT", "KILL"));
-            return;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("SCRIPT", "KILL");
-            return;
-        }
-        
         connection.execute("SCRIPT", "KILL");
     }
     

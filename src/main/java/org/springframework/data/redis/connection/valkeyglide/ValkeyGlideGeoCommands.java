@@ -64,16 +64,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
 
         try {
             Object result = connection.execute("GEOADD", key, point.getX(), point.getY(), member);
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
@@ -103,16 +93,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             }
             
             Object result = connection.execute("GEOADD", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
@@ -144,16 +124,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
 
         try {
             Object result = connection.execute("GEOADD", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
@@ -177,16 +147,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
 
         try {
             Object result = connection.execute("GEODIST", key, member1, member2, metric.getAbbreviation());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             if (converted == null) {
                 return null;
@@ -214,16 +174,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             }
             
             Object result = connection.execute("GEOHASH", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             if (converted == null) {
                 return new ArrayList<>();
@@ -264,16 +214,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             }
             
             Object result = connection.execute("GEOPOS", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             if (converted == null) {
                 return new ArrayList<>();
@@ -320,16 +260,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoRadiusArgs(commandArgs, args);
             
             Object result = connection.execute("GEORADIUS", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             return parseGeoResults(result, args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -361,16 +291,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoRadiusArgs(commandArgs, args);
             
             Object result = connection.execute("GEORADIUSBYMEMBER", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             return parseGeoResults(result, args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -392,16 +312,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             }
             
             Object result = connection.execute("ZREM", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
@@ -427,16 +337,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoSearchArgs(commandArgs, args);
             
             Object result = connection.execute("GEOSEARCH", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             return parseGeoResults(result, args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -463,16 +363,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoSearchStoreArgs(commandArgs, args);
             
             Object result = connection.execute("GEOSEARCHSTORE", commandArgs.toArray());
-            
-            if (connection.isPipelined()) {
-                connection.pipeline(result);
-                return null;
-            }
-            
-            if (connection.isQueueing()) {
-                return null;
-            }
-            
             Object converted = ValkeyGlideConverters.fromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {

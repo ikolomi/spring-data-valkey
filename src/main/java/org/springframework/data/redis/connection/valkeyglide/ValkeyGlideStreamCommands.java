@@ -68,16 +68,6 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             params[i + 2] = recordIds[i].getValue();
         }
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("XACK", params));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("XACK", params);
-            return null;
-        }
-
         return (Long) connection.execute("XACK", params);
     }
 
@@ -122,16 +112,6 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             params.add(entry.getValue());
         }
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("XADD", params.toArray()));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("XADD", params.toArray());
-            return null;
-        }
-
         byte[] responseBytes = (byte[]) connection.execute("XADD", params.toArray());
         String response = new String(responseBytes);
         return RecordId.of(response);
@@ -151,16 +131,6 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
         
         for (int i = 0; i < recordIds.length; i++) {
             params[i + 1] = recordIds[i].getValue();
-        }
-        
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("XDEL", params));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("XDEL", params);
-            return null;
         }
         
         return (Long) connection.execute("XDEL", params);
@@ -185,16 +155,6 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
         
         if (makeStream) {
             args.add("MKSTREAM");
-        }
-
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("XGROUP", args.toArray()));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("XGROUP", args.toArray());
-            return null;
         }
 
         return new String((byte[]) connection.execute("XGROUP", args.toArray()));
@@ -228,16 +188,6 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
     @Override
     public Long xLen(byte[] key) {
         Assert.notNull(key, "Key must not be null!");
-        
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("XLEN", key));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("XLEN", key);
-            return null;
-        }
         
         return (Long) connection.execute("XLEN", key);
     }
@@ -292,16 +242,6 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
         }
         
         args.add(String.valueOf(count));
-
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("XTRIM", args.toArray()));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("XTRIM", args.toArray());
-            return null;
-        }
 
         return (Long) connection.execute("XTRIM", args.toArray());
     }

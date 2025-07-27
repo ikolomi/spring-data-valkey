@@ -53,16 +53,6 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
         args[0] = key;
         System.arraycopy(values, 0, args, 1, values.length);
 
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("PFADD", args));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("PFADD", args);
-            return null;
-        }
-
         return (Long) connection.execute("PFADD", args);
     }
 
@@ -73,16 +63,6 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
 
         if (keys.length == 0) {
             throw new IllegalArgumentException("At least one key is required for PFCOUNT");
-        }
-
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("PFCOUNT", keys));
-            return null;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("PFCOUNT", keys);
-            return null;
         }
 
         return (Long) connection.execute("PFCOUNT", keys);
@@ -101,16 +81,6 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
         Object[] args = new Object[1 + sourceKeys.length];
         args[0] = destinationKey;
         System.arraycopy(sourceKeys, 0, args, 1, sourceKeys.length);
-
-        if (connection.isPipelined()) {
-            connection.pipeline(connection.execute("PFMERGE", args));
-            return;
-        }
-
-        if (connection.isQueueing()) {
-            connection.execute("PFMERGE", args);
-            return;
-        }
 
         connection.execute("PFMERGE", args);
     }
