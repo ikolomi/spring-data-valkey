@@ -108,7 +108,6 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         
         // lastSave should return a timestamp or null
         if (lastSaveTime != null) {
-            System.out.println("LASTSAVE returned timestamp: " + lastSaveTime);
             assertThat(lastSaveTime).isGreaterThan(0L);
             // The timestamp should be reasonable (not in the future, allowing for clock skew)
             long currentTimeSeconds = System.currentTimeMillis() / 1000;
