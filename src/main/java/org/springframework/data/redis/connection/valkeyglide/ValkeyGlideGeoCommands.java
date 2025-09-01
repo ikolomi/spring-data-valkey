@@ -260,7 +260,7 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoRadiusArgs(commandArgs, args);
             
             Object result = connection.execute("GEORADIUS", commandArgs.toArray());
-            return parseGeoResults(result, args);
+            return parseGeoResults(result, args, within.getRadius().getMetric());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -291,7 +291,7 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoRadiusArgs(commandArgs, args);
             
             Object result = connection.execute("GEORADIUSBYMEMBER", commandArgs.toArray());
-            return parseGeoResults(result, args);
+            return parseGeoResults(result, args, radius.getMetric());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -500,6 +500,10 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
     }
 
     private GeoResults<GeoLocation<byte[]>> parseGeoResults(Object result, GeoCommandArgs args) {
+        return parseGeoResults(result, args, DistanceUnit.METERS);
+    }
+    
+    private GeoResults<GeoLocation<byte[]>> parseGeoResults(Object result, GeoCommandArgs args, Metric defaultMetric) {
         Object converted = ValkeyGlideConverters.fromGlideResult(result);
         if (converted == null) {
             return new GeoResults<>(new ArrayList<>());
@@ -528,13 +532,13 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
                     if (distObj != null) {
                         try {
                             double dist = parseDouble(distObj);
-                            distance = new Distance(dist, DistanceUnit.METERS);
+                            distance = new Distance(dist, defaultMetric);
                         } catch (Exception e) {
                             // If distance parsing fails, use a default distance to avoid null
-                            distance = new Distance(0.0, DistanceUnit.METERS);
+                            distance = new Distance(0.0, defaultMetric);
                         }
                     } else {
-                        distance = new Distance(0.0, DistanceUnit.METERS);
+                        distance = new Distance(0.0, defaultMetric);
                     }
                 }
                 if (hasCoordinate && index < itemList.size()) {
@@ -545,14 +549,14 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
                 GeoLocation<byte[]> location = new GeoLocation<>(member, point);
                 // Ensure we don't pass null distance to GeoResult
                 if (distance == null) {
-                    distance = new Distance(0.0, DistanceUnit.METERS);
+                    distance = new Distance(0.0, defaultMetric);
                 }
                 geoResults.add(new GeoResult<>(location, distance));
             } else {
                 // Simple result format - just member names
                 byte[] member = (byte[]) convertedItem;
                 GeoLocation<byte[]> location = new GeoLocation<>(member, null);
-                geoResults.add(new GeoResult<>(location, new Distance(0.0, DistanceUnit.METERS)));
+                geoResults.add(new GeoResult<>(location, new Distance(0.0, defaultMetric)));
             }
         }
         

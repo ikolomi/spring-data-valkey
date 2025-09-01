@@ -1548,28 +1548,11 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             // Standard flat format: [member, score, member, score, ...]
             for (int i = 0; i < list.size(); i += 2) {
                 if (i + 1 < list.size()) {
-                    Object firstObj = ValkeyGlideConverters.fromGlideResult(list.get(i));
-                    Object secondObj = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
+                    Object valueObj = ValkeyGlideConverters.fromGlideResult(list.get(i));
+                    Object scoreObj = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
                     
-                    byte[] value;
-                    Double score;
-                    
-                    try {
-                        // Try [member, score] format first
-                        value = convertToByteArray(firstObj);
-                        score = parseScore(secondObj);
-                    } catch (Exception e) {
-                        // If that fails, try [score, member] format
-                        try {
-                            score = parseScore(firstObj);
-                            value = convertToByteArray(secondObj);
-                        } catch (Exception e2) {
-                            // If both fail, fallback to string representation
-                            value = convertToByteArray(firstObj);
-                            score = 0.0; // Default score
-                        }
-                    }
-                    
+                    byte[] value = convertToByteArray(valueObj);
+                    Double score = parseScore(scoreObj);
                     resultSet.add(new DefaultTuple(value, score));
                 }
             }
@@ -1589,7 +1572,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
 
     private String formatLexRangeBound(org.springframework.data.domain.Range.Bound<byte[]> bound) {
         if (bound == null || !bound.getValue().isPresent()) {
-            return bound != null && bound.isInclusive() ? "-" : "+";
+            return "-";
         }
         
         String value = new String(bound.getValue().get());

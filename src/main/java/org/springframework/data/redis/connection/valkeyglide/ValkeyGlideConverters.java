@@ -389,8 +389,9 @@ public abstract class ValkeyGlideConverters {
             args.add(params.getOrder().name());
         }
         
-        // Add ALPHA if specified
-        if (params.isAlphabetic()) {
+        // Add ALPHA if specified - check for null safely
+        Boolean isAlphabetic = params.isAlphabetic();
+        if (isAlphabetic != null && isAlphabetic) {
             args.add("ALPHA");
         }
     }

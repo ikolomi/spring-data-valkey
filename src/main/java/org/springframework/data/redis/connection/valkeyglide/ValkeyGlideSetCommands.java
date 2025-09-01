@@ -135,7 +135,8 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SADD", args.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -160,7 +161,8 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SREM", args.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -226,7 +228,8 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SCARD", key);
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -352,7 +355,8 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SDIFFSTORE", args.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -421,7 +425,8 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SINTERSTORE", args.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }

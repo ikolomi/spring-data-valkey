@@ -53,7 +53,16 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
         args[0] = key;
         System.arraycopy(values, 0, args, 1, values.length);
 
-        return (Long) connection.execute("PFADD", args);
+        Object result = connection.execute("PFADD", args);
+        Object converted = ValkeyGlideConverters.fromGlideResult(result);
+        
+        if (converted instanceof Boolean) {
+            return ((Boolean) converted) ? 1L : 0L;
+        } else if (converted instanceof Number) {
+            return ((Number) converted).longValue();
+        } else {
+            return 0L;
+        }
     }
 
     @Override
@@ -65,7 +74,16 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
             throw new IllegalArgumentException("At least one key is required for PFCOUNT");
         }
 
-        return (Long) connection.execute("PFCOUNT", keys);
+        Object result = connection.execute("PFCOUNT", keys);
+        Object converted = ValkeyGlideConverters.fromGlideResult(result);
+        
+        if (converted instanceof Boolean) {
+            return ((Boolean) converted) ? 1L : 0L;
+        } else if (converted instanceof Number) {
+            return ((Number) converted).longValue();
+        } else {
+            return 0L;
+        }
     }
 
     @Override
@@ -82,6 +100,8 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
         args[0] = destinationKey;
         System.arraycopy(sourceKeys, 0, args, 1, sourceKeys.length);
 
-        connection.execute("PFMERGE", args);
+        Object result = connection.execute("PFMERGE", args);
+        // PFMERGE typically returns OK or null, we don't need to return anything
+        ValkeyGlideConverters.fromGlideResult(result);
     }
 }
