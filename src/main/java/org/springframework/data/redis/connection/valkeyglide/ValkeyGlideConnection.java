@@ -65,9 +65,13 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 
     // Commands that return 1/0 but Spring Data Redis expects boolean true/false
     private static final Set<String> NUMERIC_TO_BOOLEAN_COMMANDS = Set.of(
-        "SETNX", "MSETNX", "HSETNX", "SADD", "SREM", "ZADD", "ZREM",
-        "SMOVE", "SISMEMBER", "EXPIRE", "EXPIREAT", "PEXPIRE", "PEXPIREAT",
-        "PERSIST", "MOVE", "RENAMENX", "EXISTS"
+        "SETNX", "MSETNX", "HSETNX", "SMOVE", "SISMEMBER", "EXPIRE", "EXPIREAT", 
+        "PEXPIRE", "PEXPIREAT", "PERSIST", "MOVE", "RENAMENX", "EXISTS"
+    );
+    
+    // Geo commands that need special result processing
+    private static final Set<String> GEO_COMMANDS = Set.of(
+        "GEOPOS", "GEOHASH", "GEODIST", "GEORADIUS", "GEORADIUSBYMEMBER", "GEOSEARCH"
     );
 
     private final GlideClient client;
@@ -321,6 +325,8 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
                     String commandName = batchCommands.get(i);
                     if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
                         result = ((Number) result).longValue() != 0;
+                    } else if (GEO_COMMANDS.contains(commandName)) {
+                        result = convertGeoResult(commandName, result);
                     }
                 }
                 resultList.add(result);
@@ -401,6 +407,8 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
                     String commandName = batchCommands.get(i);
                     if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
                         result = ((Number) result).longValue() != 0;
+                    } else if (GEO_COMMANDS.contains(commandName)) {
+                        result = convertGeoResult(commandName, result);
                     }
                 }
                 resultList.add(result);
@@ -432,6 +440,178 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
             }
         }
         return false;
+    }
+    
+    /**
+     * Convert geo command results to proper Spring Data Redis types for pipeline/transaction mode.
+     */
+    private Object convertGeoResult(String commandName, Object result) {
+        if (result == null) {
+            return null;
+        }
+        
+        switch (commandName) {
+            case "GEOPOS":
+                return convertGeoPosResult(result);
+            case "GEOHASH":
+                return convertGeoHashResult(result);
+            case "GEODIST":
+                // GEODIST already returns Double, just return as-is
+                return result;
+            case "GEORADIUS":
+            case "GEORADIUSBYMEMBER":
+            case "GEOSEARCH":
+                return convertGeoSearchResult(result);
+            default:
+                return result;
+        }
+    }
+    
+    /**
+     * Convert GEOPOS raw result to List<Point>.
+     */
+    private Object convertGeoPosResult(Object result) {
+        if (result == null) {
+            return new ArrayList<>();
+        }
+        
+        if (result instanceof List) {
+            List<?> list = (List<?>) result;
+            List<org.springframework.data.geo.Point> pointList = new ArrayList<>(list.size());
+            for (Object item : list) {
+                if (item == null) {
+                    pointList.add(null);
+                } else if (item instanceof List) {
+                    List<?> coordinates = (List<?>) item;
+                    if (coordinates.size() >= 2) {
+                        double x = parseGeoDouble(coordinates.get(0));
+                        double y = parseGeoDouble(coordinates.get(1));
+                        pointList.add(new org.springframework.data.geo.Point(x, y));
+                    } else {
+                        pointList.add(null);
+                    }
+                } else {
+                    pointList.add(null);
+                }
+            }
+            return pointList;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Convert GEOHASH raw result to List<String>.
+     */
+    private Object convertGeoHashResult(Object result) {
+        if (result == null) {
+            return new ArrayList<>();
+        }
+        
+        if (result instanceof List) {
+            List<?> list = (List<?>) result;
+            List<String> hashList = new ArrayList<>(list.size());
+            for (Object item : list) {
+                if (item == null) {
+                    hashList.add(null);
+                } else if (item instanceof String) {
+                    hashList.add((String) item);
+                } else if (item instanceof byte[]) {
+                    hashList.add(new String((byte[]) item));
+                } else {
+                    hashList.add(item.toString());
+                }
+            }
+            return hashList;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Convert geo search results (GEORADIUS, GEORADIUSBYMEMBER, GEOSEARCH) to GeoResults.
+     */
+    private Object convertGeoSearchResult(Object result) {
+        if (result == null) {
+            return new org.springframework.data.geo.GeoResults<>(new ArrayList<>());
+        }
+        
+        if (result instanceof List) {
+            List<?> list = (List<?>) result;
+            List<org.springframework.data.geo.GeoResult<org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation<byte[]>>> geoResults = new ArrayList<>(list.size());
+            
+            for (Object item : list) {
+                if (item instanceof List) {
+                    // Complex result with member name and possibly distance/coordinates
+                    List<?> itemList = (List<?>) item;
+                    if (!itemList.isEmpty()) {
+                        // First element is always the member name
+                        byte[] memberName = convertToBytes(itemList.get(0));
+                        org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation<byte[]> location = 
+                            new org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation<>(memberName, null);
+                        
+                        // Default distance - we don't have access to the original metric here
+                        org.springframework.data.geo.Distance distance = new org.springframework.data.geo.Distance(0.0, 
+                            org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.METERS);
+                        
+                        geoResults.add(new org.springframework.data.geo.GeoResult<>(location, distance));
+                    }
+                } else {
+                    // Simple result - just member name
+                    byte[] memberName = convertToBytes(item);
+                    org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation<byte[]> location = 
+                        new org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation<>(memberName, null);
+                    org.springframework.data.geo.Distance distance = new org.springframework.data.geo.Distance(0.0, 
+                        org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit.METERS);
+                    geoResults.add(new org.springframework.data.geo.GeoResult<>(location, distance));
+                }
+            }
+            
+            return new org.springframework.data.geo.GeoResults<>(geoResults);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Convert various types to byte array.
+     */
+    private byte[] convertToBytes(Object obj) {
+        if (obj instanceof byte[]) {
+            return (byte[]) obj;
+        } else if (obj instanceof String) {
+            return ((String) obj).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        } else if (obj instanceof List) {
+            // Handle case where bytes come as List<Integer>
+            List<?> byteList = (List<?>) obj;
+            byte[] bytes = new byte[byteList.size()];
+            for (int i = 0; i < byteList.size(); i++) {
+                Object byteVal = byteList.get(i);
+                if (byteVal instanceof Number) {
+                    bytes[i] = ((Number) byteVal).byteValue();
+                } else {
+                    bytes[i] = 0;
+                }
+            }
+            return bytes;
+        } else {
+            return obj.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        }
+    }
+    
+    /**
+     * Parse a double value from various geo result formats.
+     */
+    private double parseGeoDouble(Object obj) {
+        if (obj instanceof Number) {
+            return ((Number) obj).doubleValue();
+        } else if (obj instanceof String) {
+            return Double.parseDouble((String) obj);
+        } else if (obj instanceof byte[]) {
+            return Double.parseDouble(new String((byte[]) obj));
+        } else {
+            throw new IllegalArgumentException("Cannot parse double from " + obj.getClass());
+        }
     }
 
     @Override

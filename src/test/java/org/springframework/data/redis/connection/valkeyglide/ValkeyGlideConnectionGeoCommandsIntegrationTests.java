@@ -64,7 +64,14 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
             "test:geo:radius:key", "test:geo:radius:member:key", "test:geo:remove:key",
             "test:geo:search:key", "test:geo:search:store:key", "test:geo:search:dest:key",
             "test:geo:mixed:key", "test:geo:empty:key", "test:geo:validation:key",
-            "test:geo:large:key", "test:geo:edge:cases:key", "test:geo:precision:key"
+            "test:geo:large:key", "test:geo:edge:cases:key", "test:geo:precision:key",
+            // Pipeline mode test keys
+            "test:pipeline:geo1", "test:pipeline:geo2", "test:pipeline:geo3",
+            "test:pipeline:geosearch", "test:pipeline:geodest", "test:pipeline:mixed:1",
+            // Transaction mode test keys
+            "test:tx:geo1", "test:tx:geo2", "test:tx:geosearch", "test:tx:geodest",
+            "test:tx:geo:watched", "test:tx:geo:value", "test:tx:geo:mixed:1", 
+            "test:tx:geo:mixed:2", "test:tx:geo:source", "test:tx:geo:target", "test:tx:geo:log"
         };
     }
 
@@ -834,6 +841,400 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
             assertThat(veryCloseDistance.getValue()).isGreaterThanOrEqualTo(0);
         } finally {
             cleanupKey(key);
+        }
+    }
+
+    // ==================== Pipeline Mode Tests ====================
+
+    @Test
+    void testGeoOperationsInPipelineMode() {
+        String key1 = "test:pipeline:geo1";
+        String key2 = "test:pipeline:geo2";
+        String key3 = "test:pipeline:geo3";
+        
+        try {
+            // Set up initial data
+            connection.geoCommands().geoAdd(key1.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key1.getBytes(), CATANIA, "Catania".getBytes());
+            
+            // Open pipeline
+            connection.openPipeline();
+            
+            // Queue several geo operations
+            connection.geoCommands().geoAdd(key2.getBytes(), ROME, "Rome".getBytes());
+            connection.geoCommands().geoAdd(key2.getBytes(), NEW_YORK, "NewYork".getBytes());
+            connection.geoCommands().geoDist(key1.getBytes(), "Palermo".getBytes(), "Catania".getBytes(), DistanceUnit.KILOMETERS);
+            connection.geoCommands().geoPos(key1.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            connection.geoCommands().geoHash(key1.getBytes(), "Palermo".getBytes());
+            connection.geoCommands().geoRemove(key2.getBytes(), "NewYork".getBytes());
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(1L); // GEOADD result
+            assertThat(results.get(1)).isEqualTo(1L); // GEOADD result
+            
+            // GEODIST result should be a Distance object or converted value
+            assertThat(results.get(2)).isNotNull(); // GEODIST result
+            
+            // GEOPOS result should be a list of Points
+            @SuppressWarnings("unchecked")
+            List<Point> posResults = (List<Point>) results.get(3);
+            assertThat(posResults).hasSize(2);
+            assertThat(posResults.get(0)).isNotNull();
+            assertThat(posResults.get(1)).isNotNull();
+            
+            // GEOHASH result should be a list of strings
+            @SuppressWarnings("unchecked")
+            List<String> hashResults = (List<String>) results.get(4);
+            assertThat(hashResults).hasSize(1);
+            assertThat(hashResults.get(0)).isNotNull();
+            
+            assertThat(results.get(5)).isEqualTo(1L); // ZREM result
+            
+            // Verify final state outside pipeline
+            List<Point> finalPos = connection.geoCommands().geoPos(key1.getBytes(), "Palermo".getBytes());
+            assertThat(finalPos.get(0)).isNotNull();
+            
+            List<Point> removedPos = connection.geoCommands().geoPos(key2.getBytes(), "NewYork".getBytes());
+            assertThat(removedPos.get(0)).isNull(); // Should be removed
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testGeoSearchOperationsInPipelineMode() {
+        String key = "test:pipeline:geosearch";
+        String destKey = "test:pipeline:geodest";
+        
+        try {
+            // Set up initial data
+            Map<byte[], Point> memberCoordinateMap = new HashMap<>();
+            memberCoordinateMap.put("Palermo".getBytes(), PALERMO);
+            memberCoordinateMap.put("Catania".getBytes(), CATANIA);
+            memberCoordinateMap.put("Rome".getBytes(), ROME);
+            connection.geoCommands().geoAdd(key.getBytes(), memberCoordinateMap);
+            
+            connection.openPipeline();
+            
+            // Test various geo search operations
+            Circle searchArea = new Circle(PALERMO, new Distance(300, DistanceUnit.KILOMETERS));
+            connection.geoCommands().geoRadius(key.getBytes(), searchArea);
+            
+            Distance radius = new Distance(300, DistanceUnit.KILOMETERS);
+            connection.geoCommands().geoRadiusByMember(key.getBytes(), "Palermo".getBytes(), radius);
+            
+            // Test geoSearch if available
+            GeoReference<byte[]> memberRef = GeoReference.fromMember("Palermo".getBytes());
+            GeoShape radiusShape = GeoShape.byRadius(new Distance(300, DistanceUnit.KILOMETERS));
+            GeoSearchCommandArgs args = GeoSearchCommandArgs.newGeoSearchArgs().limit(10);
+            connection.geoCommands().geoSearch(key.getBytes(), memberRef, radiusShape, args);
+            
+            List<Object> results = connection.closePipeline();
+            
+            assertThat(results).hasSize(3);
+            
+            // All results should be GeoResults objects
+            for (Object result : results) {
+                if (result != null) {
+                    assertThat(result).isInstanceOf(GeoResults.class);
+                    @SuppressWarnings("unchecked")
+                    GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) result;
+                    assertThat(geoResults.getContent()).isNotEmpty();
+                }
+            }
+        } finally {
+            cleanupKey(key);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testMixedGeoOperationsInPipelineMode() {
+        String baseKey = "test:pipeline:mixed";
+        
+        try {
+            connection.openPipeline();
+            
+            // Mix of different geo operations
+            connection.geoCommands().geoAdd((baseKey + ":1").getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd((baseKey + ":1").getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoPos((baseKey + ":1").getBytes(), "Palermo".getBytes());
+            connection.geoCommands().geoHash((baseKey + ":1").getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            connection.geoCommands().geoDist((baseKey + ":1").getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            
+            List<Object> results = connection.closePipeline();
+            
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(1L); // GEOADD
+            assertThat(results.get(1)).isEqualTo(1L); // GEOADD
+            
+            @SuppressWarnings("unchecked")
+            List<Point> posResult = (List<Point>) results.get(2);
+            assertThat(posResult).hasSize(1);
+            assertThat(posResult.get(0)).isNotNull();
+            
+            @SuppressWarnings("unchecked")
+            List<String> hashResult = (List<String>) results.get(3);
+            assertThat(hashResult).hasSize(2);
+            assertThat(hashResult.get(0)).isNotNull();
+            assertThat(hashResult.get(1)).isNotNull();
+            
+            assertThat(results.get(4)).isNotNull(); // GEODIST
+            
+            // Verify final state
+            List<Point> finalPositions = connection.geoCommands().geoPos((baseKey + ":1").getBytes(), 
+                "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(finalPositions).hasSize(2);
+            assertThat(finalPositions.get(0)).isNotNull();
+            assertThat(finalPositions.get(1)).isNotNull();
+        } finally {
+            cleanupKey(baseKey + ":1");
+        }
+    }
+
+    // ==================== Transaction Mode Tests ====================
+
+    @Test
+    void testGeoOperationsInTransactionMode() {
+        String key1 = "test:tx:geo1";
+        String key2 = "test:tx:geo2";
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue several geo operations
+            connection.geoCommands().geoAdd(key1.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key1.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key2.getBytes(), ROME, "Rome".getBytes());
+            connection.geoCommands().geoPos(key1.getBytes(), "Palermo".getBytes());
+            connection.geoCommands().geoDist(key1.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(1L); // GEOADD result
+            assertThat(results.get(1)).isEqualTo(1L); // GEOADD result
+            assertThat(results.get(2)).isEqualTo(1L); // GEOADD result
+            
+            @SuppressWarnings("unchecked")
+            List<Point> posResult = (List<Point>) results.get(3);
+            assertThat(posResult).hasSize(1);
+            assertThat(posResult.get(0)).isNotNull();
+            
+            assertThat(results.get(4)).isNotNull(); // GEODIST result
+            
+            // Verify final state outside transaction
+            List<Point> finalPos1 = connection.geoCommands().geoPos(key1.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(finalPos1).hasSize(2);
+            assertThat(finalPos1.get(0)).isNotNull();
+            assertThat(finalPos1.get(1)).isNotNull();
+            
+            List<Point> finalPos2 = connection.geoCommands().geoPos(key2.getBytes(), "Rome".getBytes());
+            assertThat(finalPos2).hasSize(1);
+            assertThat(finalPos2.get(0)).isNotNull();
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testGeoSearchOperationsInTransactionMode() {
+        String key = "test:tx:geosearch";
+        String destKey = "test:tx:geodest";
+        
+        try {
+            // Set up initial data outside transaction
+            Map<byte[], Point> memberCoordinateMap = new HashMap<>();
+            memberCoordinateMap.put("Palermo".getBytes(), PALERMO);
+            memberCoordinateMap.put("Catania".getBytes(), CATANIA);
+            memberCoordinateMap.put("Rome".getBytes(), ROME);
+            connection.geoCommands().geoAdd(key.getBytes(), memberCoordinateMap);
+            
+            connection.multi();
+            
+            // Test geo search operations in transaction
+            Circle searchArea = new Circle(PALERMO, new Distance(300, DistanceUnit.KILOMETERS));
+            GeoRadiusCommandArgs radiusArgs = GeoRadiusCommandArgs.newGeoRadiusArgs().limit(10);
+            connection.geoCommands().geoRadius(key.getBytes(), searchArea, radiusArgs);
+            
+            Distance radius = new Distance(300, DistanceUnit.KILOMETERS);
+            connection.geoCommands().geoRadiusByMember(key.getBytes(), "Palermo".getBytes(), radius, radiusArgs);
+            
+            // Test geoSearchStore if available
+            GeoReference<byte[]> memberRef = GeoReference.fromMember("Palermo".getBytes());
+            GeoShape radiusShape = GeoShape.byRadius(new Distance(300, DistanceUnit.KILOMETERS));
+            GeoSearchStoreCommandArgs storeArgs = GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().limit(10);
+            connection.geoCommands().geoSearchStore(destKey.getBytes(), key.getBytes(), memberRef, radiusShape, storeArgs);
+            
+            List<Object> results = connection.exec();
+            
+            assertThat(results).hasSize(3);
+            
+            // First two should be GeoResults
+            for (int i = 0; i < 2; i++) {
+                if (results.get(i) != null) {
+                    assertThat(results.get(i)).isInstanceOf(GeoResults.class);
+                    @SuppressWarnings("unchecked")
+                    GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) results.get(i);
+                    assertThat(geoResults.getContent()).isNotEmpty();
+                }
+            }
+            
+            // Third should be count of stored results
+            assertThat(results.get(2)).isInstanceOf(Number.class);
+            assertThat(((Number) results.get(2)).longValue()).isGreaterThan(0L);
+            
+            // Verify stored results exist
+            List<Point> storedPos = connection.geoCommands().geoPos(destKey.getBytes(), "Palermo".getBytes());
+            assertThat(storedPos.get(0)).isNotNull();
+        } finally {
+            cleanupKey(key);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testTransactionWithWatchedGeoKeys() {
+        String watchedKey = "test:tx:geo:watched";
+        String valueKey = "test:tx:geo:value";
+        
+        try {
+            // Set initial geo data
+            connection.geoCommands().geoAdd(watchedKey.getBytes(), PALERMO, "Palermo".getBytes());
+            
+            // Watch the key
+            connection.watch(watchedKey.getBytes());
+            
+            // Start transaction
+            connection.multi();
+            connection.geoCommands().geoAdd(valueKey.getBytes(), CATANIA, "Catania".getBytes());
+            
+            // Execute transaction (should succeed since key wasn't modified)
+            List<Object> results = connection.exec();
+            
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isEqualTo(1L);
+            
+            // Verify the conditional add worked
+            List<Point> positions = connection.geoCommands().geoPos(valueKey.getBytes(), "Catania".getBytes());
+            assertThat(positions.get(0)).isNotNull();
+        } finally {
+            cleanupKey(watchedKey);
+            cleanupKey(valueKey);
+        }
+    }
+
+    @Test
+    void testMixedGeoOperationsInTransaction() {
+        String baseKey = "test:tx:geo:mixed";
+        
+        try {
+            connection.multi();
+            
+            // Mix of different geo operations
+            connection.geoCommands().geoAdd((baseKey + ":1").getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd((baseKey + ":1").getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd((baseKey + ":2").getBytes(), ROME, "Rome".getBytes());
+            connection.geoCommands().geoPos((baseKey + ":1").getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            connection.geoCommands().geoHash((baseKey + ":1").getBytes(), "Palermo".getBytes());
+            connection.geoCommands().geoDist((baseKey + ":1").getBytes(), "Palermo".getBytes(), "Catania".getBytes(), DistanceUnit.KILOMETERS);
+            connection.geoCommands().geoRemove((baseKey + ":2").getBytes(), "Rome".getBytes());
+            
+            List<Object> results = connection.exec();
+            
+            assertThat(results).hasSize(7);
+            assertThat(results.get(0)).isEqualTo(1L); // GEOADD
+            assertThat(results.get(1)).isEqualTo(1L); // GEOADD
+            assertThat(results.get(2)).isEqualTo(1L); // GEOADD
+            
+            @SuppressWarnings("unchecked")
+            List<Point> posResults = (List<Point>) results.get(3);
+            assertThat(posResults).hasSize(2);
+            assertThat(posResults.get(0)).isNotNull();
+            assertThat(posResults.get(1)).isNotNull();
+            
+            @SuppressWarnings("unchecked")
+            List<String> hashResults = (List<String>) results.get(4);
+            assertThat(hashResults).hasSize(1);
+            assertThat(hashResults.get(0)).isNotNull();
+            
+            assertThat(results.get(5)).isNotNull(); // GEODIST
+            assertThat(results.get(6)).isEqualTo(1L); // ZREM
+            
+            // Verify final state
+            List<Point> finalPos1 = connection.geoCommands().geoPos((baseKey + ":1").getBytes(), 
+                "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(finalPos1).hasSize(2);
+            assertThat(finalPos1.get(0)).isNotNull();
+            assertThat(finalPos1.get(1)).isNotNull();
+            
+            // Verify removal worked
+            List<Point> finalPos2 = connection.geoCommands().geoPos((baseKey + ":2").getBytes(), "Rome".getBytes());
+            assertThat(finalPos2.get(0)).isNull(); // Should be removed
+        } finally {
+            cleanupKey(baseKey + ":1");
+            cleanupKey(baseKey + ":2");
+        }
+    }
+
+    @Test
+    void testGeoOperationsWithComplexTransactionScenario() {
+        String sourceKey = "test:tx:geo:source";
+        String targetKey = "test:tx:geo:target";
+        String logKey = "test:tx:geo:log";
+        
+        try {
+            connection.multi();
+            
+            // Complex scenario: Add locations, perform searches, store results
+            Map<byte[], Point> locations = new HashMap<>();
+            locations.put("Milan".getBytes(), new Point(9.1900, 45.4642));
+            locations.put("Naples".getBytes(), new Point(14.2681, 40.8518));
+            locations.put("Venice".getBytes(), new Point(12.3155, 45.4408));
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), locations);
+            
+            // Search and store nearby locations
+            GeoReference<byte[]> milanRef = GeoReference.fromMember("Milan".getBytes());
+            GeoShape searchArea = GeoShape.byRadius(new Distance(500, DistanceUnit.KILOMETERS));
+            GeoSearchStoreCommandArgs storeArgs = GeoSearchStoreCommandArgs.newGeoSearchStoreArgs().limit(10);
+            connection.geoCommands().geoSearchStore(targetKey.getBytes(), sourceKey.getBytes(), milanRef, searchArea, storeArgs);
+            
+            // Log the operation (using a simple key-value)
+            connection.stringCommands().set(logKey.getBytes(), "geo_search_completed".getBytes());
+            
+            List<Object> results = connection.exec();
+            
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(3L); // GEOADD count
+            assertThat(((Number) results.get(1)).longValue()).isGreaterThan(0L); // GEOSEARCHSTORE count
+            assertThat(results.get(2)).isEqualTo(true); // SET result
+            
+            // Verify all operations completed successfully
+            List<Point> sourcePositions = connection.geoCommands().geoPos(sourceKey.getBytes(), 
+                "Milan".getBytes(), "Naples".getBytes(), "Venice".getBytes());
+            assertThat(sourcePositions).hasSize(3);
+            assertThat(sourcePositions.get(0)).isNotNull();
+            assertThat(sourcePositions.get(1)).isNotNull();
+            assertThat(sourcePositions.get(2)).isNotNull();
+            
+            List<Point> targetPositions = connection.geoCommands().geoPos(targetKey.getBytes(), "Milan".getBytes());
+            assertThat(targetPositions.get(0)).isNotNull();
+            
+            assertThat(connection.stringCommands().get(logKey.getBytes())).isEqualTo("geo_search_completed".getBytes());
+        } finally {
+            cleanupKey(sourceKey);
+            cleanupKey(targetKey);
+            cleanupKey(logKey);
         }
     }
 }
