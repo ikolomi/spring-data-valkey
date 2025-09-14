@@ -88,9 +88,15 @@ public abstract class ValkeyGlideConverters {
         }
         
         if (result instanceof GlideString) {
+            GlideString glideResult = (GlideString) result;
+            // Handle special Redis responses - check if GlideString represents "OK"
+            if ("OK".equals(glideResult.toString())) {
+                // Redis SET, SETEX, PSETEX commands return "OK" on success, 
+                // but Spring Data Redis expects Boolean true
+                return Boolean.TRUE;
+            }
             // Convert GlideString back to byte[]
-            return ((GlideString) result).getBytes();
-            //return ((GlideString) result).toString();
+            return glideResult.getBytes();
         } else if (result instanceof ByteBuffer) {
             // Convert ByteBuffer back to byte[]
             ByteBuffer buffer = (ByteBuffer) result;
@@ -129,7 +135,18 @@ public abstract class ValkeyGlideConverters {
                 converted.put(fromGlideResult(entry.getKey()), fromGlideResult(entry.getValue()));
             }
             return converted;
-        } else if (result instanceof Number || result instanceof Boolean || result instanceof String) {
+        } else if (result instanceof String) {
+            // Handle special Redis responses
+            String strResult = (String) result;
+            if ("OK".equals(strResult)) {
+                // Redis SET, SETEX, PSETEX commands return "OK" on success, 
+                // but Spring Data Redis expects Boolean true
+                return Boolean.TRUE;
+            }
+            // Other strings should be converted to byte[] for Spring Data Redis compatibility
+            // This handles pipeline/transaction mode where Glide returns String instead of GlideString
+            return strResult.getBytes(StandardCharsets.UTF_8);
+        } else if (result instanceof Number || result instanceof Boolean) {
             // Simple types can be passed as-is
             return result;
         } else if (result instanceof byte[]) {
@@ -166,6 +183,7 @@ public abstract class ValkeyGlideConverters {
     /**
      * Convert a Redis command result to a Boolean value.
      * Redis SET command returns "OK" on success, null on failure with conditions.
+     * Redis conditional commands return 1/0 for true/false.
      *
      * @param result The command result
      * @return Boolean representation of the result
@@ -173,7 +191,7 @@ public abstract class ValkeyGlideConverters {
     @Nullable
     public static Boolean stringToBoolean(@Nullable Object result) {
         if (result == null) {
-            return false;
+            return null;
         }
         if (result instanceof String) {
             return "OK".equals(result);

@@ -663,4 +663,233 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
         }
     }
 
+    // // ==================== Pipeline Mode Tests ====================
+
+    @Test
+    void testStringOperationsInPipelineMode() {
+        String key1 = "test:pipeline:string1";
+        String key2 = "test:pipeline:string2";
+        String key3 = "test:pipeline:string3";
+        
+        try {
+            // Open pipeline
+            connection.openPipeline();
+            
+            // Queue several string operations
+            connection.stringCommands().set(key1.getBytes(), "value1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "value2".getBytes());
+            connection.stringCommands().get(key1.getBytes());
+            connection.stringCommands().get(key2.getBytes());
+            connection.stringCommands().incr(key3.getBytes());
+            connection.stringCommands().incrBy(key3.getBytes(), 5L);
+            
+            // Execute pipeline
+            java.util.List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(true); // SET result
+            assertThat(results.get(1)).isEqualTo(true); // SET result
+            assertThat(results.get(2)).isEqualTo("value1".getBytes()); // GET result
+            assertThat(results.get(3)).isEqualTo("value2".getBytes()); // GET result
+            assertThat(results.get(4)).isEqualTo(1L); // INCR result
+            assertThat(results.get(5)).isEqualTo(6L); // INCRBY result
+            
+            // Verify final state outside pipeline
+            assertThat(connection.stringCommands().get(key1.getBytes())).isEqualTo("value1".getBytes());
+            assertThat(connection.stringCommands().get(key2.getBytes())).isEqualTo("value2".getBytes());
+            assertThat(connection.stringCommands().get(key3.getBytes())).isEqualTo("6".getBytes());
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testMultiKeyOperationsInPipelineMode() {
+        String key1 = "test:pipeline:mget1";
+        String key2 = "test:pipeline:mget2";
+        String key3 = "test:pipeline:mget3";
+        
+        try {
+            // Set up initial data
+            connection.stringCommands().set(key1.getBytes(), "pipevalue1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "pipevalue2".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test mGet in pipeline
+            connection.stringCommands().mGet(key1.getBytes(), key2.getBytes(), key3.getBytes());
+            connection.stringCommands().append(key1.getBytes(), "_appended".getBytes());
+            connection.stringCommands().strLen(key1.getBytes());
+            
+            java.util.List<Object> results = connection.closePipeline();
+            
+            assertThat(results).hasSize(3);
+            
+            // mGet result should be a list
+            @SuppressWarnings("unchecked")
+            java.util.List<byte[]> mgetResult = (java.util.List<byte[]>) results.get(0);
+            assertThat(mgetResult).hasSize(3);
+            assertThat(mgetResult.get(0)).isEqualTo("pipevalue1".getBytes());
+            assertThat(mgetResult.get(1)).isEqualTo("pipevalue2".getBytes());
+            assertThat(mgetResult.get(2)).isNull(); // key3 doesn't exist
+            
+            assertThat(results.get(1)).isEqualTo(19L); // APPEND result length
+            assertThat(results.get(2)).isEqualTo(19L); // STRLEN result
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    // ==================== Transaction Mode Tests ====================
+
+    @Test
+    void testStringOperationsInTransactionMode() {
+        String key1 = "test:tx:string1";
+        String key2 = "test:tx:string2";
+        String key3 = "test:tx:incr";
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue several string operations
+            connection.stringCommands().set(key1.getBytes(), "txvalue1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "txvalue2".getBytes());
+            connection.stringCommands().get(key1.getBytes());
+            connection.stringCommands().setNX(key3.getBytes(), "1".getBytes());
+            connection.stringCommands().incr(key3.getBytes());
+            
+            // Execute transaction
+            java.util.List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(true); // SET result
+            assertThat(results.get(1)).isEqualTo(true); // SET result
+            assertThat(results.get(2)).isEqualTo("txvalue1".getBytes()); // GET result
+            assertThat(results.get(3)).isEqualTo(true); // SETNX result
+            assertThat(results.get(4)).isEqualTo(2L); // INCR result (1 + 1)
+            
+            // Verify final state outside transaction
+            assertThat(connection.stringCommands().get(key1.getBytes())).isEqualTo("txvalue1".getBytes());
+            assertThat(connection.stringCommands().get(key2.getBytes())).isEqualTo("txvalue2".getBytes());
+            assertThat(connection.stringCommands().get(key3.getBytes())).isEqualTo("2".getBytes());
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testTransactionWithWatchedKeys() {
+        String watchedKey = "test:tx:watched";
+        String valueKey = "test:tx:value";
+        
+        try {
+            // Set initial value
+            connection.stringCommands().set(watchedKey.getBytes(), "initial".getBytes());
+            
+            // Watch the key
+            connection.watch(watchedKey.getBytes());
+            
+            // Start transaction
+            connection.multi();
+            connection.stringCommands().set(valueKey.getBytes(), "conditional_set".getBytes());
+            
+            // Execute transaction (should succeed since key wasn't modified)
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isEqualTo(true);
+            
+            // Verify the conditional set worked
+            assertThat(connection.stringCommands().get(valueKey.getBytes())).isEqualTo("conditional_set".getBytes());
+        } finally {
+            cleanupKey(watchedKey);
+            cleanupKey(valueKey);
+        }
+    }
+
+    @Test
+    void testTransactionAbortWithWatchConflict() {
+        String watchedKey = "test:tx:conflict";
+        String valueKey = "test:tx:aborted";
+        
+        try {
+            // Set initial value
+            connection.stringCommands().set(watchedKey.getBytes(), "initial".getBytes());
+            
+            // Watch the key
+            connection.watch(watchedKey.getBytes());
+            
+            // Modify the watched key from outside the transaction to simulate conflict
+            // In a real scenario, this would happen from another connection
+            connection.stringCommands().set(watchedKey.getBytes(), "modified".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            connection.stringCommands().set(valueKey.getBytes(), "should_not_be_set".getBytes());
+            
+            // Execute transaction (should be aborted due to watch conflict)
+            // Note: Different Redis implementations handle this differently
+            // Some return null, others throw exceptions
+            try {
+                java.util.List<Object> results = connection.exec();
+                // If no exception is thrown, results should be null (transaction aborted)
+                if (results != null) {
+                    // If results are returned, the watch conflict wasn't detected
+                    // This might be acceptable depending on implementation
+                }
+            } catch (Exception e) {
+                // Watch conflict exception is acceptable
+                assertThat(e.getMessage()).containsIgnoringCase("watch");
+            }
+            
+            // Verify the conditional set was NOT executed
+            byte[] result = connection.stringCommands().get(valueKey.getBytes());
+            assertThat(result).isNull(); // Key should not exist
+        } finally {
+            cleanupKey(watchedKey);
+            cleanupKey(valueKey);
+        }
+    }
+
+    @Test
+    void testMixedStringOperationsInTransaction() {
+        String baseKey = "test:tx:mixed";
+        
+        try {
+            connection.multi();
+            
+            // Mix of different string operations
+            connection.stringCommands().set((baseKey + ":1").getBytes(), "100".getBytes());
+            connection.stringCommands().incr((baseKey + ":1").getBytes());
+            connection.stringCommands().append((baseKey + ":1").getBytes(), ".5".getBytes());
+            connection.stringCommands().strLen((baseKey + ":1").getBytes());
+            connection.stringCommands().setNX((baseKey + ":2").getBytes(), "new_value".getBytes());
+            
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(true); // SET
+            assertThat(results.get(1)).isEqualTo(101L); // INCR
+            assertThat(results.get(2)).isEqualTo(5L); // APPEND (length after append)
+            assertThat(results.get(3)).isEqualTo(5L); // STRLEN
+            assertThat(results.get(4)).isEqualTo(true); // SETNX
+            
+            // Verify final state
+            assertThat(connection.stringCommands().get((baseKey + ":1").getBytes())).isEqualTo("101.5".getBytes());
+            assertThat(connection.stringCommands().get((baseKey + ":2").getBytes())).isEqualTo("new_value".getBytes());
+        } finally {
+            cleanupKey(baseKey + ":1");
+            cleanupKey(baseKey + ":2");
+        }
+    }
+
 }

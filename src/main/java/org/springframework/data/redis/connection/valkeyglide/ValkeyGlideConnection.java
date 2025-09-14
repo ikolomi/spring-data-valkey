@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.AbstractRedisConnection;
 import org.springframework.data.redis.connection.RedisCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands;
@@ -31,12 +32,16 @@ import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.connection.RedisSentinelConnection;
 import org.springframework.data.redis.connection.RedisStreamCommands;
 import org.springframework.data.redis.connection.RedisStringCommands;
+import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.Subscription;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,16 +63,24 @@ import glide.api.models.Batch;
  */
 public class ValkeyGlideConnection extends AbstractRedisConnection {
 
+    // Commands that return 1/0 but Spring Data Redis expects boolean true/false
+    private static final Set<String> NUMERIC_TO_BOOLEAN_COMMANDS = Set.of(
+        "SETNX", "MSETNX", "HSETNX", "SADD", "SREM", "ZADD", "ZREM",
+        "SMOVE", "SISMEMBER", "EXPIRE", "EXPIREAT", "PEXPIRE", "PEXPIREAT",
+        "PERSIST", "MOVE", "RENAMENX", "EXISTS"
+    );
+
     private final GlideClient client;
     private final long timeout;
     private final AtomicBoolean closed = new AtomicBoolean(false);
     private final boolean isShared;
     private final ValkeyGlideConnectionProvider connectionProvider;
 
-    private boolean pipelined = false;
-    private @Nullable List<Object> pipelinedResults;
-    private boolean multi = false;
+    //private boolean pipelined = false;
+    //private @Nullable List<Object> pipelinedResults;
+    //private boolean multi = false;
     private @Nullable Batch currentBatch;
+    private final List<String> batchCommands = new ArrayList<>();
     private final Set<GlideString> watchedKeys = new HashSet<>();
     private @Nullable Subscription subscription;
 
@@ -161,11 +174,11 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     /**
      * Verifies that the connection is open.
      *
-     * @throws DataAccessException if the connection is closed
+     * @throws InvalidDataAccessApiUsageException if the connection is closed
      */
     protected void verifyConnectionOpen() {
         if (isClosed()) {
-            throw new IllegalStateException("Connection is closed");
+            throw new InvalidDataAccessApiUsageException("Connection is closed");
         }
     }
 
@@ -260,115 +273,149 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 
     @Override
     public boolean isQueueing() {
-        return multi;
+        return (currentBatch != null && currentBatch.getProtobufBatch().getIsAtomic());
     }
 
     @Override
     public boolean isPipelined() {
-        return pipelined;
+        return (currentBatch != null && !currentBatch.getProtobufBatch().getIsAtomic());
     }
 
     @Override
     public void openPipeline() {
-        if (!pipelined) {
-            pipelined = true;
-            pipelinedResults = new ArrayList<>();
+        if (isQueueing()) {
+			throw new InvalidDataAccessApiUsageException("Cannot use pipelining while a transaction is active");
+		}
+        if (!isPipelined()) {
+            currentBatch = new Batch(false);
         }
     }
 
     @Override
     public List<Object> closePipeline() {
-        if (!pipelined) {
+        if (!isPipelined()) {
             return new ArrayList<>();
         }
-        
+
         try {
-            List<Object> results = pipelinedResults;
-            pipelinedResults = null;
-            pipelined = false;
-            return results != null ? results : new ArrayList<>();
+            Object[] results = ValkeyGlideFutureUtils.get(
+                client.exec(currentBatch, false), 
+                timeout, 
+                new ValkeyGlideExceptionConverter()
+            );
+
+            List<Object> resultList = new ArrayList<>(results.length);
+            for (int i = 0; i < results.length; i++) {
+                Object item = results[i];
+                if (item instanceof Exception) {
+                    // Convert exceptions in pipeline results
+                    resultList.add(new ValkeyGlideExceptionConverter().convert((Exception) item));
+                    continue;
+                }
+                
+                // First apply generic conversion
+                Object result = ValkeyGlideConverters.fromGlideResult(item);
+                
+                // Then apply command-specific conversion if needed
+                if (i < batchCommands.size()) {
+                    String commandName = batchCommands.get(i);
+                    if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
+                        result = ((Number) result).longValue() != 0;
+                    }
+                }
+                resultList.add(result);
+            }
+            return resultList;
         } catch (Exception ex) {
             throw new RedisPipelineException(ex);
+        } finally {
+            currentBatch = null;
+            batchCommands.clear();
         }
     }
 
     @Override
     public void multi() {
-        if (pipelined) {
-            // For pipelined mode, we would need to handle this differently
-            // For now, just indicate we're in pipelined transaction mode
-            pipeline("MULTI");
-            return;
-        }
+        if (isPipelined()) {
+			throw new InvalidDataAccessApiUsageException("Cannot use transaction while a pipeline is open");
+		}
         
         if (!isQueueing()) {
             // Create atomic batch (transaction)
             currentBatch = new Batch(true);
-            multi = true;
         }
     }
 
     @Override
     public void discard() {
-        if (pipelined) {
-            pipeline("DISCARD");
-            return;
+        if (!isQueueing()) { 
+            throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
         }
         
-        if (isQueueing()) {
-            // Clear the current batch and reset transaction state
-            currentBatch = null;
-            multi = false;
-        }
+        // Clear the current batch and reset transaction state
+        currentBatch = new Batch(true);
+        batchCommands.clear();
     }
 
     @Override
     public List<Object> exec() {
-        if (pipelined) {
-            pipeline("EXEC");
-            return null;
+        if (!isQueueing()) {
+		    throw new InvalidDataAccessApiUsageException("No ongoing transaction; Did you forget to call multi");
         }
-        
-        if (isQueueing() && currentBatch != null) {
-            try {
-                // Execute the batch with raiseOnError = true to get proper null for WATCH conflicts
-                Object[] results = ValkeyGlideFutureUtils.get(
-                    client.exec(currentBatch, true), 
-                    timeout, 
-                    new ValkeyGlideExceptionConverter()
-                );
+		
+        try {
+            // Execute the batch with raiseOnError = true to get proper null for WATCH conflicts
+            Object[] results = ValkeyGlideFutureUtils.get(
+                client.exec(currentBatch, true), 
+                timeout, 
+                new ValkeyGlideExceptionConverter()
+            );
+            
+            // Handle transaction abort cases - valkey-glide returns null for WATCH conflicts
+            if (results == null) {
+                // Check if we're being called from RedisTemplate context
+                if (isCalledFromRedisTemplate()) {
+                    // For RedisTemplate compatibility, throw exception that can be caught
+                    throw new ValkeyGlideWatchConflictException("Transaction aborted due to WATCH conflict");
+                } else {
+                    // For direct connection usage, return null as per Redis specification
+                    return null;
+                }
+            }
+            
+            // Convert results from Glide format to Spring Data Redis format
+            List<Object> resultList = new ArrayList<>(results.length);
+            for (int i = 0; i < results.length; i++) {
+                Object item = results[i];
+                if (item instanceof Exception) {
+                    // Convert exceptions in transaction results
+                    resultList.add(new ValkeyGlideExceptionConverter().convert((Exception) item));
+                    continue;
+                }
                 
-                // Handle transaction abort cases - valkey-glide returns null for WATCH conflicts
-                if (results == null) {
-                    // Check if we're being called from RedisTemplate context
-                    if (isCalledFromRedisTemplate()) {
-                        // For RedisTemplate compatibility, throw exception that can be caught
-                        throw new ValkeyGlideWatchConflictException("Transaction aborted due to WATCH conflict");
-                    } else {
-                        // For direct connection usage, return null as per Redis specification
-                        return null;
+                // First apply generic conversion
+                Object result = ValkeyGlideConverters.fromGlideResult(item);
+                
+                // Then apply command-specific conversion if needed
+                if (i < batchCommands.size()) {
+                    String commandName = batchCommands.get(i);
+                    if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
+                        result = ((Number) result).longValue() != 0;
                     }
                 }
-                
-                // Convert results from Glide format to Spring Data Redis format
-                List<Object> resultList = new ArrayList<>(results.length);
-                for (Object item : results) {
-                    resultList.add(ValkeyGlideConverters.fromGlideResult(item));
-                }
-                return resultList;
-                
-            } catch (Exception ex) {
-                throw ex;
-            } finally {
-                // Clean up transaction state
-                currentBatch = null;
-                multi = false;
-                // Watches are automatically cleared after EXEC
-                watchedKeys.clear();
+                resultList.add(result);
             }
+            return resultList;
+
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
+        } finally {
+            // Clean up transaction state
+            currentBatch = null;
+            batchCommands.clear();
+            // Watches are automatically cleared after EXEC
+            watchedKeys.clear();
         }
-        
-        return null;
     }
     
     /**
@@ -389,102 +436,102 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 
     @Override
     public void select(int dbIndex) {
-        if (pipelined) {
-            pipeline(execute(client.select(dbIndex)));
-            return;
+        Assert.isTrue(dbIndex >= 0, "DB index must be non-negative");
+        try {
+            execute("SELECT", dbIndex);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        if (isQueueing()) {
-            execute(client.select(dbIndex));
-            return;
-        }
-        
-        execute(client.select(dbIndex));
     }
 
     @Override
     public void unwatch() {
-        if (pipelined) {
-            pipeline(execute(client.unwatch()));
-            return;
+        try {
+            if (watchedKeys.isEmpty()) {
+                return; // No keys to unwatch
+            }
+            execute("UNWATCH");
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
+        } finally {
+            watchedKeys.clear();
         }
-        
-        if (isQueueing()) {
-            execute(client.unwatch());
-            return;
-        }
-        
-        execute(client.unwatch());
     }
 
     @Override
     public void watch(byte[]... keys) {
+        Assert.notNull(keys, "Keys must not be null");
+        Assert.noNullElements(keys, "Keys must not contain null elements");
+
         if (isQueueing()) {
-            throw new IllegalStateException("WATCH is not allowed during MULTI");
+            throw new InvalidDataAccessApiUsageException("WATCH is not allowed during MULTI");
         }
-        
-        GlideString[] glideKeys = new GlideString[keys.length];
-        for (int i = 0; i < keys.length; i++) {
-            glideKeys[i] = GlideString.of(keys[i]);
+
+        try {
+            GlideString[] glideKeys = new GlideString[keys.length];
+            for (int i = 0; i < keys.length; i++) {
+                glideKeys[i] = GlideString.of(keys[i]);
+            }
+            
+            // Execute WATCH immediately to set up key monitoring at connection level
+            execute("WATCH", (Object[]) keys);
+            
+            // Track watched keys for cleanup
+            Collections.addAll(watchedKeys, glideKeys);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        if (pipelined) {
-            pipeline(execute(client.watch(glideKeys)));
-            return;
-        }
-        
-        // Execute WATCH immediately to set up key monitoring at connection level
-        execute(client.watch(glideKeys));
-        
-        // Track watched keys for cleanup
-        Collections.addAll(watchedKeys, glideKeys);
     }
 
     @Override
     public Long publish(byte[] channel, byte[] message) {
-        if (pipelined) {
-            pipeline(execute(client.publish(GlideString.of(message), GlideString.of(channel))));
-            return null;
+        Assert.notNull(channel, "Channel must not be null");
+        Assert.notNull(message, "Message must not be null");
+
+        try {
+            Object result = execute("PUBLISH", channel, message);
+            return (Long) result;
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        if (isQueueing()) {
-            execute(client.publish(GlideString.of(message), GlideString.of(channel)));
-            return null;
-        }
-        
-        // Note: GlideClient.publish returns String, but we need Long for compatibility
-        execute(client.publish(GlideString.of(message), GlideString.of(channel)));
-        return 1L; // Simplified - actual implementation would parse the result
     }
 
     @Override
     public void subscribe(MessageListener listener, byte[]... channels) {
-        if (isPipelined() || isQueueing()) {
-            throw new UnsupportedOperationException("Subscribe not supported in pipelined or multi mode");
-        }
-        
-        if (isSubscribed()) {
-            throw new IllegalStateException("Already subscribed");
-        }
-        
-        // Create subscription using ValkeyGlideSubscription
-        subscription = new ValkeyGlideSubscription(client, listener);
-        subscription.subscribe(channels);
+        Assert.notNull(listener, "MessageListener must not be null");
+        Assert.notNull(channels, "Channels must not be null");
+        Assert.noNullElements(channels, "Channels must not contain null elements");
+
+		if (isSubscribed()) {
+			throw new RedisSubscribedConnectionException(
+					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
+		}
+
+		if (isQueueing() || isPipelined()) {
+			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
+		}
+
+        // TODO: Implement dynamic subscription management when supported by valkey-glide
+        throw new UnsupportedOperationException("Dynamic subscriptions not yet implemented");
     }
 
     @Override
     public void pSubscribe(MessageListener listener, byte[]... patterns) {
-        if (isPipelined() || isQueueing()) {
-            throw new UnsupportedOperationException("PSubscribe not supported in pipelined or multi mode");
-        }
-        
-        if (isSubscribed()) {
-            throw new IllegalStateException("Already subscribed");
-        }
-        
-        // Create subscription using ValkeyGlideSubscription
-        subscription = new ValkeyGlideSubscription(client, listener);
-        subscription.pSubscribe(patterns);
+        Assert.notNull(listener, "MessageListener must not be null");
+        Assert.notNull(patterns, "Patterns must not be null");
+        Assert.noNullElements(patterns, "Patterns must not contain null elements");
+
+		if (isSubscribed()) {
+			throw new RedisSubscribedConnectionException(
+					"Connection already subscribed; use the connection Subscription to cancel or add new channels");
+		}
+
+		if (isQueueing() || isPipelined()) {
+			throw new InvalidDataAccessApiUsageException("Cannot subscribe in pipeline / transaction mode");
+		}
+
+        // TODO: Implement dynamic subscription management when supported by valkey-glide
+        throw new UnsupportedOperationException("Dynamic subscriptions not yet implemented");
     }
 
     @Override
@@ -498,17 +545,6 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     }
 
     /**
-     * Adds a result to the pipeline.
-     *
-     * @param result the result to add
-     */
-    public void pipeline(Object result) {
-        if (pipelined && pipelinedResults != null) {
-            pipelinedResults.add(result);
-        }
-    }
-
-    /**
      * Execute a Redis command using string arguments.
      * 
      * @param command the command to execute
@@ -518,45 +554,45 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     public Object execute(String command, Object... args) {
         verifyConnectionOpen();
 
-        try {
-            // Convert arguments to appropriate format for Glide
-            GlideString[] glideArgs = new GlideString[args.length + 1];
-            glideArgs[0] = GlideString.of(command);
-            
-            for (int i = 0; i < args.length; i++) {
-                if (args[i] == null) {
-                    glideArgs[i + 1] = null;
-                } else if (args[i] instanceof byte[]) {
-                    glideArgs[i + 1] = GlideString.of((byte[]) args[i]);
-                } else if (args[i] instanceof String) {
-                    glideArgs[i + 1] = GlideString.of((String) args[i]);
-                } else {
-                    glideArgs[i + 1] = GlideString.of(args[i].toString());
-                }
+        // Convert arguments to appropriate format for Glide
+        GlideString[] glideArgs = new GlideString[args.length + 1];
+        glideArgs[0] = GlideString.of(command);
+        for (int i = 0; i < args.length; i++) {
+            if (args[i] == null) {
+                glideArgs[i + 1] = null;
+            } else if (args[i] instanceof byte[]) {
+                glideArgs[i + 1] = GlideString.of((byte[]) args[i]);
+            } else if (args[i] instanceof String) {
+                glideArgs[i + 1] = GlideString.of((String) args[i]);
+            } else {
+                glideArgs[i + 1] = GlideString.of(args[i].toString());
             }
-            
-            // Handle transaction mode - add command to batch instead of executing
-            if (isQueueing() && currentBatch != null) {
-                // Add command to the current batch
-                currentBatch.customCommand(glideArgs);
-                return null; // Return null for queued commands in transaction
-            }
-            
-            // Handle pipelined mode
-            if (isPipelined()) {
-                Object result = execute(client.customCommand(glideArgs));
-                Object converted = ValkeyGlideConverters.fromGlideResult(result);
-                pipeline(converted);
-                return null; // Return null for pipelined commands
-            }
-            
-            // Normal execution
-            Object result = execute(client.customCommand(glideArgs));
-            return ValkeyGlideConverters.fromGlideResult(result);
-            
-        } catch (Exception e) {
-            throw new DataAccessException("Error executing Redis command: " + command, e) {};
         }
+
+        
+        // for (int i = 0; i < args.length; i++) {
+        //     if (args[i] == null) {
+        //         glideArgs[i + 1] = null;
+        //     } else if (args[i] instanceof byte[]) {
+        //         glideArgs[i + 1] = GlideString.of((byte[]) args[i]);
+        //     } else if (args[i] instanceof String) {
+        //         glideArgs[i + 1] = GlideString.of((String) args[i]);
+        //     } else {
+        //         glideArgs[i + 1] = GlideString.of(args[i].toString());
+        //     }
+        // }
+        
+        // Handle pipeline/transaction mode - add command to batch instead of executing
+        if (isQueueing() || isPipelined()) {
+            // Track command name for later conversion
+            batchCommands.add(command.toUpperCase());
+            // Add command to the current batch
+            currentBatch.customCommand(glideArgs);
+            return null; // Return null for queued commands in transaction
+        }
+        
+        Object resulObject = execute(client.customCommand(glideArgs));
+        return ValkeyGlideConverters.fromGlideResult(resulObject);
     }
     
     /**
@@ -571,19 +607,15 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 
     @Override
     public Object execute(String command, byte[]... args) {
-        verifyConnectionOpen();
-        
-        if (isPipelined()) {
-            pipeline(execute(command, (Object[]) args));
-            return null;
+        Assert.notNull(command, "Command must not be null");
+        Assert.notNull(args, "Arguments must not be null");
+        Assert.noNullElements(args, "Arguments must not contain null elements");
+        try {
+            // Delegate to the generic execute method
+            return execute(command, (Object[]) args);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        if (isQueueing()) {
-            execute(command, (Object[]) args);
-            return null;
-        }
-        
-        return execute(command, (Object[]) args);
     }
 
     /**
@@ -597,43 +629,36 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 
     @Override
     protected boolean isActive(RedisNode node) {
-        // In a real implementation, we would connect to the node and check if it's alive
-        return false;
+        Assert.notNull(node, "RedisNode must not be null");
+        // TODO: Create new valkey-glide GlideClient instance to test connection to the node
+        // connection params should be clonned from the current client except host/port
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
+        Assert.notNull(sentinel, "Sentinel RedisNode must not be null");
         throw new UnsupportedOperationException("Sentinel is not supported by this client.");
     }
 
     @Override
     public byte[] echo(byte[] message) {
-        if (pipelined) {
-            pipeline(execute(client.echo(GlideString.of(message))));
-            return null;
+        Assert.notNull(message, "Message must not be null");
+        try {
+            Object result = execute("ECHO", message);
+            return result != null ? (byte[]) result : null;
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        if (isQueueing()) {
-            execute(client.echo(GlideString.of(message)));
-            return null;
-        }
-        
-        GlideString result = execute(client.echo(GlideString.of(message)));
-        return result != null ? result.getBytes() : null;
     }
 
     @Override
     public String ping() {
-        if (pipelined) {
-            pipeline(execute(client.ping()));
-            return null;
+        try {
+            Object result = execute("PING");
+            return result != null ? new String((byte[]) result, StandardCharsets.UTF_8) : null;
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        if (isQueueing()) {
-            execute(client.ping());
-            return null;
-        }
-        
-        return execute(client.ping());
     }
 }
