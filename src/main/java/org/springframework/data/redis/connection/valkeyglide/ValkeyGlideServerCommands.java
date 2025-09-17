@@ -72,7 +72,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     public Long lastSave() {
         try {
             Object result = connection.execute("LASTSAVE");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -94,7 +94,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     public Long dbSize() {
         try {
             Object result = connection.execute("DBSIZE");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -178,7 +178,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
      * @return String representation of the result
      */
     private String convertResultToString(Object result) {
-        Object convertedResult = ValkeyGlideConverters.fromGlideResult(result);
+        Object convertedResult = ValkeyGlideConverters.defaultFromGlideResult(result);
         if (convertedResult instanceof byte[]) {
             return ValkeyGlideConverters.toString((byte[]) convertedResult);
         } else if (convertedResult instanceof String) {
@@ -242,8 +242,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         if (result instanceof java.util.Map) {
             java.util.Map<?, ?> map = (java.util.Map<?, ?>) result;
             for (java.util.Map.Entry<?, ?> entry : map.entrySet()) {
-                String key = convertResultToString(ValkeyGlideConverters.fromGlideResult(entry.getKey()));
-                String value = convertResultToString(ValkeyGlideConverters.fromGlideResult(entry.getValue()));
+                String key = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(entry.getKey()));
+                String value = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(entry.getValue()));
                 if (key != null && value != null) {
                     properties.setProperty(key, value);
                 }
@@ -254,8 +254,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
             // CONFIG GET returns key-value pairs as a flat list
             for (int i = 0; i < list.size(); i += 2) {
                 if (i + 1 < list.size()) {
-                    String key = convertResultToString(ValkeyGlideConverters.fromGlideResult(list.get(i)));
-                    String value = convertResultToString(ValkeyGlideConverters.fromGlideResult(list.get(i + 1)));
+                    String key = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(list.get(i)));
+                    String value = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(list.get(i + 1)));
                     if (key != null && value != null) {
                         properties.setProperty(key, value);
                     }
@@ -282,8 +282,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         
         if (list.size() >= 2) {
             // TIME returns [seconds, microseconds]
-            Object secondsObj = ValkeyGlideConverters.fromGlideResult(list.get(0));
-            Object microsecondsObj = ValkeyGlideConverters.fromGlideResult(list.get(1));
+            Object secondsObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(0));
+            Object microsecondsObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(1));
             
             long seconds = parseNumber(secondsObj).longValue();
             long microseconds = parseNumber(microsecondsObj).longValue();
@@ -365,7 +365,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         
         try {
             Object result = connection.execute("CONFIG", "GET", pattern);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseConfigResponse(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -412,7 +412,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         
         try {
             Object result = connection.execute("TIME");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseTimeResponse(converted, timeUnit);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -448,7 +448,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     public String getClientName() {
         try {
             Object result = connection.execute("CLIENT", "GETNAME");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -464,7 +464,7 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     public List<RedisClientInfo> getClientList() {
         try {
             Object result = connection.execute("CLIENT", "LIST");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             String clientListResponse = convertResultToString(converted);
             return parseClientListResponse(clientListResponse);
         } catch (Exception ex) {

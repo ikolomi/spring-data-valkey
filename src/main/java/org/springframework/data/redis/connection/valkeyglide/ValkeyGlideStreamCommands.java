@@ -75,7 +75,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XACK", params);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return ((Number) converted).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -135,7 +135,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XADD", params.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             String response = convertResultToString(converted);
             return RecordId.of(response);
         } catch (Exception ex) {
@@ -155,7 +155,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             args.add("JUSTID");
             
             Object result = connection.execute("XCLAIM", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseRecordIds(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -173,7 +173,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             List<Object> args = buildXClaimArgs(key, group, newOwner, options);
             
             Object result = connection.execute("XCLAIM", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseByteRecords(converted, key, false);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -198,7 +198,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
             
             Object result = connection.execute("XDEL", params);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return ((Number) converted).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -228,7 +228,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XGROUP", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return convertResultToString(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -242,7 +242,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
 
         try {
             Object result = connection.execute("XGROUP", "DELCONSUMER", key, consumer.getGroup(), consumer.getName());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return ((Number) converted).longValue() > 0;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -256,7 +256,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
 
         try {
             Object result = connection.execute("XGROUP", "DESTROY", key, groupName);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return (Boolean) converted;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -269,7 +269,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
 
         try {
             Object result = connection.execute("XINFO", "STREAM", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseXInfoStream(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -282,7 +282,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
 
         try {
             Object result = connection.execute("XINFO", "GROUPS", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseXInfoGroups(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -296,7 +296,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
 
         try {
             Object result = connection.execute("XINFO", "CONSUMERS", key, groupName);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseXInfoConsumers(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -309,7 +309,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
         
         try {
             Object result = connection.execute("XLEN", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return 0L;
             }
@@ -326,7 +326,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
 
         try {
             Object result = connection.execute("XPENDING", key, groupName);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parsePendingMessagesSummary(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -359,7 +359,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XPENDING", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parsePendingMessages(converted, groupName);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -400,7 +400,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XRANGE", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseByteRecords(converted, key, false);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -437,7 +437,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XREAD", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseMultiStreamByteRecords(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -482,7 +482,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XREADGROUP", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseMultiStreamByteRecords(converted);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -510,7 +510,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             }
 
             Object result = connection.execute("XREVRANGE", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return parseByteRecords(converted, key, true);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -538,7 +538,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             args.add(String.valueOf(count));
 
             Object result = connection.execute("XTRIM", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return ((Number) converted).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -603,7 +603,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
         List<RecordId> recordIds = new ArrayList<>(list.size());
 
         for (Object item : list) {
-            Object converted = ValkeyGlideConverters.fromGlideResult(item);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(item);
             String recordIdString = convertResultToString(converted);
             recordIds.add(RecordId.of(recordIdString));
         }
@@ -648,8 +648,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             Map<String, Object> map = new HashMap<>();
             for (int i = 0; i < list.size(); i += 2) {
                 if (i + 1 < list.size()) {
-                    String key = convertResultToString(ValkeyGlideConverters.fromGlideResult(list.get(i)));
-                    Object value = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
+                    String key = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(list.get(i)));
+                    Object value = ValkeyGlideConverters.defaultFromGlideResult(list.get(i + 1));
                     map.put(key, value);
                 }
             }
@@ -699,8 +699,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         if (fieldPair instanceof List) {
                             List<Object> pairList = (List<Object>) fieldPair;
                             if (pairList.size() >= 2) {
-                                Object keyObj = ValkeyGlideConverters.fromGlideResult(pairList.get(0));
-                                Object valueObj = ValkeyGlideConverters.fromGlideResult(pairList.get(1));
+                                Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(pairList.get(0));
+                                Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(pairList.get(1));
                                 
                                 byte[] key = keyObj instanceof byte[] ? (byte[]) keyObj : keyObj.toString().getBytes();
                                 byte[] value = valueObj instanceof byte[] ? (byte[]) valueObj : valueObj.toString().getBytes();
@@ -726,14 +726,14 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
         List<ByteRecord> byteRecords = new ArrayList<>(records.size());
 
         for (Object record : records) {
-            Object convertedRecord = ValkeyGlideConverters.fromGlideResult(record);
+            Object convertedRecord = ValkeyGlideConverters.defaultFromGlideResult(record);
             
             if (convertedRecord instanceof List) {
                 List<Object> recordData = (List<Object>) convertedRecord;
                 
                 if (recordData.size() >= 2) {
                     Object rawRecordId = recordData.get(0);
-                    Object convertedRecordId = ValkeyGlideConverters.fromGlideResult(rawRecordId);
+                    Object convertedRecordId = ValkeyGlideConverters.defaultFromGlideResult(rawRecordId);
                     String recordIdString = convertResultToString(convertedRecordId);
                     
                     Object fieldsObj = recordData.get(1);
@@ -777,7 +777,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             List<Object> streamResults = (List<Object>) result;
 
             for (Object streamResult : streamResults) {
-                Object convertedStreamResult = ValkeyGlideConverters.fromGlideResult(streamResult);
+                Object convertedStreamResult = ValkeyGlideConverters.defaultFromGlideResult(streamResult);
 
                 if (convertedStreamResult instanceof List) {
                     List<Object> streamData = (List<Object>) convertedStreamResult;
@@ -786,8 +786,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         Object streamKeyObj = streamData.get(0);
                         Object streamRecordsObj = streamData.get(1);
 
-                        byte[] streamKey = ValkeyGlideConverters.fromGlideResult(streamKeyObj) instanceof byte[] ?
-                                (byte[]) ValkeyGlideConverters.fromGlideResult(streamKeyObj) :
+                        byte[] streamKey = ValkeyGlideConverters.defaultFromGlideResult(streamKeyObj) instanceof byte[] ?
+                                (byte[]) ValkeyGlideConverters.defaultFromGlideResult(streamKeyObj) :
                                 streamKeyObj.toString().getBytes();
 
                         List<ByteRecord> streamRecords = parseByteRecords(streamRecordsObj, streamKey, false);
@@ -817,8 +817,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             
             for (int i = 0; i < fieldList.size(); i += 2) {
                 if (i + 1 < fieldList.size()) {
-                    Object keyObj = ValkeyGlideConverters.fromGlideResult(fieldList.get(i));
-                    Object valueObj = ValkeyGlideConverters.fromGlideResult(fieldList.get(i + 1));
+                    Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(fieldList.get(i));
+                    Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(fieldList.get(i + 1));
                     
                     byte[] key = keyObj instanceof byte[] ? (byte[]) keyObj : 
                         (keyObj != null ? keyObj.toString().getBytes() : new byte[0]);
@@ -852,7 +852,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                 List<Object> resultList = (List<Object>) result;
                 
                 for (Object groupInfo : resultList) {
-                    Object convertedGroup = ValkeyGlideConverters.fromGlideResult(groupInfo);
+                    Object convertedGroup = ValkeyGlideConverters.defaultFromGlideResult(groupInfo);
                     
                     if (convertedGroup instanceof Map) {
                         // Convert each group Map to a separate list with key-value pairs
@@ -860,8 +860,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         List<Object> singleGroupList = new ArrayList<>();
                         
                         for (Map.Entry<?, ?> entry : groupMap.entrySet()) {
-                            Object key = ValkeyGlideConverters.fromGlideResult(entry.getKey());
-                            Object value = ValkeyGlideConverters.fromGlideResult(entry.getValue());
+                            Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
+                            Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
                             
                             String keyStr = convertResultToString(key);
                             singleGroupList.add(keyStr);
@@ -882,8 +882,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         
                         for (int i = 0; i < groupList.size(); i += 2) {
                             if (i + 1 < groupList.size()) {
-                                Object keyObj = ValkeyGlideConverters.fromGlideResult(groupList.get(i));
-                                Object valueObj = ValkeyGlideConverters.fromGlideResult(groupList.get(i + 1));
+                                Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(groupList.get(i));
+                                Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(groupList.get(i + 1));
                                 
                                 String keyStr = convertResultToString(keyObj);
                                 convertedGroupList.add(keyStr);
@@ -906,8 +906,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                 List<Object> singleGroupList = new ArrayList<>();
                 
                 for (Map.Entry<?, ?> entry : resultMap.entrySet()) {
-                    Object key = ValkeyGlideConverters.fromGlideResult(entry.getKey());
-                    Object value = ValkeyGlideConverters.fromGlideResult(entry.getValue());
+                    Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
+                    Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
                     
                     String keyStr = convertResultToString(key);
                     singleGroupList.add(keyStr);
@@ -939,7 +939,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                 List<Object> resultList = (List<Object>) result;
                 
                 for (Object consumerInfo : resultList) {
-                    Object convertedConsumer = ValkeyGlideConverters.fromGlideResult(consumerInfo);
+                    Object convertedConsumer = ValkeyGlideConverters.defaultFromGlideResult(consumerInfo);
                     
                     if (convertedConsumer instanceof Map) {
                         // Convert each consumer Map to a separate list with key-value pairs
@@ -947,8 +947,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         List<Object> singleConsumerList = new ArrayList<>();
                         
                         for (Map.Entry<?, ?> entry : consumerMap.entrySet()) {
-                            Object key = ValkeyGlideConverters.fromGlideResult(entry.getKey());
-                            Object value = ValkeyGlideConverters.fromGlideResult(entry.getValue());
+                            Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
+                            Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
                             
                             String keyStr = convertResultToString(key);
                             singleConsumerList.add(keyStr);
@@ -969,8 +969,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         
                         for (int i = 0; i < consumerList.size(); i += 2) {
                             if (i + 1 < consumerList.size()) {
-                                Object keyObj = ValkeyGlideConverters.fromGlideResult(consumerList.get(i));
-                                Object valueObj = ValkeyGlideConverters.fromGlideResult(consumerList.get(i + 1));
+                                Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(consumerList.get(i));
+                                Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(consumerList.get(i + 1));
                                 
                                 String keyStr = convertResultToString(keyObj);
                                 convertedConsumerList.add(keyStr);
@@ -993,8 +993,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                 List<Object> singleConsumerList = new ArrayList<>();
                 
                 for (Map.Entry<?, ?> entry : resultMap.entrySet()) {
-                    Object key = ValkeyGlideConverters.fromGlideResult(entry.getKey());
-                    Object value = ValkeyGlideConverters.fromGlideResult(entry.getValue());
+                    Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
+                    Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
                     
                     String keyStr = convertResultToString(key);
                     singleConsumerList.add(keyStr);
@@ -1025,7 +1025,7 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             List<Object> list = convertToList(result);
             
             if (list.size() >= 4) {
-                Object totalObj = ValkeyGlideConverters.fromGlideResult(list.get(0));
+                Object totalObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(0));
                 Long totalPendingMessages = 0L;
                 if (totalObj instanceof Number) {
                     totalPendingMessages = ((Number) totalObj).longValue();
@@ -1037,8 +1037,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                     }
                 }
                 
-                String lowestId = convertResultToString(ValkeyGlideConverters.fromGlideResult(list.get(1)));
-                String highestId = convertResultToString(ValkeyGlideConverters.fromGlideResult(list.get(2)));
+                String lowestId = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(list.get(1)));
+                String highestId = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(list.get(2)));
                 Range<String> range = Range.closed(lowestId, highestId);
                 
                 Map<String, Long> consumerMessageCount = new HashMap<>();
@@ -1054,8 +1054,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                             if (consumerPair instanceof List) {
                                 List<Object> pair = (List<Object>) consumerPair;
                                 if (pair.size() >= 2) {
-                                    Object consumerNameObj = ValkeyGlideConverters.fromGlideResult(pair.get(0));
-                                    Object countObj = ValkeyGlideConverters.fromGlideResult(pair.get(1));
+                                    Object consumerNameObj = ValkeyGlideConverters.defaultFromGlideResult(pair.get(0));
+                                    Object countObj = ValkeyGlideConverters.defaultFromGlideResult(pair.get(1));
                                     
                                     String consumerName = convertResultToString(consumerNameObj);
                                     
@@ -1078,8 +1078,8 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
                         // Handle flat list format: [consumerName1, count1, consumerName2, count2, ...]
                         for (int i = 0; i < consumers.size(); i += 2) {
                             if (i + 1 < consumers.size()) {
-                                Object consumerNameObj = ValkeyGlideConverters.fromGlideResult(consumers.get(i));
-                                Object countObj = ValkeyGlideConverters.fromGlideResult(consumers.get(i + 1));
+                                Object consumerNameObj = ValkeyGlideConverters.defaultFromGlideResult(consumers.get(i));
+                                Object countObj = ValkeyGlideConverters.defaultFromGlideResult(consumers.get(i + 1));
                                 
                                 // Enhanced byte array to string conversion with nested array handling
                                 String consumerName;
@@ -1146,14 +1146,14 @@ public class ValkeyGlideStreamCommands implements RedisStreamCommands {
             List<PendingMessage> pendingMessages = new ArrayList<>();
 
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 if (convertedItem instanceof List) {
                     List<Object> messageData = (List<Object>) convertedItem;
                     if (messageData.size() >= 4) {
-                        String recordId = convertResultToString(ValkeyGlideConverters.fromGlideResult(messageData.get(0)));
-                        String consumerName = convertResultToString(ValkeyGlideConverters.fromGlideResult(messageData.get(1)));
-                        Long idleTime = ((Number) ValkeyGlideConverters.fromGlideResult(messageData.get(2))).longValue();
-                        Long deliveryCount = ((Number) ValkeyGlideConverters.fromGlideResult(messageData.get(3))).longValue();
+                        String recordId = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(messageData.get(0)));
+                        String consumerName = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(messageData.get(1)));
+                        Long idleTime = ((Number) ValkeyGlideConverters.defaultFromGlideResult(messageData.get(2))).longValue();
+                        Long deliveryCount = ((Number) ValkeyGlideConverters.defaultFromGlideResult(messageData.get(3))).longValue();
                         
                         PendingMessage pendingMessage = new PendingMessage(
                             RecordId.of(recordId), 

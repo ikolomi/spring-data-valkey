@@ -16,6 +16,7 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -23,13 +24,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.LongAccumulator;
 
+import javax.xml.transform.Result;
+
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.connection.RedisHashCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import kotlin.reflect.jvm.internal.ReflectProperties.Val;
+
+import glide.api.models.GlideString;
 
 /**
  * Implementation of {@link RedisHashCommands} for Valkey-Glide.
@@ -51,76 +60,6 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         this.connection = connection;
     }
 
-    /**
-     * Helper method to convert various object types to byte arrays.
-     */
-    private byte[] convertToByteArray(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        if (obj instanceof byte[]) {
-            return (byte[]) obj;
-        }
-        if (obj instanceof String) {
-            return ((String) obj).getBytes();
-        }
-        if (obj instanceof Object[]) {
-            Object[] array = (Object[]) obj;
-            if (array.length > 0 && array[0] instanceof Byte) {
-                // Convert Byte[] to byte[]
-                byte[] result = new byte[array.length];
-                for (int i = 0; i < array.length; i++) {
-                    result[i] = (Byte) array[i];
-                }
-                return result;
-            }
-        }
-        
-        // Try to convert using standard conversion first
-        try {
-            Object converted = ValkeyGlideConverters.fromGlideResult(obj);
-            if (converted instanceof byte[]) {
-                return (byte[]) converted;
-            }
-            if (converted instanceof String) {
-                return ((String) converted).getBytes();
-            }
-            // Handle nested arrays after conversion
-            if (converted instanceof Object[]) {
-                Object[] convertedArray = (Object[]) converted;
-                if (convertedArray.length > 0 && convertedArray[0] instanceof Byte) {
-                    byte[] result = new byte[convertedArray.length];
-                    for (int i = 0; i < convertedArray.length; i++) {
-                        result[i] = (Byte) convertedArray[i];
-                    }
-                    return result;
-                }
-            }
-        } catch (Exception e) {
-            // If conversion fails, try direct cast as fallback
-        }
-        
-        // As a last resort, try to handle as raw bytes
-        if (obj instanceof Object[]) {
-            Object[] array = (Object[]) obj;
-            try {
-                byte[] result = new byte[array.length];
-                for (int i = 0; i < array.length; i++) {
-                    if (array[i] instanceof Number) {
-                        result[i] = ((Number) array[i]).byteValue();
-                    } else {
-                        return null; // Cannot convert this type
-                    }
-                }
-                return result;
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        
-        return null;
-    }
-
     @Override
     @Nullable
     public Boolean hSet(byte[] key, byte[] field, byte[] value) {
@@ -129,14 +68,11 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("HSET", key, field, value);
-            if (result instanceof Number) {
-                return ((Number) result).longValue() == 1;
-            }
-            if (result instanceof Boolean) {
-                return (Boolean) result;
-            }
-            return null;
+            return connection.execute("HSET",
+                (Number glideResult) -> glideResult != null ? glideResult.longValue() > 0 : null,
+                key,
+                field,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -150,14 +86,11 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("HSETNX", key, field, value);
-            if (result instanceof Number) {
-                return ((Number) result).longValue() == 1;
-            }
-            if (result instanceof Boolean) {
-                return (Boolean) result;
-            }
-            return null;
+            return connection.execute("HSETNX",
+                (Boolean glideResult) -> glideResult,
+                key,
+                field,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -170,8 +103,15 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(field, "Field must not be null");
         
         try {
-            Object result = connection.execute("HGET", key, field);
-            return convertToByteArray(result);
+            return connection.execute("HGET",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                // (String glideResult) -> {
+                //     System.out.println("hGet result class: " + (glideResult != null ? glideResult.getClass().getName() : "null") + ", value: " + glideResult); // --- IGNORE ---
+                //     return glideResult != null ? glideResult.getBytes() : null;
+                //     //glideResult != null ? glideResult.getBytes() : null,
+                // },
+                key,
+                field);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -185,39 +125,12 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.noNullElements(fields, "Fields must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(key);
-            for (byte[] field : fields) {
-                args.add(field);
-            }
-            
-            Object result = connection.execute("HMGET", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HMGET: " + converted.getClass());
-            }
-            
-            List<byte[]> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
-                resultList.add((byte[]) convertedItem);
-            }
-            return resultList;
+            Object[] args = new Object[1 + fields.length];
+            args[0] = key;
+            System.arraycopy(fields, 0, args, 1, fields.length);
+            return connection.execute("HMGET",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBytesList(glideResult),
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -236,8 +149,10 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(entry.getKey());
                 args.add(entry.getValue());
             }
-            
-            connection.execute("HMSET", args.toArray());
+            connection.execute("HMSET",
+                // Valkey returns simple OK string for HMSET
+                (String glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -250,11 +165,11 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(field, "Field must not be null");
         
         try {
-            Object result = connection.execute("HINCRBY", key, field, delta);
-            if (result instanceof Number) {
-                return ((Number) result).longValue();
-            }
-            return null;
+            return connection.execute("HINCRBY",
+                (Long glideResult) -> glideResult,
+                key,
+                field,
+                delta);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -267,13 +182,11 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(field, "Field must not be null");
         
         try {
-            Object result = connection.execute("HINCRBYFLOAT", key, field, delta);
-            if (result instanceof String) {
-                return Double.parseDouble((String) result);
-            } else if (result instanceof Number) {
-                return ((Number) result).doubleValue();
-            }
-            return null;
+            return connection.execute("HINCRBYFLOAT",
+                (Double glideResult) -> glideResult,
+                key,
+                field,
+                delta);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -286,14 +199,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(field, "Field must not be null");
         
         try {
-            Object result = connection.execute("HEXISTS", key, field);
-            if (result instanceof Number) {
-                return ((Number) result).longValue() == 1;
-            }
-            if (result instanceof Boolean) {
-                return (Boolean) result;
-            }
-            return null;
+            return connection.execute("HEXISTS",
+                (Boolean glideResult) -> glideResult,
+                key, field);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -307,17 +215,13 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.noNullElements(fields, "Fields must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(key);
-            for (byte[] field : fields) {
-                args.add(field);
-            }
-            
-            Object result = connection.execute("HDEL", args.toArray());
-            if (result instanceof Number) {
-                return ((Number) result).longValue();
-            }
-            return null;
+            Object[] args = new Object[1 + fields.length];
+            args[0] = key;
+            System.arraycopy(fields, 0, args, 1, fields.length);
+
+            return connection.execute("HDEL",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -329,11 +233,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HLEN", key);
-            if (result instanceof Number) {
-                return ((Number) result).longValue();
-            }
-            return null;
+            return connection.execute("HLEN",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -345,33 +247,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HKEYS", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HKEYS: " + converted.getClass());
-            }
-            
-            Set<byte[]> resultSet = new HashSet<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
-                resultSet.add((byte[]) convertedItem);
-            }
-            return resultSet;
+            return connection.execute("HKEYS",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBytesSet(glideResult),
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -383,33 +261,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HVALS", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HVALS: " + converted.getClass());
-            }
-            
-            List<byte[]> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
-                resultList.add((byte[]) convertedItem);
-            }
-            return resultList;
+            return connection.execute("HVALS",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBytesList(glideResult),
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -421,48 +275,10 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HGETALL", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            // Handle case where Glide returns a Map directly
-            if (converted instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<Object, Object> sourceMap = (Map<Object, Object>) converted;
-                Map<byte[], byte[]> resultMap = new LinkedHashMap<>();
-                for (Map.Entry<Object, Object> entry : sourceMap.entrySet()) {
-                    Object keyItem = ValkeyGlideConverters.fromGlideResult(entry.getKey());
-                    Object valueItem = ValkeyGlideConverters.fromGlideResult(entry.getValue());
-                    resultMap.put((byte[]) keyItem, (byte[]) valueItem);
-                }
-                return resultMap;
-            }
-            
-            // Handle case where result is a list/array of key-value pairs
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HGETALL: " + converted.getClass());
-            }
-            
-            Map<byte[], byte[]> resultMap = new LinkedHashMap<>();
-            for (int i = 0; i < list.size(); i += 2) {
-                Object keyItem = ValkeyGlideConverters.fromGlideResult(list.get(i));
-                Object valueItem = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
-                resultMap.put((byte[]) keyItem, (byte[]) valueItem);
-            }
-            return resultMap;
+            return connection.execute("HGETALL",
+                //(Map<GlideString, GlideString> glideResult) -> ValkeyGlideConverters.toBytesMap(glideResult),
+                glideResult -> ValkeyGlideConverters.toBytesMap(glideResult),
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -474,8 +290,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HRANDFIELD", key);
-            return (byte[]) result;
+            return connection.execute("HRANDFIELD",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -487,77 +304,11 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HRANDFIELD", key, 1, "WITHVALUES");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HRANDFIELD: " + converted.getClass());
-            }
-            
-            // Handle different possible result structures from HRANDFIELD with WITHVALUES
-            if (list.isEmpty()) {
-                return null;
-            }
-            
-            // Check if the result structure is flat (field, value) or nested ([[field, value]])
-            Object firstElement = list.get(0);
-            Object firstConverted = ValkeyGlideConverters.fromGlideResult(firstElement);
-            
-            if (firstConverted instanceof Object[] || firstConverted instanceof List) {
-                // Result structure is nested pair: [[field, value]]
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(firstElement);
-                
-                if (convertedItem instanceof Object[]) {
-                    Object[] pair = (Object[]) convertedItem;
-                    if (pair.length >= 2) {
-                        byte[] fieldBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair[0]));
-                        byte[] valueBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair[1]));
-                        if (fieldBytes != null && valueBytes != null) {
-                            return new HashMap.SimpleEntry<>(fieldBytes, valueBytes);
-                        }
-                    }
-                } else if (convertedItem instanceof List) {
-                    @SuppressWarnings("unchecked")
-                    List<Object> pair = (List<Object>) convertedItem;
-                    if (pair.size() >= 2) {
-                        byte[] fieldBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair.get(0)));
-                        byte[] valueBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair.get(1)));
-                        if (fieldBytes != null && valueBytes != null) {
-                            return new HashMap.SimpleEntry<>(fieldBytes, valueBytes);
-                        }
-                    }
-                }
-            } else {
-                // Result structure is flat: [field, value]
-                if (list.size() >= 2) {
-                    Object keyItem = ValkeyGlideConverters.fromGlideResult(list.get(0));
-                    Object valueItem = ValkeyGlideConverters.fromGlideResult(list.get(1));
-                    
-                    byte[] fieldBytes = convertToByteArray(keyItem);
-                    byte[] valueBytes = convertToByteArray(valueItem);
-                    
-                    if (fieldBytes != null && valueBytes != null) {
-                        return new HashMap.SimpleEntry<>(fieldBytes, valueBytes);
-                    }
-                }
-            }
-            
-            return null;
+            return connection.execute("HRANDFIELD",
+                glideResult -> ValkeyGlideConverters.toBytesMapEntry(glideResult),
+                key,
+                1,
+                "WITHVALUES");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -569,33 +320,10 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("HRANDFIELD", key, count);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HRANDFIELD: " + converted.getClass());
-            }
-            
-            List<byte[]> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
-                resultList.add((byte[]) convertedItem);
-            }
-            return resultList;
+            return connection.execute("HRANDFIELD",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBytesList(glideResult),
+                key,
+                count);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -605,85 +333,13 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
     @Nullable
     public List<Map.Entry<byte[], byte[]>> hRandFieldWithValues(byte[] key, long count) {
         Assert.notNull(key, "Key must not be null");
-        
+
         try {
-            Object result = connection.execute("HRANDFIELD", key, count, "WITHVALUES");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HRANDFIELD: " + converted.getClass());
-            }
-            
-            List<Map.Entry<byte[], byte[]>> resultList = new ArrayList<>();
-            
-            // Handle different possible result structures from HRANDFIELD with WITHVALUES
-            if (list.isEmpty()) {
-                return resultList;
-            }
-            
-            // Check if the result structure is flat (field1, value1, field2, value2, ...)
-            // or nested pairs ([[field1, value1], [field2, value2], ...])
-            Object firstElement = list.get(0);
-            Object firstConverted = ValkeyGlideConverters.fromGlideResult(firstElement);
-            
-            if (firstConverted instanceof Object[] || firstConverted instanceof List) {
-                // Result structure is nested pairs: [[field1, value1], [field2, value2], ...]
-                for (Object item : list) {
-                    Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
-                    
-                    if (convertedItem instanceof Object[]) {
-                        Object[] pair = (Object[]) convertedItem;
-                        if (pair.length >= 2) {
-                            byte[] fieldBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair[0]));
-                            byte[] valueBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair[1]));
-                            if (fieldBytes != null && valueBytes != null) {
-                                resultList.add(new HashMap.SimpleEntry<>(fieldBytes, valueBytes));
-                            }
-                        }
-                    } else if (convertedItem instanceof List) {
-                        @SuppressWarnings("unchecked")
-                        List<Object> pair = (List<Object>) convertedItem;
-                        if (pair.size() >= 2) {
-                            byte[] fieldBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair.get(0)));
-                            byte[] valueBytes = convertToByteArray(ValkeyGlideConverters.fromGlideResult(pair.get(1)));
-                            if (fieldBytes != null && valueBytes != null) {
-                                resultList.add(new HashMap.SimpleEntry<>(fieldBytes, valueBytes));
-                            }
-                        }
-                    }
-                }
-            } else {
-                // Result structure is flat: [field1, value1, field2, value2, ...]
-                for (int i = 0; i < list.size(); i += 2) {
-                    if (i + 1 < list.size()) {
-                        Object keyItem = ValkeyGlideConverters.fromGlideResult(list.get(i));
-                        Object valueItem = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
-                        
-                        byte[] fieldBytes = convertToByteArray(keyItem);
-                        byte[] valueBytes = convertToByteArray(valueItem);
-                        
-                        if (fieldBytes != null && valueBytes != null) {
-                            resultList.add(new HashMap.SimpleEntry<>(fieldBytes, valueBytes));
-                        }
-                    }
-                }
-            }
-            
-            return resultList;
+            return connection.execute("HRANDFIELD",
+                glideResult -> ValkeyGlideConverters.toMapEntriesList(glideResult),
+                key,
+                count,
+                "WITHVALUES");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -736,8 +392,12 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
             }
             return entries.get(currentIndex++);
         }
-        
+
         private void scanNext() {
+            if (connection.isQueueing() || connection.isPipelined()) {
+                throw new InvalidDataAccessApiUsageException("'HSCAN' cannot be called in pipeline / transaction mode");
+            }
+
             try {
                 List<Object> args = new ArrayList<>();
                 args.add(key);
@@ -753,76 +413,34 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                     args.add(options.getPattern());
                 }
                 
-                Object result = connection.execute("HSCAN", args.toArray());
-                Object converted = ValkeyGlideConverters.fromGlideResult(result);
-                
-                // Handle both Object[] and List since fromGlideResult might convert Object[] to List
-                List<Object> scanResult;
-                if (converted instanceof List) {
-                    @SuppressWarnings("unchecked")
-                    List<Object> castList = (List<Object>) converted;
-                    scanResult = castList;
-                } else if (converted instanceof Object[]) {
-                    Object[] array = (Object[]) converted;
-                    scanResult = new ArrayList<>(array.length);
-                    for (Object item : array) {
-                        scanResult.add(item);
-                    }
-                } else {
-                    return;
-                }
-                
-                if (scanResult.size() >= 2) {
-                    // First element is the new cursor
-                    Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResult.get(0));
-                    
-                    if (cursorObj instanceof String) {
-                        cursor = Long.parseLong((String) cursorObj);
-                    } else if (cursorObj instanceof Number) {
-                        cursor = ((Number) cursorObj).longValue();
+                connection.execute("HSCAN", (Object[] glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
                     }
                     
+                    // First element is the new cursor and is byte[], need to convert to String first
+                    GlideString cursorStr = (GlideString) glideResult[0];
+                    cursor = Long.parseLong(cursorStr.getString());
                     if (cursor == 0) {
                         finished = true;
                     }
-                    
+                        
                     // Second element is the array of field-value pairs
-                    Object fieldsObj = ValkeyGlideConverters.fromGlideResult(scanResult.get(1));
-                    
+                    Object[] fieldValuePairs = (Object[]) glideResult[1];
+                        
                     // Reset entries for this batch
                     entries.clear();
                     currentIndex = 0;
-                    
-                    // Handle different possible structures for field-value pairs
-                    List<Object> fieldsList;
-                    if (fieldsObj instanceof List) {
-                        @SuppressWarnings("unchecked")
-                        List<Object> castList = (List<Object>) fieldsObj;
-                        fieldsList = castList;
-                    } else if (fieldsObj instanceof Object[]) {
-                        Object[] fieldsArray = (Object[]) fieldsObj;
-                        fieldsList = new ArrayList<>(fieldsArray.length);
-                        for (Object item : fieldsArray) {
-                            fieldsList.add(item);
-                        }
-                    } else {
-                        // If fieldsObj is null or unexpected type, skip processing
-                        fieldsList = new ArrayList<>();
+                    for (int i = 0; i < fieldValuePairs.length; i += 2) {
+                        GlideString field = (GlideString) fieldValuePairs[i];
+                        GlideString value = (GlideString) fieldValuePairs[i + 1];
+                        entries.add(new HashMap.SimpleEntry<>(field.getBytes(), value.getBytes()));
                     }
-                    
-                    // Process field-value pairs
-                    for (int i = 0; i < fieldsList.size(); i += 2) {
-                        if (i + 1 < fieldsList.size()) {
-                            Object fieldObj = ValkeyGlideConverters.fromGlideResult(fieldsList.get(i));
-                            Object valueObj = ValkeyGlideConverters.fromGlideResult(fieldsList.get(i + 1));
-                            
-                            byte[] fieldBytes = (byte[]) fieldObj;
-                            byte[] valueBytes = (byte[]) valueObj;
-                            
-                            entries.add(new HashMap.SimpleEntry<>(fieldBytes, valueBytes));
-                        }
-                    }
-                }
+
+                    return null; // We don't need to return anything from this mapper
+                },
+                args.toArray());
+
             } catch (Exception ex) {
                 throw new ValkeyGlideExceptionConverter().convert(ex);
             }
@@ -861,11 +479,10 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         Assert.notNull(field, "Field must not be null");
         
         try {
-            Object result = connection.execute("HSTRLEN", key, field);
-            if (result instanceof Number) {
-                return ((Number) result).longValue();
-            }
-            return null;
+            return connection.execute("HSTRLEN",
+            (Long glideResult) -> glideResult,
+            key,
+            field);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -897,36 +514,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HEXPIRE", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HEXPIRE: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HEXPIRE",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -958,36 +548,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HPEXPIRE", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HPEXPIRE: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HPEXPIRE",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1019,36 +582,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HEXPIREAT", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HEXPIREAT: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HEXPIREAT",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1080,36 +616,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HPEXPIREAT", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HPEXPIREAT: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HPEXPIREAT",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1131,36 +640,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HTTL", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HTTL: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HTTL",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1173,11 +655,11 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
         if (ttls == null) {
             return null;
         }
-        
+       
         List<Long> converted = new ArrayList<>(ttls.size());
         for (Long ttl : ttls) {
-            if (ttl == null) {
-                converted.add(null);
+            if (ttl < 0) {
+                converted.add(ttl);
             } else {
                 converted.add(timeUnit.convert(ttl, TimeUnit.SECONDS));
             }
@@ -1201,36 +683,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HPTTL", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HPTTL: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HPTTL",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1252,36 +707,9 @@ public class ValkeyGlideHashCommands implements RedisHashCommands {
                 args.add(field);
             }
             
-            Object result = connection.execute("HPERSIST", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from HPERSIST: " + converted.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("HPERSIST",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }

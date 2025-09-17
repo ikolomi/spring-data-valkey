@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Collection;
+import java.util.HashMap;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.SortParameters;
@@ -41,6 +42,29 @@ import glide.api.models.GlideString;
  * @since 2.0
  */
 public abstract class ValkeyGlideConverters {
+
+    /**
+     * A functional interface used to convert raw driver results
+     * (returned as {@link I}) into a strongly typed result {@code R}.
+     *
+     * <p>This is intended to be supplied by the higher-level API
+     * that knows the correct decoding strategy for a specific Redis command.
+     *
+     * @param <I> The type of the raw driver result.
+     * @param <R> The target type that the raw driver result should be mapped to.
+     */
+    @FunctionalInterface
+    public interface ResultMapper<I, R> {
+        /**
+         * Maps the raw result object of type {@code I} returned by the driver into
+         * a strongly typed value of type {@code R}.
+         *
+         * @param item The raw driver result, typically a low-level
+         *                     representation like Number, byte[], or List<Object>.
+         * @return The mapped, higher-level type I.
+         */
+        R map(I item);
+    }
 
     /**
      * Convert a Spring Data Redis command argument to the corresponding Valkey-Glide format.
@@ -76,13 +100,13 @@ public abstract class ValkeyGlideConverters {
     }
 
     /**
-     * Convert a Valkey-Glide result to the Spring Data Redis format.
+     * Convert a Valkey-Glide result to the Spring Data Redis format using best-fit.
      *
      * @param result The Glide result to convert
      * @return The converted result
      */
     @Nullable
-    public static Object fromGlideResult(@Nullable Object result) {
+    public static Object defaultFromGlideResult(@Nullable Object result) {
         if (result == null) {
             return null;
         }
@@ -108,7 +132,7 @@ public abstract class ValkeyGlideConverters {
             List<?> list = (List<?>) result;
             List<Object> converted = new ArrayList<>(list.size());
             for (Object item : list) {
-                converted.add(fromGlideResult(item));
+                converted.add(defaultFromGlideResult(item));
             }
             return converted;
         } else if (result instanceof Set) {
@@ -116,7 +140,7 @@ public abstract class ValkeyGlideConverters {
             Set<?> set = (Set<?>) result;
             Set<Object> converted = new HashSet<>(set.size());
             for (Object item : set) {
-                converted.add(fromGlideResult(item));
+                converted.add(defaultFromGlideResult(item));
             }
             return converted;
         } else if (result instanceof Object[]) {
@@ -124,7 +148,7 @@ public abstract class ValkeyGlideConverters {
             Object[] array = (Object[]) result;
             List<Object> converted = new ArrayList<>(array.length);
             for (Object item : array) {
-                converted.add(fromGlideResult(item));
+                converted.add(defaultFromGlideResult(item));
             }
             return converted;
         } else if (result instanceof Map) {
@@ -132,7 +156,7 @@ public abstract class ValkeyGlideConverters {
             Map<?, ?> map = (Map<?, ?>) result;
             Map<Object, Object> converted = new java.util.HashMap<>(map.size());
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-                converted.put(fromGlideResult(entry.getKey()), fromGlideResult(entry.getValue()));
+                converted.put(defaultFromGlideResult(entry.getKey()), defaultFromGlideResult(entry.getValue()));
             }
             return converted;
         } else if (result instanceof String) {
@@ -193,16 +217,19 @@ public abstract class ValkeyGlideConverters {
         if (result == null) {
             return null;
         }
-        if (result instanceof String) {
-            return "OK".equals(result);
-        }
-        if (result instanceof Boolean) {
-            return (Boolean) result;
-        }
-        if (result instanceof Number) {
-            return ((Number) result).longValue() != 0;
-        }
-        return result != null;
+        return "OK".equals(result);
+    }
+
+    /**
+     * Convert a numeric Redis command result to a Boolean value.
+     * Redis conditional commands return 1/0 for true/false.
+     *
+     * @param result The numeric command result
+     * @return Boolean representation of the result
+     */
+    @Nullable
+    public static Boolean numberToBoolean(@Nullable Object result) {
+        return result != null ? ((Number) result).longValue() != 0 : null;
     }
 
     /**
@@ -244,6 +271,73 @@ public abstract class ValkeyGlideConverters {
      * @param result The command result
      * @return Set of byte arrays
      */
+    @Nullable
+    public static Set<byte[]> toBytesSet(@Nullable Object[] glideResult) {
+        if (glideResult == null) {
+            return new HashSet<>();
+        }
+
+        Set<byte[]> resultSet = new HashSet<>(glideResult.length);
+        for (Object item : glideResult) {
+            GlideString glideString = (GlideString) item;
+            resultSet.add(glideString != null ? glideString.getBytes() : null);
+        }
+        return resultSet;
+        
+        // if (result instanceof Collection) {
+        //     Set<byte[]> set = new HashSet<>();
+        //     for (Object item : (Collection<?>) result) {
+        //         if (item instanceof byte[]) {
+        //             set.add((byte[]) item);
+        //         } else if (item instanceof String) {
+        //             set.add(((String) item).getBytes(StandardCharsets.UTF_8));
+        //         } else if (item != null) {
+        //             set.add(item.toString().getBytes(StandardCharsets.UTF_8));
+        //         }
+        //     }
+        //     return set;
+        // }
+        
+        // Handle array types (Object[] and specific array types)
+        // if (result instanceof Object[]) {
+        //     Set<byte[]> set = new HashSet<>();
+        //     for (Object item : (Object[]) result) {
+        //         if (item instanceof byte[]) {
+        //             set.add((byte[]) item);
+        //         } else if (item instanceof String) {
+        //             set.add(((String) item).getBytes(StandardCharsets.UTF_8));
+        //         } else if (item != null) {
+        //             set.add(item.toString().getBytes(StandardCharsets.UTF_8));
+        //         }
+        //     }
+        //     return set;
+        // }
+        
+        // // Handle byte[][] specifically
+        // if (result instanceof byte[][]) {
+        //     Set<byte[]> set = new HashSet<>();
+        //     for (byte[] item : (byte[][]) result) {
+        //         if (item != null) {
+        //             set.add(item);
+        //         }
+        //     }
+        //     return set;
+        // }
+        
+        // // Handle String[] specifically
+        // if (result instanceof String[]) {
+        //     Set<byte[]> set = new HashSet<>();
+        //     for (String item : (String[]) result) {
+        //         if (item != null) {
+        //             set.add(item.getBytes(StandardCharsets.UTF_8));
+        //         }
+        //     }
+        //     return set;
+        // }
+        
+        // return new HashSet<>();
+    }
+
     @Nullable
     public static Set<byte[]> toBytesSet(@Nullable Object result) {
         if (result == null) {
@@ -304,12 +398,61 @@ public abstract class ValkeyGlideConverters {
         return new HashSet<>();
     }
 
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static List<Map.Entry<byte[], byte[]>> toMapEntriesList(@Nullable Object glideResult) {
+        if (glideResult == null) {
+            return null;
+        }
+
+        Object[] result = (Object[]) glideResult;
+        if (result.length == 0) {
+            return null;
+        }
+
+        List<Map.Entry<byte[], byte[]>> resultList = new ArrayList<>();
+        for (Object item : result) {
+            Object[] keyValuePair = (Object[]) item;
+            GlideString keyObj = (GlideString) keyValuePair[0];
+            GlideString valueObj = (GlideString) keyValuePair[1];
+            resultList.add(new HashMap.SimpleEntry<>(keyObj.getBytes(), valueObj.getBytes()));
+        }
+        return resultList;
+    }
+
     /**
      * Convert result to List<byte[]>.
      *
      * @param result The command result
      * @return List of byte arrays
      */
+    @Nullable
+    public static List<byte[]> toBytesList(@Nullable Object[] glideResult) {
+        if (glideResult == null) {
+            return new ArrayList<>();
+        }
+
+        List<byte[]> convertedList = new ArrayList<>(glideResult.length);
+        for (Object item : glideResult) {
+            GlideString glideString = (GlideString) item;
+            convertedList.add(glideString != null ? glideString.getBytes() : null);
+        }
+        return convertedList;
+    }
+
+    @Nullable
+    public static List<Long> toLongsList(@Nullable Object[] glideResult) {
+        if (glideResult == null) {
+            return null;
+        }
+
+        List<Long> resultList = new ArrayList<>(glideResult.length);
+        for (Object item : glideResult) {
+            resultList.add(((Number) item).longValue());
+        }
+        return resultList;
+    }
+
     @Nullable
     public static List<byte[]> toBytesList(@Nullable Object result) {
         if (result == null) {
@@ -370,6 +513,38 @@ public abstract class ValkeyGlideConverters {
         return new ArrayList<>();
     }
 
+    @Nullable
+    public static Map<byte[],  byte[]> toBytesMap(@Nullable Object glideResult) {
+        if (glideResult == null) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Map<GlideString, GlideString> coverted = (Map<GlideString, GlideString>) glideResult;
+        Map<byte[], byte[]> resultMap = new HashMap<>(coverted.size());
+        for (Map.Entry<GlideString, GlideString> entry : coverted.entrySet()) {
+            resultMap.put(entry.getKey().getBytes(), entry.getValue().getBytes());
+        }
+        return resultMap;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public static Map.Entry<byte[],  byte[]> toBytesMapEntry(@Nullable Object glideResult) {
+        if (glideResult == null) {
+            return null;
+        }
+
+        Object[] result = (Object[]) glideResult;
+        if (result.length == 0) {
+            return null;
+        }
+
+        Object[] keyValuePair = (Object[]) result[0];
+
+        GlideString keyObj = (GlideString) keyValuePair[0];
+        GlideString valueObj = (GlideString) keyValuePair[1];
+        return new HashMap.SimpleEntry<>(keyObj.getBytes(), valueObj.getBytes());
+    }
     /**
      * Append sort parameters to the command arguments.
      *
@@ -456,4 +631,44 @@ public abstract class ValkeyGlideConverters {
         
         return ValueEncoding.RedisValueEncoding.VACANT;
     }
+
+    // @Nullable
+    // public static Set<byte[]> cast(@Nullable Object[] glideResult) {
+    //     if (glideResult == null) {
+    //         return null;
+    //     }
+
+    //     Set<byte[]> resultSet = new HashSet<>(glideResult.length);
+    //     for (Object item : glideResult) {
+    //         GlideString glideString = (GlideString) item;
+    //         resultSet.add(glideString != null ? glideString.getBytes() : null);
+    //     }
+    //     return resultSet;
+    // }
+
+    // @Nullable
+    // public static List<byte[]> cast(@Nullable Object[] glideResult) {
+    //     if (glideResult == null) {
+    //         return null;
+    //     }
+    //     List<byte[]> convertedList = new ArrayList<>(result.length);
+    //     for (Object item : glideResult) {
+    //         GlideString glideString = (GlideString) item;
+    //         convertedList.add(glideString != null ? glideString.getBytes() : null);
+    //     }
+    //     return convertedList;
+    // }
+
+    static public void printUpmostClassName(Object obj) {
+        if (obj == null) {
+            System.out.println("Object is null");
+            return;
+        }
+        Class<?> clazz = obj.getClass();
+        while (clazz.getSuperclass() != null) {
+            clazz = clazz.getSuperclass();
+        }
+        System.out.println("Upmost class name: " + clazz.getName());
+    }
+
 }

@@ -270,7 +270,7 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
                 Object rawResult = connection.execute("SCAN", args.toArray());
                 
                 // Convert from Glide format to Spring Data Redis format
-                Object result = ValkeyGlideConverters.fromGlideResult(rawResult);
+                Object result = ValkeyGlideConverters.defaultFromGlideResult(rawResult);
                 
                 if (result instanceof java.util.List) {
                     java.util.List<?> scanResult = (java.util.List<?>) result;

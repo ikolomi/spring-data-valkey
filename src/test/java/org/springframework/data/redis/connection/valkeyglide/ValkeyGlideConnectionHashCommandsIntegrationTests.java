@@ -27,10 +27,12 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.ExpirationOptions;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
+
+import io.lettuce.core.RedisException;
 
 /**
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
@@ -541,7 +543,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     // ==================== Field Expiration Operations ====================
 
     @Test
-    void testHExpireAndHpExpire() {
+    void testHExpire() {
         String key = "test:hash:expire";
         byte[] keyBytes = key.getBytes();
         byte[] field1 = "field1".getBytes();
@@ -554,33 +556,118 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             connection.hashCommands().hSet(keyBytes, field1, value1);
             connection.hashCommands().hSet(keyBytes, field2, value2);
             
-            // Test hExpire (seconds) - Basic test to ensure command executes
+            // Test hExpire (seconds) - Basic happy path test to ensure command executes
             List<Long> expireResults = connection.hashCommands().hExpire(keyBytes, 10L, 
                 ExpirationOptions.Condition.ALWAYS, field1);
-            // Note: Result interpretation may vary based on server version and implementation
-            // We primarily test that the command executes without error
-            assertThat(expireResults).isNotNull();
-            
-            // Test hpExpire (milliseconds) - Basic test
-            List<Long> pExpireResults = connection.hashCommands().hpExpire(keyBytes, 10000L, 
-                ExpirationOptions.Condition.ALWAYS, field2);
-            assertThat(pExpireResults).isNotNull();
-            
-            // Test with Duration
-            List<Long> durationExpireResults = connection.hashCommands().hExpire(keyBytes, Duration.ofSeconds(10), field1);
-            assertThat(durationExpireResults).isNotNull();
-            
-            // Test on non-existent field
-            List<Long> nonExistentResults = connection.hashCommands().hExpire(keyBytes, 10L, 
-                ExpirationOptions.Condition.ALWAYS, "nonexistent".getBytes());
-            assertThat(nonExistentResults).isNotNull();
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test non existing key
+            expireResults = connection.hashCommands().hExpire("non:existent:key".getBytes(), 10L, 
+                ExpirationOptions.Condition.ALWAYS, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - 2 existing and 1 absent fields
+            expireResults = connection.hashCommands().hExpire(keyBytes, 10L, 
+                ExpirationOptions.Condition.ALWAYS, field1, field2, "nonexistent".getBytes());
+            assertThat(expireResults).hasSize(3);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+            assertThat(expireResults.get(1)).isEqualTo(1);
+            assertThat(expireResults.get(2)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - Test NX
+            expireResults = connection.hashCommands().hExpire(keyBytes, 10L, 
+                ExpirationOptions.Condition.NX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test XX
+            expireResults = connection.hashCommands().hExpire(keyBytes, 10L, 
+                ExpirationOptions.Condition.XX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test GT by setting a shorter expiry first
+            expireResults = connection.hashCommands().hExpire(keyBytes, 1L, 
+                ExpirationOptions.Condition.GT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test LT by setting a longer expiry
+            expireResults = connection.hashCommands().hExpire(keyBytes, 11L, 
+                ExpirationOptions.Condition.LT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
         } finally {
             cleanupKey(key);
         }
     }
 
     @Test
-    void testHExpireAtAndHpExpireAt() {
+    void testHpExpire() {
+        String key = "test:hash:expire";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.hashCommands().hSet(keyBytes, field1, value1);
+            connection.hashCommands().hSet(keyBytes, field2, value2);
+            
+            // Test hExpire (seconds) - Basic happy path test to ensure command executes
+            List<Long> expireResults = connection.hashCommands().hpExpire(keyBytes, 10000L, 
+                ExpirationOptions.Condition.ALWAYS, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test non existing key
+            expireResults = connection.hashCommands().hpExpire("non:existent:key".getBytes(), 10000L, 
+                ExpirationOptions.Condition.ALWAYS, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - 2 existing and 1 absent fields
+            expireResults = connection.hashCommands().hpExpire(keyBytes, 10000L, 
+                ExpirationOptions.Condition.ALWAYS, field1, field2, "nonexistent".getBytes());
+            assertThat(expireResults).hasSize(3);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+            assertThat(expireResults.get(1)).isEqualTo(1);
+            assertThat(expireResults.get(2)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - Test NX
+            expireResults = connection.hashCommands().hpExpire(keyBytes, 10000L, 
+                ExpirationOptions.Condition.NX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test XX
+            expireResults = connection.hashCommands().hpExpire(keyBytes, 10000L, 
+                ExpirationOptions.Condition.XX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test GT by setting a shorter expiry first
+            expireResults = connection.hashCommands().hpExpire(keyBytes, 1000L, 
+                ExpirationOptions.Condition.GT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test LT by setting a longer expiry
+            expireResults = connection.hashCommands().hpExpire(keyBytes, 11000L, 
+                ExpirationOptions.Condition.LT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHExpireAt() {
         String key = "test:hash:expireat";
         byte[] keyBytes = key.getBytes();
         byte[] field1 = "field1".getBytes();
@@ -593,24 +680,121 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             connection.hashCommands().hSet(keyBytes, field1, value1);
             connection.hashCommands().hSet(keyBytes, field2, value2);
             
-            // Calculate future timestamp (current time + 10 seconds)
-            long futureTimestamp = System.currentTimeMillis() / 1000 + 10;
-            long futureTimestampMillis = System.currentTimeMillis() + 10000;
-            
-            // Test hExpireAt (seconds) - Basic test to ensure command executes
-            List<Long> expireAtResults = connection.hashCommands().hExpireAt(keyBytes, futureTimestamp, 
+            long currentTimestamp = System.currentTimeMillis() / 1000;
+            long expirationTimestamp = currentTimestamp + 10; // 10 seconds in the future
+            long expiredTimestamp = currentTimestamp - 10; // 10 seconds in the past
+            long nextExpirationTimestampMillis = currentTimestamp + 20; // 20 seconds in the future
+
+            // Test hExpireAt (seconds) - Basic happy path test to ensure command executes
+            List<Long> expireResults = connection.hashCommands().hExpireAt(keyBytes, expirationTimestamp, 
                 ExpirationOptions.Condition.ALWAYS, field1);
-            assertThat(expireAtResults).isNotNull();
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test non existing key
+            expireResults = connection.hashCommands().hExpireAt("non:existent:key".getBytes(), expirationTimestamp, 
+                ExpirationOptions.Condition.ALWAYS, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - 2 existing and 1 absent fields
+            expireResults = connection.hashCommands().hExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.ALWAYS, field1, field2, "nonexistent".getBytes());
+            assertThat(expireResults).hasSize(3);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+            assertThat(expireResults.get(1)).isEqualTo(1);
+            assertThat(expireResults.get(2)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - Test NX
+            expireResults = connection.hashCommands().hExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.NX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test XX
+            expireResults = connection.hashCommands().hExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.XX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test GT by setting a shorter expiry first
+            expireResults = connection.hashCommands().hExpireAt(keyBytes, expiredTimestamp, 
+                ExpirationOptions.Condition.GT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test LT by setting a longer expiry
+            expireResults = connection.hashCommands().hExpireAt(keyBytes, nextExpirationTimestampMillis, 
+                ExpirationOptions.Condition.LT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHpExpireAt() {
+        String key = "test:hash:expireat";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.hashCommands().hSet(keyBytes, field1, value1);
+            connection.hashCommands().hSet(keyBytes, field2, value2);
             
-            // Test hpExpireAt (milliseconds) - Basic test
-            List<Long> pExpireAtResults = connection.hashCommands().hpExpireAt(keyBytes, futureTimestampMillis, 
-                ExpirationOptions.Condition.ALWAYS, field2);
-            assertThat(pExpireAtResults).isNotNull();
-            
-            // Test on non-existent field
-            List<Long> nonExistentResults = connection.hashCommands().hExpireAt(keyBytes, futureTimestamp, 
-                ExpirationOptions.Condition.ALWAYS, "nonexistent".getBytes());
-            assertThat(nonExistentResults).isNotNull();
+            long currentTimestamp = System.currentTimeMillis();
+            long expirationTimestamp = currentTimestamp + 10000; // 10 seconds in the future
+            long expiredTimestamp = currentTimestamp - 10000; // 10 seconds in the past
+            long nextExpirationTimestampMillis = currentTimestamp + 20000; // 20 seconds in the future
+
+            // Test hExpireAt (seconds) - Basic happy path test to ensure command executes
+            List<Long> expireResults = connection.hashCommands().hpExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.ALWAYS, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test non existing key
+            expireResults = connection.hashCommands().hpExpireAt("non:existent:key".getBytes(), expirationTimestamp, 
+                ExpirationOptions.Condition.ALWAYS, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - 2 existing and 1 absent fields
+            expireResults = connection.hashCommands().hpExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.ALWAYS, field1, field2, "nonexistent".getBytes());
+            assertThat(expireResults).hasSize(3);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+            assertThat(expireResults.get(1)).isEqualTo(1);
+            assertThat(expireResults.get(2)).isEqualTo(-2);
+
+            // Test hExpire (seconds) - Test NX
+            expireResults = connection.hashCommands().hpExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.NX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test XX
+            expireResults = connection.hashCommands().hpExpireAt(keyBytes, expirationTimestamp, 
+                ExpirationOptions.Condition.XX, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(1);
+
+            // Test hExpire (seconds) - Test GT by setting a shorter expiry first
+            expireResults = connection.hashCommands().hpExpireAt(keyBytes, expiredTimestamp, 
+                ExpirationOptions.Condition.GT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
+
+            // Test hExpire (seconds) - Test LT by setting a longer expiry
+            expireResults = connection.hashCommands().hpExpireAt(keyBytes, nextExpirationTimestampMillis, 
+                ExpirationOptions.Condition.LT, field1);
+            assertThat(expireResults).hasSize(1);
+            assertThat(expireResults.get(0)).isEqualTo(0);
         } finally {
             cleanupKey(key);
         }
@@ -632,18 +816,34 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             
             // Test hPersist - Basic test to ensure command executes
             List<Long> persistResults = connection.hashCommands().hPersist(keyBytes, field1, field2);
-            assertThat(persistResults).isNotNull();
+            assertThat(persistResults).hasSize(2);
+            assertThat(persistResults.get(0)).isEqualTo(-1); // field1 had no expiration
+            assertThat(persistResults.get(1)).isEqualTo(-1); // field2 had no expiration
+
+            // Set expiration to test persistence removal (combined)
+            connection.hashCommands().hExpire(keyBytes, 10L, ExpirationOptions.Condition.ALWAYS, field1);
+            persistResults = connection.hashCommands().hPersist(keyBytes, field1, field2, "nonexistent".getBytes());
+            assertThat(persistResults).hasSize(3);
+            assertThat(persistResults.get(0)).isEqualTo(1); // field1 expiration removed
+            assertThat(persistResults.get(1)).isEqualTo(-1); // field2 had no expiration
+            assertThat(persistResults.get(2)).isEqualTo(-2); // nonexistent field
             
             // Test on non-existent field
             List<Long> nonExistentResults = connection.hashCommands().hPersist(keyBytes, "nonexistent".getBytes());
-            assertThat(nonExistentResults).isNotNull();
+            assertThat(nonExistentResults).hasSize(1);
+            assertThat(nonExistentResults.get(0)).isEqualTo(-2);
+
+            // Test on non-existent key
+            List<Long> nonExistentKeyResults = connection.hashCommands().hPersist("non:existent:key".getBytes(), field1);
+            assertThat(nonExistentKeyResults).hasSize(1);
+            assertThat(nonExistentKeyResults.get(0)).isEqualTo(-2);
         } finally {
             cleanupKey(key);
         }
     }
 
     @Test
-    void testHTtlAndHpTtl() {
+    void testHTtl() {
         String key = "test:hash:ttl";
         byte[] keyBytes = key.getBytes();
         byte[] field1 = "field1".getBytes();
@@ -658,19 +858,66 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             
             // Test hTtl - Basic test to ensure command executes
             List<Long> ttlResults = connection.hashCommands().hTtl(keyBytes, field1, field2);
-            assertThat(ttlResults).isNotNull();
-            
+            assertThat(ttlResults).hasSize(2);
+            assertThat(ttlResults.get(0)).isEqualTo(-1); // No expiration
+            assertThat(ttlResults.get(1)).isEqualTo(-1); // No expiration
+
+            // Set expiration to test TTL retrieval (combined)
+            connection.hashCommands().hExpire(keyBytes, 10L, ExpirationOptions.Condition.ALWAYS, field1);
+            ttlResults = connection.hashCommands().hTtl(keyBytes, field1, field2, "nonexistent".getBytes());
+            assertThat(ttlResults).hasSize(3);
+            assertThat(ttlResults.get(0)).isGreaterThan(0); // field1 should have a TTL
+            assertThat(ttlResults.get(1)).isEqualTo(-1); // field2 has no expiration
+            assertThat(ttlResults.get(2)).isEqualTo(-2); // nonexistent field
+
             // Test hTtl with TimeUnit
-            List<Long> ttlMillisResults = connection.hashCommands().hTtl(keyBytes, TimeUnit.MILLISECONDS, field1);
-            assertThat(ttlMillisResults).isNotNull();
+            connection.hashCommands().hExpire(keyBytes, 10L, ExpirationOptions.Condition.ALWAYS, field2);
+            List<Long> ttlMillisResults = connection.hashCommands().hTtl(keyBytes, TimeUnit.MILLISECONDS, field1, field2);
+            assertThat(ttlMillisResults).hasSize(2);
+            assertThat(ttlMillisResults.get(0)).isGreaterThan(5000); // field1 should definitely have >5s left
+            assertThat(ttlMillisResults.get(1)).isGreaterThan(5000); // field2 should definitely have >5s left
+
+            // Test non existant key
+            ttlResults = connection.hashCommands().hTtl("non:existent:key".getBytes(), field1);
+            assertThat(ttlResults).hasSize(1);
+            assertThat(ttlResults.get(0)).isEqualTo(-2);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHpTtl() {
+        String key = "test:hash:ttl";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.hashCommands().hSet(keyBytes, field1, value1);
+            connection.hashCommands().hSet(keyBytes, field2, value2);
             
-            // Test hpTtl (milliseconds) - Basic test
-            List<Long> pTtlResults = connection.hashCommands().hpTtl(keyBytes, field1, field2);
-            assertThat(pTtlResults).isNotNull();
-            
-            // Test on non-existent field
-            List<Long> nonExistentResults = connection.hashCommands().hTtl(keyBytes, "nonexistent".getBytes());
-            assertThat(nonExistentResults).isNotNull();
+            // Test hpTtl - Basic test to ensure command executes
+            List<Long> ttlResults = connection.hashCommands().hpTtl(keyBytes, field1, field2);
+            assertThat(ttlResults).hasSize(2);
+            assertThat(ttlResults.get(0)).isEqualTo(-1); // No expiration
+            assertThat(ttlResults.get(1)).isEqualTo(-1); // No expiration
+
+            // Set expiration to test TTL retrieval (combined)
+            connection.hashCommands().hExpire(keyBytes, 10L, ExpirationOptions.Condition.ALWAYS, field1);
+            ttlResults = connection.hashCommands().hpTtl(keyBytes, field1, field2, "nonexistent".getBytes());
+            assertThat(ttlResults).hasSize(3);
+            assertThat(ttlResults.get(0)).isGreaterThan(1000); // field1 should have a TTL
+            assertThat(ttlResults.get(1)).isEqualTo(-1); // field2 has no expiration
+            assertThat(ttlResults.get(2)).isEqualTo(-2); // nonexistent field
+
+            // Test non existant key
+            ttlResults = connection.hashCommands().hpTtl("non:existent:key".getBytes(), field1);
+            assertThat(ttlResults).hasSize(1);
+            assertThat(ttlResults.get(0)).isEqualTo(-2);
         } finally {
             cleanupKey(key);
         }
@@ -758,6 +1005,795 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
         assertThat(foundBinaryField).as("binaryField should be present in hGetAll result").isTrue();
         } finally {
             cleanupKey(key);
+        }
+    }
+
+    // ==================== Pipeline Mode Tests ====================
+
+    @Test
+    void testHashCommandsInPipelineMode() {
+        String key1 = "test:hash:pipeline:basic";
+        String key2 = "test:hash:pipeline:multi";
+        byte[] key1Bytes = key1.getBytes();
+        byte[] key2Bytes = key2.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] field3 = "field3".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Start pipeline for main test logic
+            connection.openPipeline();
+            
+            // Queue multiple hash commands - assert they return null in pipeline mode
+            assertThat(connection.hashCommands().hSet(key1Bytes, field1, value1)).isNull();
+            assertThat(connection.hashCommands().hSet(key1Bytes, field2, value2)).isNull();
+            assertThat(connection.hashCommands().hGet(key1Bytes, field1)).isNull();
+            assertThat(connection.hashCommands().hExists(key1Bytes, field1)).isNull();
+            assertThat(connection.hashCommands().hLen(key1Bytes)).isNull();
+            
+            // Queue multi-operations - assert they return null in pipeline mode
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put(field1, value1);
+            hashData.put(field2, value2);
+            hashData.put(field3, value3);
+            connection.hashCommands().hMSet(key2Bytes, hashData); // void method, no assertion needed
+            assertThat(connection.hashCommands().hMGet(key2Bytes, field1, field2, field3)).isNull();
+            assertThat(connection.hashCommands().hGetAll(key2Bytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(8);
+            assertThat(results.get(0)).isEqualTo(true);  // hSet result
+            assertThat(results.get(1)).isEqualTo(true);  // hSet result  
+            assertThat(results.get(2)).isEqualTo(value1); // hGet result
+            assertThat(results.get(3)).isEqualTo(true);  // hExists result
+            assertThat(results.get(4)).isEqualTo(2L);    // hLen result
+            
+            // hMSet returns simple string reply "OK"
+            assertThat(results.get(5)).isEqualTo("OK");
+            
+            // hMGet results
+            @SuppressWarnings("unchecked")
+            List<byte[]> mgetResults = (List<byte[]>) results.get(6);
+            assertThat(mgetResults).hasSize(3);
+            assertThat(mgetResults.get(0)).isEqualTo(value1);
+            assertThat(mgetResults.get(1)).isEqualTo(value2);
+            assertThat(mgetResults.get(2)).isEqualTo(value3);
+            
+            // hGetAll results
+            @SuppressWarnings("unchecked")
+            Map<byte[], byte[]> getAllResults = (Map<byte[], byte[]>) results.get(7);
+            assertThat(getAllResults).hasSize(3);
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testHashIncrementCommandsInPipelineMode() {
+        String key = "test:hash:pipeline:incr";
+        byte[] keyBytes = key.getBytes();
+        byte[] intField = "intField".getBytes();
+        byte[] floatField = "floatField".getBytes();
+        
+        try {
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue increment commands - assert they return null in pipeline mode
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, intField, 5L)).isNull();
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, intField, 10L)).isNull();
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, floatField, 3.14)).isNull();
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, floatField, 2.86)).isNull();
+            assertThat(connection.hashCommands().hGet(keyBytes, intField)).isNull();
+            assertThat(connection.hashCommands().hGet(keyBytes, floatField)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(5L);    // First increment
+            assertThat(results.get(1)).isEqualTo(15L);   // Second increment
+            assertThat(results.get(2)).isEqualTo(3.14);  // First float increment
+            assertThat(results.get(3)).isEqualTo(6.0);   // Second float increment
+            assertThat(results.get(4)).isEqualTo("15".getBytes()); // Get int result
+            assertThat(results.get(5)).isEqualTo("6".getBytes());   // Get float result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHashStructuralCommandsInPipelineMode() {
+        String key = "test:hash:pipeline:structure";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] field3 = "field3".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put(field1, value1);
+            hashData.put(field2, value2);
+            hashData.put(field3, value3);
+            connection.hashCommands().hMSet(keyBytes, hashData);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue structural commands - assert they return null in pipeline mode
+            assertThat(connection.hashCommands().hLen(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hKeys(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hVals(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hGetAll(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hDel(keyBytes, field1)).isNull();
+            assertThat(connection.hashCommands().hLen(keyBytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(3L); // Initial length
+            
+            @SuppressWarnings("unchecked")
+            Set<byte[]> keys = (Set<byte[]>) results.get(1);
+            assertThat(keys).hasSize(3);
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> vals = (List<byte[]>) results.get(2);
+            assertThat(vals).hasSize(3);
+            
+            @SuppressWarnings("unchecked")
+            Map<byte[], byte[]> all = (Map<byte[], byte[]>) results.get(3);
+            assertThat(all).hasSize(3);
+            
+            assertThat(results.get(4)).isEqualTo(1L); // Delete result
+            assertThat(results.get(5)).isEqualTo(2L); // Final length
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHashRandomFieldCommandsInPipelineMode() {
+        String key = "test:hash:pipeline:random";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] field3 = "field3".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put(field1, value1);
+            hashData.put(field2, value2);
+            hashData.put(field3, value3);
+            connection.hashCommands().hMSet(keyBytes, hashData);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue random field commands - assert they return null in pipeline mode
+            assertThat(connection.hashCommands().hRandField(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hRandField(keyBytes, 2)).isNull();
+            assertThat(connection.hashCommands().hRandFieldWithValues(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hRandFieldWithValues(keyBytes, 2)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(4);
+            
+            // Single random field
+            assertThat(results.get(0)).isInstanceOf(byte[].class);
+            
+            // Multiple random fields
+            @SuppressWarnings("unchecked")
+            List<byte[]> multipleFields = (List<byte[]>) results.get(1);
+            assertThat(multipleFields).hasSize(2);
+            
+            // Single random field with value
+            @SuppressWarnings("unchecked")
+            Map.Entry<byte[], byte[]> singleEntry = (Map.Entry<byte[], byte[]>) results.get(2);
+            assertThat(singleEntry).isNotNull();
+            
+            // Multiple random fields with values
+            @SuppressWarnings("unchecked")
+            List<Map.Entry<byte[], byte[]>> multipleEntries = (List<Map.Entry<byte[], byte[]>>) results.get(3);
+            assertThat(multipleEntries).hasSize(2);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHashExpirationCommandsInPipelineMode() {
+        String key = "test:hash:pipeline:expire";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Setup data first
+            connection.hashCommands().hSet(keyBytes, field1, value1);
+            connection.hashCommands().hSet(keyBytes, field2, value2);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue expiration commands - assert they return null in pipeline mode
+            assertThat(connection.hashCommands().hExpire(keyBytes, 10L, ExpirationOptions.Condition.ALWAYS, field1)).isNull();
+            assertThat(connection.hashCommands().hpExpire(keyBytes, 10000L, ExpirationOptions.Condition.ALWAYS, field2)).isNull();
+            assertThat(connection.hashCommands().hTtl(keyBytes, field1, field2)).isNull();
+            assertThat(connection.hashCommands().hpTtl(keyBytes, field1, field2)).isNull();
+            assertThat(connection.hashCommands().hPersist(keyBytes, field1, field2)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(5);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> expireResults1 = (List<Long>) results.get(0);
+            assertThat(expireResults1).hasSize(1);
+            assertThat(expireResults1.get(0)).isEqualTo(1L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> expireResults2 = (List<Long>) results.get(1);
+            assertThat(expireResults2).hasSize(1);
+            assertThat(expireResults2.get(0)).isEqualTo(1L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> ttlResults = (List<Long>) results.get(2);
+            assertThat(ttlResults).hasSize(2);
+            assertThat(ttlResults.get(0)).isGreaterThan(0L);
+            assertThat(ttlResults.get(1)).isGreaterThan(0L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> pttlResults = (List<Long>) results.get(3);
+            assertThat(pttlResults).hasSize(2);
+            assertThat(pttlResults.get(0)).isGreaterThan(1000L);
+            assertThat(pttlResults.get(1)).isGreaterThan(1000L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> persistResults = (List<Long>) results.get(4);
+            assertThat(persistResults).hasSize(2);
+            assertThat(persistResults.get(0)).isEqualTo(1L);
+            assertThat(persistResults.get(1)).isEqualTo(1L);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    // ==================== Transaction Mode Tests ====================
+
+    @Test
+    void testHashCommandsInTransactionMode() {
+        String key1 = "test:hash:transaction:basic";
+        String key2 = "test:hash:transaction:multi";
+        byte[] key1Bytes = key1.getBytes();
+        byte[] key2Bytes = key2.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] field3 = "field3".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Start transaction for main test logic
+            connection.multi();
+            
+            // Queue multiple hash commands - assert they return null in transaction mode
+            assertThat(connection.hashCommands().hSet(key1Bytes, field1, value1)).isNull();
+            assertThat(connection.hashCommands().hSet(key1Bytes, field2, value2)).isNull();
+            assertThat(connection.hashCommands().hGet(key1Bytes, field1)).isNull();
+            assertThat(connection.hashCommands().hExists(key1Bytes, field1)).isNull();
+            assertThat(connection.hashCommands().hLen(key1Bytes)).isNull();
+            
+            // Queue multi-operations - assert they return null in transaction mode
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put(field1, value1);
+            hashData.put(field2, value2);
+            hashData.put(field3, value3);
+            connection.hashCommands().hMSet(key2Bytes, hashData); // void method, no assertion needed
+            assertThat(connection.hashCommands().hMGet(key2Bytes, field1, field2, field3)).isNull();
+            assertThat(connection.hashCommands().hGetAll(key2Bytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(8);
+            assertThat(results.get(0)).isEqualTo(true);  // hSet result
+            assertThat(results.get(1)).isEqualTo(true);  // hSet result  
+            assertThat(results.get(2)).isEqualTo(value1); // hGet result
+            assertThat(results.get(3)).isEqualTo(true);  // hExists result
+            assertThat(results.get(4)).isEqualTo(2L);    // hLen result
+            
+            // hMSet returns simple string reply "OK"
+            assertThat(results.get(5)).isEqualTo("OK");
+            
+            // hMGet results
+            @SuppressWarnings("unchecked")
+            List<byte[]> mgetResults = (List<byte[]>) results.get(6);
+            assertThat(mgetResults).hasSize(3);
+            assertThat(mgetResults.get(0)).isEqualTo(value1);
+            assertThat(mgetResults.get(1)).isEqualTo(value2);
+            assertThat(mgetResults.get(2)).isEqualTo(value3);
+            
+            // hGetAll results
+            @SuppressWarnings("unchecked")
+            Map<byte[], byte[]> getAllResults = (Map<byte[], byte[]>) results.get(7);
+            assertThat(getAllResults).hasSize(3);
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testHashIncrementCommandsInTransactionMode() {
+        String key = "test:hash:transaction:incr";
+        byte[] keyBytes = key.getBytes();
+        byte[] intField = "intField".getBytes();
+        byte[] floatField = "floatField".getBytes();
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue increment commands - assert they return null in transaction mode
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, intField, 5L)).isNull();
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, intField, 10L)).isNull();
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, floatField, 3.14)).isNull();
+            assertThat(connection.hashCommands().hIncrBy(keyBytes, floatField, 2.86)).isNull();
+            assertThat(connection.hashCommands().hGet(keyBytes, intField)).isNull();
+            assertThat(connection.hashCommands().hGet(keyBytes, floatField)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(5L);    // First increment
+            assertThat(results.get(1)).isEqualTo(15L);   // Second increment
+            assertThat(results.get(2)).isEqualTo(3.14);  // First float increment
+            assertThat(results.get(3)).isEqualTo(6.0);   // Second float increment
+            assertThat(results.get(4)).isEqualTo("15".getBytes()); // Get int result
+            assertThat(results.get(5)).isEqualTo("6".getBytes());   // Get float result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHashStructuralCommandsInTransactionMode() {
+        String key = "test:hash:transaction:structure";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] field3 = "field3".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put(field1, value1);
+            hashData.put(field2, value2);
+            hashData.put(field3, value3);
+            connection.hashCommands().hMSet(keyBytes, hashData);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue structural commands - assert they return null in transaction mode
+            assertThat(connection.hashCommands().hLen(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hKeys(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hVals(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hGetAll(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hDel(keyBytes, field1)).isNull();
+            assertThat(connection.hashCommands().hLen(keyBytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(3L); // Initial length
+            
+            @SuppressWarnings("unchecked")
+            Set<byte[]> keys = (Set<byte[]>) results.get(1);
+            assertThat(keys).hasSize(3);
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> vals = (List<byte[]>) results.get(2);
+            assertThat(vals).hasSize(3);
+            
+            @SuppressWarnings("unchecked")
+            Map<byte[], byte[]> all = (Map<byte[], byte[]>) results.get(3);
+            assertThat(all).hasSize(3);
+            
+            assertThat(results.get(4)).isEqualTo(1L); // Delete result
+            assertThat(results.get(5)).isEqualTo(2L); // Final length
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHashRandomFieldCommandsInTransactionMode() {
+        String key = "test:hash:transaction:random";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] field3 = "field3".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put(field1, value1);
+            hashData.put(field2, value2);
+            hashData.put(field3, value3);
+            connection.hashCommands().hMSet(keyBytes, hashData);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue random field commands - assert they return null in transaction mode
+            assertThat(connection.hashCommands().hRandField(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hRandField(keyBytes, 2)).isNull();
+            assertThat(connection.hashCommands().hRandFieldWithValues(keyBytes)).isNull();
+            assertThat(connection.hashCommands().hRandFieldWithValues(keyBytes, 2)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(4);
+            
+            // Single random field
+            assertThat(results.get(0)).isInstanceOf(byte[].class);
+            
+            // Multiple random fields
+            @SuppressWarnings("unchecked")
+            List<byte[]> multipleFields = (List<byte[]>) results.get(1);
+            assertThat(multipleFields).hasSize(2);
+            
+            // Single random field with value
+            @SuppressWarnings("unchecked")
+            Map.Entry<byte[], byte[]> singleEntry = (Map.Entry<byte[], byte[]>) results.get(2);
+            assertThat(singleEntry).isNotNull();
+            
+            // Multiple random fields with values
+            @SuppressWarnings("unchecked")
+            List<Map.Entry<byte[], byte[]>> multipleEntries = (List<Map.Entry<byte[], byte[]>>) results.get(3);
+            assertThat(multipleEntries).hasSize(2);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testHashExpirationCommandsInTransactionMode() {
+        String key = "test:hash:transaction:expire";
+        byte[] keyBytes = key.getBytes();
+        byte[] field1 = "field1".getBytes();
+        byte[] field2 = "field2".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Setup data first
+            connection.hashCommands().hSet(keyBytes, field1, value1);
+            connection.hashCommands().hSet(keyBytes, field2, value2);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue expiration commands - assert they return null in transaction mode
+            assertThat(connection.hashCommands().hExpire(keyBytes, 10L, ExpirationOptions.Condition.ALWAYS, field1)).isNull();
+            assertThat(connection.hashCommands().hpExpire(keyBytes, 10000L, ExpirationOptions.Condition.ALWAYS, field2)).isNull();
+            assertThat(connection.hashCommands().hTtl(keyBytes, field1, field2)).isNull();
+            assertThat(connection.hashCommands().hpTtl(keyBytes, field1, field2)).isNull();
+            assertThat(connection.hashCommands().hPersist(keyBytes, field1, field2)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(5);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> expireResults1 = (List<Long>) results.get(0);
+            assertThat(expireResults1).hasSize(1);
+            assertThat(expireResults1.get(0)).isEqualTo(1L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> expireResults2 = (List<Long>) results.get(1);
+            assertThat(expireResults2).hasSize(1);
+            assertThat(expireResults2.get(0)).isEqualTo(1L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> ttlResults = (List<Long>) results.get(2);
+            assertThat(ttlResults).hasSize(2);
+            assertThat(ttlResults.get(0)).isGreaterThan(0L);
+            assertThat(ttlResults.get(1)).isGreaterThan(0L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> pttlResults = (List<Long>) results.get(3);
+            assertThat(pttlResults).hasSize(2);
+            assertThat(pttlResults.get(0)).isGreaterThan(1000L);
+            assertThat(pttlResults.get(1)).isGreaterThan(1000L);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> persistResults = (List<Long>) results.get(4);
+            assertThat(persistResults).hasSize(2);
+            assertThat(persistResults.get(0)).isEqualTo(1L);
+            assertThat(persistResults.get(1)).isEqualTo(1L);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testTransactionDiscardWithHashCommands() {
+        String key = "test:hash:transaction:discard";
+        byte[] keyBytes = key.getBytes();
+        byte[] field = "field".getBytes();
+        byte[] value = "value".getBytes();
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue hash commands
+            connection.hashCommands().hSet(keyBytes, field, value);
+            connection.hashCommands().hGet(keyBytes, field);
+            
+            // Discard transaction
+            connection.discard();
+            
+            // Verify key doesn't exist (transaction was discarded)
+            Boolean exists = connection.hashCommands().hExists(keyBytes, field);
+            assertThat(exists).isFalse();
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testWatchWithHashCommandsTransaction() throws InterruptedException {
+        String watchKey = "test:hash:transaction:watch";
+        String otherKey = "test:hash:transaction:other";
+        byte[] watchKeyBytes = watchKey.getBytes();
+        byte[] otherKeyBytes = otherKey.getBytes();
+        byte[] field = "field".getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Setup initial data
+            connection.hashCommands().hSet(watchKeyBytes, field, value1);
+            
+            // Watch the key
+            connection.watch(watchKeyBytes);
+            
+            // Modify the watched key from "outside" the transaction
+            // (simulating another client)
+            connection.hashCommands().hSet(watchKeyBytes, field, value2);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue hash commands
+            connection.hashCommands().hSet(otherKeyBytes, field, value1);
+            connection.hashCommands().hGet(otherKeyBytes, field);
+            
+            // Execute transaction - should be aborted due to WATCH
+            List<Object> results = connection.exec();
+            
+            // Transaction should be aborted (results should be null)
+            assertThat(results).isNull();
+            
+            // Verify that the other key was not set
+            Boolean exists = connection.hashCommands().hExists(otherKeyBytes, field);
+            assertThat(exists).isFalse();
+            
+        } finally {
+            cleanupKey(watchKey);
+            cleanupKey(otherKey);
+        }
+    }
+
+    // ==================== Error Handling Tests for Pipeline/Transaction ====================
+
+    @Test
+    void testPipelineErrorHandling() {
+        String validKey = "test:hash:pipeline:error:valid";
+        String stringKey = "test:hash:pipeline:error:string";
+        byte[] validKeyBytes = validKey.getBytes();
+        byte[] stringKeyBytes = stringKey.getBytes();
+        byte[] field = "field".getBytes();
+        byte[] value = "value".getBytes();
+        
+        try {
+            // Set up a string key to cause type errors
+            connection.stringCommands().set(stringKeyBytes, "stringvalue".getBytes());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue valid command
+            connection.hashCommands().hSet(validKeyBytes, field, value);
+            
+            // Queue command that will cause error (wrong type)
+            connection.hashCommands().hSet(stringKeyBytes, field, value);
+            
+            // Queue another valid command
+            connection.hashCommands().hGet(validKeyBytes, field);
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results - valid commands should succeed, error command should return exception
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(true); // Valid hSet
+            assertThat(results.get(1)).isInstanceOf(DataAccessException.class); // Error result
+            assertThat(results.get(2)).isEqualTo(value); // Valid hGet
+            
+        } finally {
+            cleanupKey(validKey);
+            cleanupKey(stringKey);
+        }
+    }
+
+    @Test
+    void testTransactionErrorHandling() {
+        String validKey = "test:hash:transaction:error:valid";
+        String stringKey = "test:hash:transaction:error:string";
+        byte[] validKeyBytes = validKey.getBytes();
+        byte[] stringKeyBytes = stringKey.getBytes();
+        byte[] field = "field".getBytes();
+        byte[] value = "value".getBytes();
+        
+        try {
+            // Set up a string key to cause type errors
+            connection.stringCommands().set(stringKeyBytes, "stringvalue".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue valid command
+            connection.hashCommands().hSet(validKeyBytes, field, value);
+            
+            // Queue command that will cause error (wrong type)
+            connection.hashCommands().hSet(stringKeyBytes, field, value);
+            
+            // Queue another valid command
+            connection.hashCommands().hGet(validKeyBytes, field);
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results - valid commands should succeed, error command should return exception
+            assertThat(results).isNotNull(); // Transaction should not be aborted
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(true); // Valid hSet
+            assertThat(results.get(1)).isInstanceOf(DataAccessException.class); // Error result
+            assertThat(results.get(2)).isEqualTo(value); // Valid hGet
+            
+        } finally {
+            cleanupKey(validKey);
+            cleanupKey(stringKey);
+        }
+    }
+
+    @Test
+    void testHScanNotAllowedInPipelineTransactionModes() {
+        String key = "test:hash:scan:error";
+        byte[] keyBytes = key.getBytes();
+        
+        try {
+            // Set up some data
+            Map<byte[], byte[]> hashData = new HashMap<>();
+            hashData.put("field1".getBytes(), "value1".getBytes());
+            connection.hashCommands().hMSet(keyBytes, hashData);
+            
+            // Test HSCAN not allowed in pipeline mode
+            connection.openPipeline();
+            assertThatThrownBy(() -> connection.hashCommands().hScan(keyBytes, ScanOptions.NONE))
+                .isInstanceOf(DataAccessException.class)
+                .hasMessageContaining("pipeline");
+            connection.closePipeline();
+            
+            // Test HSCAN not allowed in transaction mode
+            connection.multi();
+            assertThatThrownBy(() -> connection.hashCommands().hScan(keyBytes, ScanOptions.NONE))
+                .isInstanceOf(DataAccessException.class)
+                .hasMessageContaining("transaction");
+            connection.discard();
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test 
+    void testMixedCommandTypesInPipeline() {
+        String hashKey = "test:hash:pipeline:mixed:hash";
+        String stringKey = "test:hash:pipeline:mixed:string";
+        byte[] hashKeyBytes = hashKey.getBytes();
+        byte[] stringKeyBytes = stringKey.getBytes();
+        byte[] field = "field".getBytes();
+        byte[] hashValue = "hashvalue".getBytes();
+        byte[] stringValue = "stringvalue".getBytes();
+        
+        try {
+            // Start pipeline with mixed commands
+            connection.openPipeline();
+            
+            // Mix hash and string commands
+            connection.hashCommands().hSet(hashKeyBytes, field, hashValue);
+            connection.stringCommands().set(stringKeyBytes, stringValue);
+            connection.hashCommands().hGet(hashKeyBytes, field);
+            connection.stringCommands().get(stringKeyBytes);
+            connection.hashCommands().hExists(hashKeyBytes, field);
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify mixed results
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(true); // hSet result
+            assertThat(results.get(1)).isEqualTo(true); // string set result (converted to boolean)
+            assertThat(results.get(2)).isEqualTo(hashValue); // hGet result
+            assertThat(results.get(3)).isEqualTo(stringValue); // string get result  
+            assertThat(results.get(4)).isEqualTo(true); // hExists result
+            
+        } finally {
+            cleanupKey(hashKey);
+            cleanupKey(stringKey);
         }
     }
 

@@ -35,6 +35,7 @@ import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.RedisSubscribedConnectionException;
 import org.springframework.data.redis.connection.RedisZSetCommands;
 import org.springframework.data.redis.connection.Subscription;
+import org.springframework.data.redis.connection.valkeyglide.ValkeyGlideConverters.ResultMapper;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -63,16 +64,16 @@ import glide.api.models.Batch;
  */
 public class ValkeyGlideConnection extends AbstractRedisConnection {
 
-    // Commands that return 1/0 but Spring Data Redis expects boolean true/false
-    private static final Set<String> NUMERIC_TO_BOOLEAN_COMMANDS = Set.of(
-        "SETNX", "MSETNX", "HSETNX", "SMOVE", "SISMEMBER", "EXPIRE", "EXPIREAT", 
-        "PEXPIRE", "PEXPIREAT", "PERSIST", "MOVE", "RENAMENX", "EXISTS"
-    );
+    // // Commands that return 1/0 but Spring Data Redis expects boolean true/false
+    // private static final Set<String> NUMERIC_TO_BOOLEAN_COMMANDS = Set.of(
+    //     "SETNX", "MSETNX", "HSETNX", "SMOVE", "SISMEMBER", "EXPIRE", "EXPIREAT", 
+    //     "PEXPIRE", "PEXPIREAT", "PERSIST", "MOVE", "RENAMENX", "EXISTS", "HSET"
+    // );
     
-    // Geo commands that need special result processing
-    private static final Set<String> GEO_COMMANDS = Set.of(
-        "GEOPOS", "GEOHASH", "GEODIST", "GEORADIUS", "GEORADIUSBYMEMBER", "GEOSEARCH"
-    );
+    // // Geo commands that need special result processing
+    // private static final Set<String> GEO_COMMANDS = Set.of(
+    //     "GEOPOS", "GEOHASH", "GEODIST", "GEORADIUS", "GEORADIUSBYMEMBER", "GEOSEARCH"
+    // );
 
     private final GlideClient client;
     private final long timeout;
@@ -80,12 +81,9 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
     private final boolean isShared;
     private final ValkeyGlideConnectionProvider connectionProvider;
 
-    //private boolean pipelined = false;
-    //private @Nullable List<Object> pipelinedResults;
-    //private boolean multi = false;
     private @Nullable Batch currentBatch;
-    private final List<String> batchCommands = new ArrayList<>();
-    private final Set<GlideString> watchedKeys = new HashSet<>();
+    private final List<ResultMapper<?, ?>> batchCommandsConverters = new ArrayList<>();
+    private final Set<byte[]> watchedKeys = new HashSet<>();
     private @Nullable Subscription subscription;
 
     // Command interfaces
@@ -171,7 +169,7 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
      * @param future The future containing the result
      * @return The command result
      */
-    public <T> T execute(CompletableFuture<T> future) {
+    protected <T> T execute(CompletableFuture<T> future) {
         return ValkeyGlideFutureUtils.get(future, timeout, new ValkeyGlideExceptionConverter());
     }
 
@@ -291,7 +289,7 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 			throw new InvalidDataAccessApiUsageException("Cannot use pipelining while a transaction is active");
 		}
         if (!isPipelined()) {
-            currentBatch = new Batch(false);
+            currentBatch = new Batch(false).withBinaryOutput();
         }
     }
 
@@ -302,6 +300,10 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         }
 
         try {
+            if (currentBatch.getProtobufBatch().getCommandsCount() == 0) {
+                return new ArrayList<>();
+            }
+
             Object[] results = ValkeyGlideFutureUtils.get(
                 client.exec(currentBatch, false), 
                 timeout, 
@@ -316,27 +318,16 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
                     resultList.add(new ValkeyGlideExceptionConverter().convert((Exception) item));
                     continue;
                 }
-                
-                // First apply generic conversion
-                Object result = ValkeyGlideConverters.fromGlideResult(item);
-                
-                // Then apply command-specific conversion if needed
-                if (i < batchCommands.size()) {
-                    String commandName = batchCommands.get(i);
-                    if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
-                        result = ((Number) result).longValue() != 0;
-                    } else if (GEO_COMMANDS.contains(commandName)) {
-                        result = convertGeoResult(commandName, result);
-                    }
-                }
-                resultList.add(result);
+                @SuppressWarnings("unchecked")
+                ResultMapper<Object, ?> mapper = (ResultMapper<Object, ?>) batchCommandsConverters.get(i);
+                resultList.add(mapper.map(item));
             }
             return resultList;
         } catch (Exception ex) {
             throw new RedisPipelineException(ex);
         } finally {
             currentBatch = null;
-            batchCommands.clear();
+            batchCommandsConverters.clear();
         }
     }
 
@@ -348,7 +339,7 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         
         if (!isQueueing()) {
             // Create atomic batch (transaction)
-            currentBatch = new Batch(true);
+            currentBatch = new Batch(true).withBinaryOutput();
         }
     }
 
@@ -359,8 +350,8 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         }
         
         // Clear the current batch and reset transaction state
-        currentBatch = new Batch(true);
-        batchCommands.clear();
+        currentBatch = null;
+        batchCommandsConverters.clear();
     }
 
     @Override
@@ -370,9 +361,12 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         }
 		
         try {
-            // Execute the batch with raiseOnError = true to get proper null for WATCH conflicts
+            if (currentBatch.getProtobufBatch().getCommandsCount() == 0) {
+                return new ArrayList<>();
+            }
+
             Object[] results = ValkeyGlideFutureUtils.get(
-                client.exec(currentBatch, true), 
+                client.exec(currentBatch, false), 
                 timeout, 
                 new ValkeyGlideExceptionConverter()
             );
@@ -389,30 +383,43 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
                 }
             }
             
-            // Convert results from Glide format to Spring Data Redis format
+            // // Convert results from Glide format to Spring Data Redis format
+            // List<Object> resultList = new ArrayList<>(results.length);
+            // for (int i = 0; i < results.length; i++) {
+            //     Object item = results[i];
+            //     if (item instanceof Exception) {
+            //         // Convert exceptions in transaction results
+            //         resultList.add(new ValkeyGlideExceptionConverter().convert((Exception) item));
+            //         continue;
+            //     }
+                
+            //     // First apply generic conversion
+            //     Object result = ValkeyGlideConverters.defaultFromGlideResult(item);
+                
+            //     // Then apply command-specific conversion if needed
+            //     if (i < batchCommands.size()) {
+            //         String commandName = batchCommands.get(i);
+            //         if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
+            //             result = ((Number) result).longValue() != 0;
+            //         } else if (GEO_COMMANDS.contains(commandName)) {
+            //             result = convertGeoResult(commandName, result);
+            //         }
+            //     }
+            //     resultList.add(result);
+            //}
             List<Object> resultList = new ArrayList<>(results.length);
             for (int i = 0; i < results.length; i++) {
                 Object item = results[i];
                 if (item instanceof Exception) {
-                    // Convert exceptions in transaction results
+                    // Convert exceptions in pipeline results
                     resultList.add(new ValkeyGlideExceptionConverter().convert((Exception) item));
                     continue;
                 }
-                
-                // First apply generic conversion
-                Object result = ValkeyGlideConverters.fromGlideResult(item);
-                
-                // Then apply command-specific conversion if needed
-                if (i < batchCommands.size()) {
-                    String commandName = batchCommands.get(i);
-                    if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
-                        result = ((Number) result).longValue() != 0;
-                    } else if (GEO_COMMANDS.contains(commandName)) {
-                        result = convertGeoResult(commandName, result);
-                    }
-                }
-                resultList.add(result);
+                @SuppressWarnings("unchecked")
+                ResultMapper<Object, ?> mapper = (ResultMapper<Object, ?>) batchCommandsConverters.get(i);
+                resultList.add(mapper.map(item));
             }
+
             return resultList;
 
         } catch (Exception ex) {
@@ -420,7 +427,7 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         } finally {
             // Clean up transaction state
             currentBatch = null;
-            batchCommands.clear();
+            batchCommandsConverters.clear();
             // Watches are automatically cleared after EXEC
             watchedKeys.clear();
         }
@@ -648,16 +655,11 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         }
 
         try {
-            GlideString[] glideKeys = new GlideString[keys.length];
-            for (int i = 0; i < keys.length; i++) {
-                glideKeys[i] = GlideString.of(keys[i]);
-            }
-            
             // Execute WATCH immediately to set up key monitoring at connection level
-            execute("WATCH", (Object[]) keys);
+            execute("WATCH", keys);
             
             // Track watched keys for cleanup
-            Collections.addAll(watchedKeys, glideKeys);
+            Collections.addAll(watchedKeys, keys);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -731,7 +733,38 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
      * @param args the command arguments
      * @return the command result
      */
-    public Object execute(String command, Object... args) {
+
+    /**
+     * Executes a Redis command with arguments and converts the raw driver result
+     * into a strongly typed value using the provided {@link ResultMapper}.
+     *
+     * <p>Behavior depends on whether pipelining/transaction is enabled:
+     * <ul>
+     *   <li><b>Immediate mode</b> – the command is sent directly to the driver,
+     *       and the raw result is synchronously converted via {@code mapper.map(raw)}.</li>
+     *   <li><b>Pipeline/Transaction mode</b> – the command and mapper are queued for later execution.
+     *       In this case, the method returns {@code null}. When
+     *       {@link #closePipeline()}/{@link #exec()} are called, all queued commands are flushed,
+     *       raw results are collected, and each queued {@code ResultMapper}
+     *       is applied in order.</li>
+     * </ul>
+     *
+     * <p>The caller (API layer) is responsible for providing the appropriate
+     * {@link ResultMapper} for the Redis command being executed. This allows each
+     * high-level API method to encapsulate its own decoding logic.
+     *
+     * @param command The Redis command name (e.g. "GET", "SMEMBERS").
+     * @param mapper  A function that knows how to convert the raw driver result
+     *                into a strongly typed value of type {@code R}.
+     * @param args    The command arguments, already encoded into driver-acceptable
+     *                representations (e.g. {@code byte[]} or primitives).
+     * @param <R>     The expected return type after mapping the driver result.
+     * @return        The mapped result in immediate mode, or {@code null} if
+     *                pipelining/transaction is active (result will be available after
+     *                {@link #closePipeline()} or {@link #exec()}).
+     */
+    @Nullable
+    public <I, R> R execute(String command, ResultMapper<I, R> mapper, Object... args) {
         verifyConnectionOpen();
 
         // Convert arguments to appropriate format for Glide
@@ -748,41 +781,24 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
                 glideArgs[i + 1] = GlideString.of(args[i].toString());
             }
         }
-
-        
-        // for (int i = 0; i < args.length; i++) {
-        //     if (args[i] == null) {
-        //         glideArgs[i + 1] = null;
-        //     } else if (args[i] instanceof byte[]) {
-        //         glideArgs[i + 1] = GlideString.of((byte[]) args[i]);
-        //     } else if (args[i] instanceof String) {
-        //         glideArgs[i + 1] = GlideString.of((String) args[i]);
-        //     } else {
-        //         glideArgs[i + 1] = GlideString.of(args[i].toString());
-        //     }
-        // }
-        
         // Handle pipeline/transaction mode - add command to batch instead of executing
         if (isQueueing() || isPipelined()) {
-            // Track command name for later conversion
-            batchCommands.add(command.toUpperCase());
+            // Store converter for later conversion
+            batchCommandsConverters.add(mapper);
             // Add command to the current batch
             currentBatch.customCommand(glideArgs);
             return null; // Return null for queued commands in transaction
         }
         
-        Object resulObject = execute(client.customCommand(glideArgs));
-        return ValkeyGlideConverters.fromGlideResult(resulObject);
+        I result = (I) execute(client.customCommand(glideArgs));
+        return mapper.map(result);
     }
     
-    /**
-     * Helper method to concatenate command with arguments.
-     */
-    private String[] concatenateCommandAndArgs(String command, String[] args) {
-        String[] result = new String[args.length + 1];
-        result[0] = command;
-        System.arraycopy(args, 0, result, 1, args.length);
-        return result;
+    public Object execute(String command, Object... args) {
+        return execute(command, rawResult -> {
+            return ValkeyGlideConverters.defaultFromGlideResult(rawResult);
+        },
+        args);
     }
 
     @Override
@@ -792,7 +808,10 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         Assert.noNullElements(args, "Arguments must not contain null elements");
         try {
             // Delegate to the generic execute method
-            return execute(command, (Object[]) args);
+            return execute(command, rawResult -> {
+                return ValkeyGlideConverters.defaultFromGlideResult(rawResult);
+            },
+            (Object[]) args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -817,7 +836,9 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
 
     @Override
     protected RedisSentinelConnection getSentinelConnection(RedisNode sentinel) {
-        Assert.notNull(sentinel, "Sentinel RedisNode must not be null");
+        // TODO: Uncomment when sentinel support is added to valkey-glide
+        // and implement sentinel connection using a dedicated GlideClient instance
+        // Assert.notNull(sentinel, "Sentinel RedisNode must not be null");
         throw new UnsupportedOperationException("Sentinel is not supported by this client.");
     }
 

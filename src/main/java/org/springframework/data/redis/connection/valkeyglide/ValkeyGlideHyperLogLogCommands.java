@@ -54,7 +54,7 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
         System.arraycopy(values, 0, args, 1, values.length);
 
         Object result = connection.execute("PFADD", args);
-        Object converted = ValkeyGlideConverters.fromGlideResult(result);
+        Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
         
         if (converted instanceof Boolean) {
             return ((Boolean) converted) ? 1L : 0L;
@@ -75,7 +75,7 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
         }
 
         Object result = connection.execute("PFCOUNT", keys);
-        Object converted = ValkeyGlideConverters.fromGlideResult(result);
+        Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
         
         if (converted instanceof Boolean) {
             return ((Boolean) converted) ? 1L : 0L;
@@ -102,6 +102,6 @@ public class ValkeyGlideHyperLogLogCommands implements RedisHyperLogLogCommands 
 
         Object result = connection.execute("PFMERGE", args);
         // PFMERGE typically returns OK or null, we don't need to return anything
-        ValkeyGlideConverters.fromGlideResult(result);
+        ValkeyGlideConverters.defaultFromGlideResult(result);
     }
 }

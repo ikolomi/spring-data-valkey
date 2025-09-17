@@ -69,7 +69,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
         
         // Try to convert using standard conversion first
         try {
-            Object converted = ValkeyGlideConverters.fromGlideResult(obj);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(obj);
             if (converted instanceof byte[]) {
                 return (byte[]) converted;
             }
@@ -158,7 +158,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             }
             
             Object result = connection.execute("LPOS", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -187,7 +187,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             
             List<Long> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 if (convertedItem instanceof Number) {
                     resultList.add(((Number) convertedItem).longValue());
                 } else {
@@ -281,7 +281,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
         
         try {
             Object result = connection.execute("LRANGE", key, start, end);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return new ArrayList<>();
             }
@@ -303,7 +303,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultList.add((byte[]) convertedItem);
             }
             return resultList;
@@ -441,7 +441,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
         
         try {
             Object result = connection.execute("LPOP", key, count);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -463,7 +463,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultList.add((byte[]) convertedItem);
             }
             return resultList;
@@ -492,7 +492,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
         
         try {
             Object result = connection.execute("RPOP", key, count);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -514,7 +514,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultList.add((byte[]) convertedItem);
             }
             return resultList;
@@ -537,7 +537,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             args.add(timeout);
             
             Object result = connection.execute("BLPOP", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return new ArrayList<>();
             }
@@ -559,7 +559,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultList.add((byte[]) convertedItem);
             }
             return resultList;
@@ -582,7 +582,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             args.add(timeout);
             
             Object result = connection.execute("BRPOP", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return new ArrayList<>();
             }
@@ -604,7 +604,7 @@ public class ValkeyGlideListCommands implements RedisListCommands {
             
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultList.add((byte[]) convertedItem);
             }
             return resultList;

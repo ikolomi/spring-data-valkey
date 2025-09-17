@@ -85,7 +85,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             commandArgs.add(value);
             
             Object result = connection.execute("ZADD", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted instanceof Number) {
                 long longValue = ((Number) converted).longValue();
@@ -139,7 +139,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZADD", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -160,7 +160,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZREM", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -174,7 +174,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZINCRBY", key, increment, value);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted instanceof Number) {
                 return ((Number) converted).doubleValue();
@@ -199,7 +199,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZRANDMEMBER", key);
-            return (byte[]) ValkeyGlideConverters.fromGlideResult(result);
+            return (byte[]) ValkeyGlideConverters.defaultFromGlideResult(result);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -212,7 +212,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZRANDMEMBER", key, count);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -221,7 +221,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                resultList.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultList.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultList;
         } catch (Exception ex) {
@@ -236,7 +236,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZRANDMEMBER", key, 1, "WITHSCORES");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -281,7 +281,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZRANDMEMBER", key, count, "WITHSCORES");
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -310,8 +310,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 // Standard flat format: [member, score, member, score, ...]
                 for (int i = 0; i < list.size(); i += 2) {
                     if (i + 1 < list.size()) {
-                        Object valueObj = ValkeyGlideConverters.fromGlideResult(list.get(i));
-                        Object scoreObj = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
+                        Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(i));
+                        Object scoreObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(i + 1));
                         
                         byte[] value = convertToByteArray(valueObj);
                         Double score = parseScore(scoreObj);
@@ -334,7 +334,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZRANK", key, value);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted instanceof Number) {
                 return ((Number) converted).longValue();
@@ -354,7 +354,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZREVRANK", key, value);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted instanceof Number) {
                 return ((Number) converted).longValue();
@@ -373,7 +373,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZRANGE", key, start, end);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -382,7 +382,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -427,7 +427,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZRANGEBYSCORE", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -436,7 +436,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -461,7 +461,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             commandArgs.add(count);
             
             Object result = connection.execute("ZRANGEBYSCORE", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -470,7 +470,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -517,7 +517,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZREVRANGE", key, start, end);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -526,7 +526,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -571,7 +571,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZREVRANGEBYSCORE", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -580,7 +580,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -631,7 +631,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 formatRangeBound(range.getLowerBound(), true), 
                 formatRangeBound(range.getUpperBound(), false));
             
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -648,7 +648,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 formatLexRangeBound(range.getLowerBound()), 
                 formatLexRangeBound(range.getUpperBound()));
             
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -661,7 +661,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZPOPMIN", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -669,8 +669,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             
             List<Object> list = convertToList(converted);
             if (list.size() >= 2) {
-                byte[] value = (byte[]) ValkeyGlideConverters.fromGlideResult(list.get(0));
-                Double score = parseScore(ValkeyGlideConverters.fromGlideResult(list.get(1)));
+                byte[] value = (byte[]) ValkeyGlideConverters.defaultFromGlideResult(list.get(0));
+                Double score = parseScore(ValkeyGlideConverters.defaultFromGlideResult(list.get(1)));
                 return new DefaultTuple(value, score);
             }
             
@@ -702,7 +702,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         try {
             long timeoutInSeconds = unit.toSeconds(timeout);
             Object result = connection.execute("BZPOPMIN", key, timeoutInSeconds);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -711,8 +711,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             if (list.size() >= 3) {
                 // Result format: [key, value, score]
-                byte[] value = (byte[]) ValkeyGlideConverters.fromGlideResult(list.get(1));
-                Double score = parseScore(ValkeyGlideConverters.fromGlideResult(list.get(2)));
+                byte[] value = (byte[]) ValkeyGlideConverters.defaultFromGlideResult(list.get(1));
+                Double score = parseScore(ValkeyGlideConverters.defaultFromGlideResult(list.get(2)));
                 return new DefaultTuple(value, score);
             }
             
@@ -729,7 +729,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZPOPMAX", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -737,8 +737,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             
             List<Object> list = convertToList(converted);
             if (list.size() >= 2) {
-                byte[] value = (byte[]) ValkeyGlideConverters.fromGlideResult(list.get(0));
-                Double score = parseScore(ValkeyGlideConverters.fromGlideResult(list.get(1)));
+                byte[] value = (byte[]) ValkeyGlideConverters.defaultFromGlideResult(list.get(0));
+                Double score = parseScore(ValkeyGlideConverters.defaultFromGlideResult(list.get(1)));
                 return new DefaultTuple(value, score);
             }
             
@@ -770,7 +770,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         try {
             long timeoutInSeconds = unit.toSeconds(timeout);
             Object result = connection.execute("BZPOPMAX", key, timeoutInSeconds);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -779,8 +779,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             if (list.size() >= 3) {
                 // Result format: [key, value, score]
-                byte[] value = (byte[]) ValkeyGlideConverters.fromGlideResult(list.get(1));
-                Double score = parseScore(ValkeyGlideConverters.fromGlideResult(list.get(2)));
+                byte[] value = (byte[]) ValkeyGlideConverters.defaultFromGlideResult(list.get(1));
+                Double score = parseScore(ValkeyGlideConverters.defaultFromGlideResult(list.get(2)));
                 return new DefaultTuple(value, score);
             }
             
@@ -797,7 +797,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZCARD", key);
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -811,7 +811,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZSCORE", key, value);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -838,7 +838,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZMSCORE", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return null;
@@ -847,7 +847,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             List<Double> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 if (convertedItem == null) {
                     resultList.add(null);
                 } else {
@@ -867,7 +867,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
         
         try {
             Object result = connection.execute("ZREMRANGEBYRANK", key, start, end);
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -884,7 +884,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 formatLexRangeBound(range.getLowerBound()), 
                 formatLexRangeBound(range.getUpperBound()));
             
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -901,7 +901,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 formatRangeBound(range.getLowerBound(), true), 
                 formatRangeBound(range.getUpperBound(), false));
             
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -921,7 +921,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZDIFF", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -930,7 +930,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -975,7 +975,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZDIFFSTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -995,7 +995,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZINTER", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -1004,7 +1004,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -1083,7 +1083,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZINTERSTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1117,7 +1117,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             commandArgs.add(aggregate.name());
             
             Object result = connection.execute("ZINTERSTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1137,7 +1137,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZUNION", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -1146,7 +1146,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -1225,7 +1225,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZUNIONSTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1259,7 +1259,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             commandArgs.add(aggregate.name());
             
             Object result = connection.execute("ZUNIONSTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1286,7 +1286,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZRANGEBYLEX", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -1295,7 +1295,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -1324,7 +1324,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZREVRANGEBYLEX", commandArgs.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             if (converted == null) {
                 return new LinkedHashSet<>();
@@ -1333,7 +1333,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             List<Object> list = convertToList(converted);
             Set<byte[]> resultSet = new LinkedHashSet<>(list.size());
             for (Object item : list) {
-                resultSet.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultSet.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultSet;
         } catch (Exception ex) {
@@ -1365,7 +1365,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZRANGESTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1396,7 +1396,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZRANGESTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1427,7 +1427,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZRANGESTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1459,7 +1459,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             }
             
             Object result = connection.execute("ZRANGESTORE", commandArgs.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -1519,7 +1519,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
     }
 
     private Set<Tuple> convertToTupleSet(Object result) {
-        Object converted = ValkeyGlideConverters.fromGlideResult(result);
+        Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
         
         if (converted == null) {
             return new LinkedHashSet<>();
@@ -1535,8 +1535,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 if (item instanceof List) {
                     List<?> tupleList = (List<?>) item;
                     if (tupleList.size() >= 2) {
-                        Object valueObj = ValkeyGlideConverters.fromGlideResult(tupleList.get(0));
-                        Object scoreObj = ValkeyGlideConverters.fromGlideResult(tupleList.get(1));
+                        Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(tupleList.get(0));
+                        Object scoreObj = ValkeyGlideConverters.defaultFromGlideResult(tupleList.get(1));
                         
                         byte[] value = convertToByteArray(valueObj);
                         Double score = parseScore(scoreObj);
@@ -1548,8 +1548,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
             // Standard flat format: [member, score, member, score, ...]
             for (int i = 0; i < list.size(); i += 2) {
                 if (i + 1 < list.size()) {
-                    Object valueObj = ValkeyGlideConverters.fromGlideResult(list.get(i));
-                    Object scoreObj = ValkeyGlideConverters.fromGlideResult(list.get(i + 1));
+                    Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(i));
+                    Object scoreObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(i + 1));
                     
                     byte[] value = convertToByteArray(valueObj);
                     Double score = parseScore(scoreObj);
@@ -1708,7 +1708,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 }
                 
                 Object result = connection.execute("ZSCAN", args.toArray());
-                Object converted = ValkeyGlideConverters.fromGlideResult(result);
+                Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
                 
                 if (converted == null) {
                     finished = true;
@@ -1718,7 +1718,7 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                 List<Object> scanResult = convertToList(converted);
                 if (scanResult.size() >= 2) {
                     // First element is the cursor, second is the result array
-                    Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResult.get(0));
+                    Object cursorObj = ValkeyGlideConverters.defaultFromGlideResult(scanResult.get(0));
                     if (cursorObj instanceof String) {
                         cursor = Long.parseLong((String) cursorObj);
                     } else if (cursorObj instanceof Number) {
@@ -1741,8 +1741,8 @@ public class ValkeyGlideZSetCommands implements RedisZSetCommands {
                         
                         for (int i = 0; i < tupleList.size(); i += 2) {
                             if (i + 1 < tupleList.size()) {
-                                byte[] value = (byte[]) ValkeyGlideConverters.fromGlideResult(tupleList.get(i));
-                                Double score = parseScore(ValkeyGlideConverters.fromGlideResult(tupleList.get(i + 1)));
+                                byte[] value = (byte[]) ValkeyGlideConverters.defaultFromGlideResult(tupleList.get(i));
+                                Double score = parseScore(ValkeyGlideConverters.defaultFromGlideResult(tupleList.get(i + 1)));
                                 tuples.add(new DefaultTuple(value, score));
                             }
                         }

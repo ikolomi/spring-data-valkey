@@ -73,7 +73,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         // Try to convert using standard conversion first
         try {
-            Object converted = ValkeyGlideConverters.fromGlideResult(obj);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(obj);
             if (converted instanceof byte[]) {
                 return (byte[]) converted;
             }
@@ -135,7 +135,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SADD", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -161,7 +161,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SREM", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -175,7 +175,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SPOP", key);
-            return (byte[]) ValkeyGlideConverters.fromGlideResult(result);
+            return (byte[]) ValkeyGlideConverters.defaultFromGlideResult(result);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -189,11 +189,11 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         try {
             Object result = connection.execute("SPOP", key, count);
             @SuppressWarnings("unchecked")
-            Set<Object> setResult = (Set<Object>) ValkeyGlideConverters.fromGlideResult(result);
+            Set<Object> setResult = (Set<Object>) ValkeyGlideConverters.defaultFromGlideResult(result);
             
             List<byte[]> resultList = new ArrayList<>(setResult.size());
             for (Object item : setResult) {
-                resultList.add((byte[]) ValkeyGlideConverters.fromGlideResult(item));
+                resultList.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultList;
         } catch (Exception ex) {
@@ -210,7 +210,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SMOVE", srcKey, destKey, value);
-            return (Boolean) ValkeyGlideConverters.fromGlideResult(result);
+            return (Boolean) ValkeyGlideConverters.defaultFromGlideResult(result);
             
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -228,7 +228,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SCARD", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -243,7 +243,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SISMEMBER", key, value);
-            return (Boolean) ValkeyGlideConverters.fromGlideResult(result);
+            return (Boolean) ValkeyGlideConverters.defaultFromGlideResult(result);
             
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -265,7 +265,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SMISMEMBER", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             
             List<Object> list;
             if (converted instanceof List) {
@@ -284,7 +284,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             
             List<Boolean> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                resultList.add((Boolean) ValkeyGlideConverters.fromGlideResult(item));
+                resultList.add((Boolean) ValkeyGlideConverters.defaultFromGlideResult(item));
             }
             return resultList;
         } catch (Exception ex) {
@@ -305,7 +305,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SDIFF", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -331,7 +331,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             
             Set<byte[]> resultSet = new HashSet<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultSet.add((byte[]) convertedItem);
             }
             return resultSet;
@@ -355,7 +355,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SDIFFSTORE", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -375,7 +375,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SINTER", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -401,7 +401,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             
             Set<byte[]> resultSet = new HashSet<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultSet.add((byte[]) convertedItem);
             }
             return resultSet;
@@ -425,7 +425,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SINTERSTORE", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             return converted instanceof Number ? ((Number) converted).longValue() : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
@@ -445,7 +445,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SUNION", args.toArray());
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -471,7 +471,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             
             Set<byte[]> resultSet = new HashSet<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultSet.add((byte[]) convertedItem);
             }
             return resultSet;
@@ -495,7 +495,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             }
             
             Object result = connection.execute("SUNIONSTORE", args.toArray());
-            return ((Number) ValkeyGlideConverters.fromGlideResult(result)).longValue();
+            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -508,7 +508,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SMEMBERS", key);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -534,7 +534,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             
             Set<byte[]> resultSet = new HashSet<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultSet.add((byte[]) convertedItem);
             }
             return resultSet;
@@ -550,7 +550,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SRANDMEMBER", key);
-            return (byte[]) ValkeyGlideConverters.fromGlideResult(result);
+            return (byte[]) ValkeyGlideConverters.defaultFromGlideResult(result);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -563,7 +563,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         
         try {
             Object result = connection.execute("SRANDMEMBER", key, count);
-            Object converted = ValkeyGlideConverters.fromGlideResult(result);
+            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
             if (converted == null) {
                 return null;
             }
@@ -585,7 +585,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
             
             List<byte[]> resultList = new ArrayList<>(list.size());
             for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.fromGlideResult(item);
+                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
                 resultList.add((byte[]) convertedItem);
             }
             return resultList;
@@ -659,7 +659,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                 }
                 
                 Object result = connection.execute("SSCAN", args.toArray());
-                Object converted = ValkeyGlideConverters.fromGlideResult(result);
+                Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
                 
                 List<Object> scanResultList;
                 if (converted instanceof List) {
@@ -678,7 +678,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                 
                 if (scanResultList.size() >= 2) {
                     // First element is the new cursor
-                    Object cursorObj = ValkeyGlideConverters.fromGlideResult(scanResultList.get(0));
+                    Object cursorObj = ValkeyGlideConverters.defaultFromGlideResult(scanResultList.get(0));
                     
                     if (cursorObj instanceof String) {
                         cursor = Long.parseLong((String) cursorObj);
@@ -693,7 +693,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                     }
                     
                     // Second element is the array/list of members
-                    Object membersObj = ValkeyGlideConverters.fromGlideResult(scanResultList.get(1));
+                    Object membersObj = ValkeyGlideConverters.defaultFromGlideResult(scanResultList.get(1));
                     
                     // Reset members for this batch
                     members.clear();
@@ -703,7 +703,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                         Object[] memberArray = (Object[]) membersObj;
                         // Process members
                         for (Object memberObj : memberArray) {
-                            Object convertedMember = ValkeyGlideConverters.fromGlideResult(memberObj);
+                            Object convertedMember = ValkeyGlideConverters.defaultFromGlideResult(memberObj);
                             if (convertedMember instanceof byte[]) {
                                 members.add((byte[]) convertedMember);
                             } else {
@@ -719,7 +719,7 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                         List<Object> memberList = (List<Object>) membersObj;
                         // Process members
                         for (Object memberObj : memberList) {
-                            Object convertedMember = ValkeyGlideConverters.fromGlideResult(memberObj);
+                            Object convertedMember = ValkeyGlideConverters.defaultFromGlideResult(memberObj);
                             if (convertedMember instanceof byte[]) {
                                 members.add((byte[]) convertedMember);
                             } else {
