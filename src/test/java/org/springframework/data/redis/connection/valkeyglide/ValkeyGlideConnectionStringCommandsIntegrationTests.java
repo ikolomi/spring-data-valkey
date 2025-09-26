@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.connection.RedisStringCommands.BitOperation;
@@ -627,7 +627,7 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             
             // Try string operations on list key - should fail or return appropriate response
             assertThatThrownBy(() -> connection.stringCommands().incr(listKey.getBytes()))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(DataAccessException.class);
         } finally {
             cleanupKey(listKey);
         }
@@ -663,126 +663,508 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
         }
     }
 
-    // // ==================== Pipeline Mode Tests ====================
+    // ==================== Pipeline Mode Tests ====================
 
     @Test
-    void testStringOperationsInPipelineMode() {
-        String key1 = "test:pipeline:string1";
-        String key2 = "test:pipeline:string2";
-        String key3 = "test:pipeline:string3";
+    void testBasicStringOperationsInPipelineMode() {
+        String key1 = "test:pipeline:basic1";
+        String key2 = "test:pipeline:basic2";
+        String key3 = "test:pipeline:basic3";
+        String key4 = "test:pipeline:basic4";
         
         try {
             // Open pipeline
             connection.openPipeline();
             
-            // Queue several string operations
-            connection.stringCommands().set(key1.getBytes(), "value1".getBytes());
-            connection.stringCommands().set(key2.getBytes(), "value2".getBytes());
-            connection.stringCommands().get(key1.getBytes());
-            connection.stringCommands().get(key2.getBytes());
-            connection.stringCommands().incr(key3.getBytes());
-            connection.stringCommands().incrBy(key3.getBytes(), 5L);
+            // Queue basic string operations - assert they return null in pipeline mode
+            assertThat(connection.stringCommands().set(key1.getBytes(), "value1".getBytes())).isNull();
+            assertThat(connection.stringCommands().setNX(key2.getBytes(), "value2".getBytes())).isNull();
+            assertThat(connection.stringCommands().get(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().getSet(key1.getBytes(), "newvalue1".getBytes())).isNull();
+            assertThat(connection.stringCommands().getDel(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().setEx(key3.getBytes(), 60, "expiring".getBytes())).isNull();
+            assertThat(connection.stringCommands().pSetEx(key4.getBytes(), 60000, "expiring_ms".getBytes())).isNull();
             
             // Execute pipeline
             java.util.List<Object> results = connection.closePipeline();
             
             // Verify results
-            assertThat(results).hasSize(6);
+            assertThat(results).hasSize(7);
             assertThat(results.get(0)).isEqualTo(true); // SET result
-            assertThat(results.get(1)).isEqualTo(true); // SET result
+            assertThat(results.get(1)).isEqualTo(true); // SETNX result
             assertThat(results.get(2)).isEqualTo("value1".getBytes()); // GET result
-            assertThat(results.get(3)).isEqualTo("value2".getBytes()); // GET result
-            assertThat(results.get(4)).isEqualTo(1L); // INCR result
-            assertThat(results.get(5)).isEqualTo(6L); // INCRBY result
+            assertThat(results.get(3)).isEqualTo("value1".getBytes()); // GETSET result
+            assertThat(results.get(4)).isEqualTo("newvalue1".getBytes()); // GETDEL result
+            assertThat(results.get(5)).isEqualTo(true); // SETEX result
+            assertThat(results.get(6)).isEqualTo(true); // PSETEX result
             
-            // Verify final state outside pipeline
-            assertThat(connection.stringCommands().get(key1.getBytes())).isEqualTo("value1".getBytes());
-            assertThat(connection.stringCommands().get(key2.getBytes())).isEqualTo("value2".getBytes());
-            assertThat(connection.stringCommands().get(key3.getBytes())).isEqualTo("6".getBytes());
         } finally {
             cleanupKey(key1);
             cleanupKey(key2);
             cleanupKey(key3);
+            cleanupKey(key4);
         }
     }
 
     @Test
     void testMultiKeyOperationsInPipelineMode() {
-        String key1 = "test:pipeline:mget1";
-        String key2 = "test:pipeline:mget2";
-        String key3 = "test:pipeline:mget3";
+        String key1 = "test:pipeline:mkey1";
+        String key2 = "test:pipeline:mkey2";
+        String key3 = "test:pipeline:mkey3";
+        String key4 = "test:pipeline:mkey4";
+        String key5 = "test:pipeline:mkey5";
         
         try {
             // Set up initial data
-            connection.stringCommands().set(key1.getBytes(), "pipevalue1".getBytes());
-            connection.stringCommands().set(key2.getBytes(), "pipevalue2".getBytes());
+            connection.stringCommands().set(key1.getBytes(), "initial1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "initial2".getBytes());
             
             connection.openPipeline();
             
-            // Test mGet in pipeline
-            connection.stringCommands().mGet(key1.getBytes(), key2.getBytes(), key3.getBytes());
-            connection.stringCommands().append(key1.getBytes(), "_appended".getBytes());
-            connection.stringCommands().strLen(key1.getBytes());
+            // Queue multi-key operations - assert they return null in pipeline mode
+            assertThat(connection.stringCommands().mGet(key1.getBytes(), key2.getBytes(), key3.getBytes())).isNull();
+            
+            Map<byte[], byte[]> msetData = new HashMap<>();
+            msetData.put(key4.getBytes(), "msetvalue1".getBytes());
+            msetData.put(key5.getBytes(), "msetvalue2".getBytes());
+            assertThat(connection.stringCommands().mSet(msetData)).isNull();
+            
+            Map<byte[], byte[]> msetnxData = new HashMap<>();
+            msetnxData.put("new1".getBytes(), "msetnxvalue1".getBytes());
+            msetnxData.put("new2".getBytes(), "msetnxvalue2".getBytes());
+            assertThat(connection.stringCommands().mSetNX(msetnxData)).isNull();
+            
+            assertThat(connection.stringCommands().mGet(key4.getBytes(), key5.getBytes())).isNull();
             
             java.util.List<Object> results = connection.closePipeline();
             
-            assertThat(results).hasSize(3);
+            assertThat(results).hasSize(4);
             
-            // mGet result should be a list
+            // mGet result
             @SuppressWarnings("unchecked")
-            java.util.List<byte[]> mgetResult = (java.util.List<byte[]>) results.get(0);
-            assertThat(mgetResult).hasSize(3);
-            assertThat(mgetResult.get(0)).isEqualTo("pipevalue1".getBytes());
-            assertThat(mgetResult.get(1)).isEqualTo("pipevalue2".getBytes());
-            assertThat(mgetResult.get(2)).isNull(); // key3 doesn't exist
+            java.util.List<byte[]> mgetResult1 = (java.util.List<byte[]>) results.get(0);
+            assertThat(mgetResult1).hasSize(3);
+            assertThat(mgetResult1.get(0)).isEqualTo("initial1".getBytes());
+            assertThat(mgetResult1.get(1)).isEqualTo("initial2".getBytes());
+            assertThat(mgetResult1.get(2)).isNull(); // key3 doesn't exist
             
-            assertThat(results.get(1)).isEqualTo(19L); // APPEND result length
-            assertThat(results.get(2)).isEqualTo(19L); // STRLEN result
+            assertThat(results.get(1)).isEqualTo(true); // MSET result
+            assertThat(results.get(2)).isEqualTo(true); // MSETNX result
+            
+            // Second mGet result
+            @SuppressWarnings("unchecked")
+            java.util.List<byte[]> mgetResult2 = (java.util.List<byte[]>) results.get(3);
+            assertThat(mgetResult2).hasSize(2);
+            assertThat(mgetResult2.get(0)).isEqualTo("msetvalue1".getBytes());
+            assertThat(mgetResult2.get(1)).isEqualTo("msetvalue2".getBytes());
+            
         } finally {
             cleanupKey(key1);
             cleanupKey(key2);
             cleanupKey(key3);
+            cleanupKey(key4);
+            cleanupKey(key5);
+            cleanupKey("new1");
+            cleanupKey("new2");
+        }
+    }
+
+    @Test
+    void testArithmeticOperationsInPipelineMode() {
+        String intKey = "test:pipeline:int";
+        String floatKey = "test:pipeline:float";
+        String decrKey = "test:pipeline:decr";
+        
+        try {
+            connection.openPipeline();
+            
+            // Queue arithmetic operations - assert they return null in pipeline mode
+            assertThat(connection.stringCommands().incr(intKey.getBytes())).isNull();
+            assertThat(connection.stringCommands().incrBy(intKey.getBytes(), 5L)).isNull();
+            assertThat(connection.stringCommands().incrBy(floatKey.getBytes(), 3.14)).isNull();
+            assertThat(connection.stringCommands().incrBy(floatKey.getBytes(), -1.14)).isNull();
+            assertThat(connection.stringCommands().decr(decrKey.getBytes())).isNull();
+            assertThat(connection.stringCommands().decrBy(decrKey.getBytes(), 3L)).isNull();
+            
+            java.util.List<Object> results = connection.closePipeline();
+            
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(1L); // INCR result
+            assertThat(results.get(1)).isEqualTo(6L); // INCRBY result
+            assertThat(results.get(2)).isEqualTo(3.14); // INCRBYFLOAT result
+            assertThat(results.get(3)).isEqualTo(2.0); // INCRBYFLOAT result
+            assertThat(results.get(4)).isEqualTo(-1L); // DECR result
+            assertThat(results.get(5)).isEqualTo(-4L); // DECRBY result
+            
+        } finally {
+            cleanupKey(intKey);
+            cleanupKey(floatKey);
+            cleanupKey(decrKey);
+        }
+    }
+
+    @Test
+    void testStringManipulationInPipelineMode() {
+        String key1 = "test:pipeline:manip1";
+        String key2 = "test:pipeline:manip2";
+        
+        try {
+            // Set up initial data
+            connection.stringCommands().set(key1.getBytes(), "Hello".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "Redis World".getBytes());
+            
+            connection.openPipeline();
+            
+            // Queue string manipulation operations - assert they return null in pipeline mode
+            assertThat(connection.stringCommands().append(key1.getBytes(), " World".getBytes())).isNull();
+            assertThat(connection.stringCommands().strLen(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().getRange(key2.getBytes(), 0, 4)).isNull();
+            connection.stringCommands().setRange(key2.getBytes(), "Valkey".getBytes(), 6); // void method
+            assertThat(connection.stringCommands().get(key2.getBytes())).isNull();
+            
+            java.util.List<Object> results = connection.closePipeline();
+            
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(11L); // APPEND result (length)
+            assertThat(results.get(1)).isEqualTo(11L); // STRLEN result
+            assertThat(results.get(2)).isEqualTo("Redis".getBytes()); // GETRANGE result
+            assertThat(results.get(3)).isEqualTo(12L); // SETRANGE result (new length)
+            assertThat(results.get(4)).isEqualTo("Redis Valkey".getBytes()); // GET result after setrange
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testBitOperationsInPipelineMode() {
+        String key1 = "test:pipeline:bit1";
+        String key2 = "test:pipeline:bit2";
+        String destKey = "test:pipeline:bitop";
+        
+        try {
+            // Set up initial data
+            connection.stringCommands().set(key1.getBytes(), new byte[]{(byte) 0xF0}); // 11110000
+            connection.stringCommands().set(key2.getBytes(), new byte[]{(byte) 0x0F}); // 00001111
+            
+            connection.openPipeline();
+            
+            // Queue bit operations - assert they return null in pipeline mode
+            assertThat(connection.stringCommands().getBit(key1.getBytes(), 0)).isNull();
+            assertThat(connection.stringCommands().setBit(key1.getBytes(), 4, false)).isNull();
+            assertThat(connection.stringCommands().bitCount(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().bitCount(key2.getBytes(), 0, 0)).isNull();
+            assertThat(connection.stringCommands().bitOp(BitOperation.AND, destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.stringCommands().bitPos(key1.getBytes(), true)).isNull();
+            
+            java.util.List<Object> results = connection.closePipeline();
+            
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(true); // GETBIT result
+            assertThat(results.get(1)).isEqualTo(false); // SETBIT result (old value was 0)
+            assertThat(results.get(2)).isEqualTo(4L); // 4 bits still set
+            assertThat(results.get(3)).isEqualTo(4L); // BITCOUNT result with range
+            assertThat(results.get(4)).isEqualTo(1L); // BITOP result (1 byte processed)
+            assertThat(results.get(5)).isEqualTo(0L); // BITPOS result
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testAdvancedStringOperationsInPipelineMode() {
+        String key1 = "test:pipeline:advanced1";
+        String key2 = "test:pipeline:advanced2";
+        
+        try {
+            connection.openPipeline();
+            
+            // Queue advanced operations - assert they return null in pipeline mode
+            assertThat(connection.stringCommands().set(key1.getBytes(), "test".getBytes(),
+                Expiration.seconds(60), SetOption.ifAbsent())).isNull();
+            assertThat(connection.stringCommands().setGet(key2.getBytes(), "newvalue".getBytes(),
+                Expiration.persistent(), SetOption.upsert())).isNull();
+            
+            // BitField operations
+            BitFieldSubCommands subCommands = BitFieldSubCommands.create()
+                .set(BitFieldSubCommands.BitFieldType.unsigned(8)).valueAt(0).to(255)
+                .get(BitFieldSubCommands.BitFieldType.unsigned(8)).valueAt(0);
+            assertThat(connection.stringCommands().bitField(key1.getBytes(), subCommands)).isNull();
+            
+            java.util.List<Object> results = connection.closePipeline();
+            
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(true); // SET with options result
+            assertThat(results.get(1)).isNull(); // SETGET result (no previous value)
+            
+            // BitField results
+            @SuppressWarnings("unchecked")
+            java.util.List<Long> bitFieldResults = (java.util.List<Long>) results.get(2);
+            assertThat(bitFieldResults).isNotNull();
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
         }
     }
 
     // ==================== Transaction Mode Tests ====================
 
     @Test
-    void testStringOperationsInTransactionMode() {
-        String key1 = "test:tx:string1";
-        String key2 = "test:tx:string2";
-        String key3 = "test:tx:incr";
+    void testBasicStringOperationsInTransactionMode() {
+        String key1 = "test:tx:basic1";
+        String key2 = "test:tx:basic2";
+        String key3 = "test:tx:basic3";
+        String key4 = "test:tx:basic4";
         
         try {
             // Start transaction
             connection.multi();
             
-            // Queue several string operations
-            connection.stringCommands().set(key1.getBytes(), "txvalue1".getBytes());
-            connection.stringCommands().set(key2.getBytes(), "txvalue2".getBytes());
-            connection.stringCommands().get(key1.getBytes());
-            connection.stringCommands().setNX(key3.getBytes(), "1".getBytes());
-            connection.stringCommands().incr(key3.getBytes());
+            // Queue basic string operations - assert they return null in transaction mode
+            assertThat(connection.stringCommands().set(key1.getBytes(), "txvalue1".getBytes())).isNull();
+            assertThat(connection.stringCommands().setNX(key2.getBytes(), "txvalue2".getBytes())).isNull();
+            assertThat(connection.stringCommands().get(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().getSet(key1.getBytes(), "newtxvalue1".getBytes())).isNull();
+            assertThat(connection.stringCommands().getDel(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().setEx(key3.getBytes(), 60, "expiring".getBytes())).isNull();
+            assertThat(connection.stringCommands().pSetEx(key4.getBytes(), 60000, "expiring_ms".getBytes())).isNull();
             
             // Execute transaction
             java.util.List<Object> results = connection.exec();
             
             // Verify results
-            assertThat(results).hasSize(5);
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(7);
             assertThat(results.get(0)).isEqualTo(true); // SET result
-            assertThat(results.get(1)).isEqualTo(true); // SET result
+            assertThat(results.get(1)).isEqualTo(true); // SETNX result
             assertThat(results.get(2)).isEqualTo("txvalue1".getBytes()); // GET result
-            assertThat(results.get(3)).isEqualTo(true); // SETNX result
-            assertThat(results.get(4)).isEqualTo(2L); // INCR result (1 + 1)
+            assertThat(results.get(3)).isEqualTo("txvalue1".getBytes()); // GETSET result
+            assertThat(results.get(4)).isEqualTo("newtxvalue1".getBytes()); // GETDEL result
+            assertThat(results.get(5)).isEqualTo(true); // SETEX result
+            assertThat(results.get(6)).isEqualTo(true); // PSETEX result
             
-            // Verify final state outside transaction
-            assertThat(connection.stringCommands().get(key1.getBytes())).isEqualTo("txvalue1".getBytes());
-            assertThat(connection.stringCommands().get(key2.getBytes())).isEqualTo("txvalue2".getBytes());
-            assertThat(connection.stringCommands().get(key3.getBytes())).isEqualTo("2".getBytes());
         } finally {
             cleanupKey(key1);
             cleanupKey(key2);
             cleanupKey(key3);
+            cleanupKey(key4);
+        }
+    }
+
+    @Test
+    void testMultiKeyOperationsInTransactionMode() {
+        String key1 = "test:tx:mkey1";
+        String key2 = "test:tx:mkey2";
+        String key3 = "test:tx:mkey3";
+        String key4 = "test:tx:mkey4";
+        String key5 = "test:tx:mkey5";
+        
+        try {
+            // Set up initial data
+            connection.stringCommands().set(key1.getBytes(), "txinitial1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "txinitial2".getBytes());
+            
+            connection.multi();
+            
+            // Queue multi-key operations - assert they return null in transaction mode
+            assertThat(connection.stringCommands().mGet(key1.getBytes(), key2.getBytes(), key3.getBytes())).isNull();
+            
+            Map<byte[], byte[]> msetData = new HashMap<>();
+            msetData.put(key4.getBytes(), "txmsetvalue1".getBytes());
+            msetData.put(key5.getBytes(), "txmsetvalue2".getBytes());
+            assertThat(connection.stringCommands().mSet(msetData)).isNull();
+            
+            Map<byte[], byte[]> msetnxData = new HashMap<>();
+            msetnxData.put("txnew1".getBytes(), "txmsetnxvalue1".getBytes());
+            msetnxData.put("txnew2".getBytes(), "txmsetnxvalue2".getBytes());
+            assertThat(connection.stringCommands().mSetNX(msetnxData)).isNull();
+            
+            assertThat(connection.stringCommands().mGet(key4.getBytes(), key5.getBytes())).isNull();
+            
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(4);
+            
+            // mGet result
+            @SuppressWarnings("unchecked")
+            java.util.List<byte[]> mgetResult1 = (java.util.List<byte[]>) results.get(0);
+            assertThat(mgetResult1).hasSize(3);
+            assertThat(mgetResult1.get(0)).isEqualTo("txinitial1".getBytes());
+            assertThat(mgetResult1.get(1)).isEqualTo("txinitial2".getBytes());
+            assertThat(mgetResult1.get(2)).isNull(); // key3 doesn't exist
+            
+            assertThat(results.get(1)).isEqualTo(true); // MSET result
+            assertThat(results.get(2)).isEqualTo(true); // MSETNX result
+            
+            // Second mGet result
+            @SuppressWarnings("unchecked")
+            java.util.List<byte[]> mgetResult2 = (java.util.List<byte[]>) results.get(3);
+            assertThat(mgetResult2).hasSize(2);
+            assertThat(mgetResult2.get(0)).isEqualTo("txmsetvalue1".getBytes());
+            assertThat(mgetResult2.get(1)).isEqualTo("txmsetvalue2".getBytes());
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+            cleanupKey(key4);
+            cleanupKey(key5);
+            cleanupKey("txnew1");
+            cleanupKey("txnew2");
+        }
+    }
+
+    @Test
+    void testArithmeticOperationsInTransactionMode() {
+        String intKey = "test:tx:int";
+        String floatKey = "test:tx:float";
+        String decrKey = "test:tx:decr";
+        
+        try {
+            connection.multi();
+            
+            // Queue arithmetic operations - assert they return null in transaction mode
+            assertThat(connection.stringCommands().incr(intKey.getBytes())).isNull();
+            assertThat(connection.stringCommands().incrBy(intKey.getBytes(), 5L)).isNull();
+            assertThat(connection.stringCommands().incrBy(floatKey.getBytes(), 3.14)).isNull();
+            assertThat(connection.stringCommands().incrBy(floatKey.getBytes(), -1.14)).isNull();
+            assertThat(connection.stringCommands().decr(decrKey.getBytes())).isNull();
+            assertThat(connection.stringCommands().decrBy(decrKey.getBytes(), 3L)).isNull();
+            
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(1L); // INCR result
+            assertThat(results.get(1)).isEqualTo(6L); // INCRBY result
+            assertThat(results.get(2)).isEqualTo(3.14); // INCRBYFLOAT result
+            assertThat(results.get(3)).isEqualTo(2.0); // INCRBYFLOAT result
+            assertThat(results.get(4)).isEqualTo(-1L); // DECR result
+            assertThat(results.get(5)).isEqualTo(-4L); // DECRBY result
+            
+        } finally {
+            cleanupKey(intKey);
+            cleanupKey(floatKey);
+            cleanupKey(decrKey);
+        }
+    }
+
+    @Test
+    void testStringManipulationInTransactionMode() {
+        String key1 = "test:tx:manip1";
+        String key2 = "test:tx:manip2";
+        
+        try {
+            // Set up initial data
+            connection.stringCommands().set(key1.getBytes(), "TxHello".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "TxRedis World".getBytes());
+            
+            connection.multi();
+            
+            // Queue string manipulation operations - assert they return null in transaction mode
+            assertThat(connection.stringCommands().append(key1.getBytes(), " World".getBytes())).isNull();
+            assertThat(connection.stringCommands().strLen(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().getRange(key2.getBytes(), 0, 6)).isNull();
+            connection.stringCommands().setRange(key2.getBytes(), "Valkey".getBytes(), 8); // void method
+            assertThat(connection.stringCommands().get(key2.getBytes())).isNull();
+            
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(13L); // APPEND result (length)
+            assertThat(results.get(1)).isEqualTo(13L); // STRLEN result
+            assertThat(results.get(2)).isEqualTo("TxRedis".getBytes()); // GETRANGE result
+            assertThat(results.get(3)).isEqualTo(14L); // SETRANGE result (new length)
+            assertThat(results.get(4)).isEqualTo("TxRedis Valkey".getBytes()); // GET result after setrange
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testBitOperationsInTransactionMode() {
+        String key1 = "test:tx:bit1";
+        String key2 = "test:tx:bit2";
+        String destKey = "test:tx:bitop";
+        
+        try {
+            // Set up initial data
+            connection.stringCommands().set(key1.getBytes(), new byte[]{(byte) 0xF0}); // 11110000
+            connection.stringCommands().set(key2.getBytes(), new byte[]{(byte) 0x0F}); // 00001111
+            
+            connection.multi();
+            
+            // Queue bit operations - assert they return null in transaction mode
+            assertThat(connection.stringCommands().getBit(key1.getBytes(), 0)).isNull();
+            assertThat(connection.stringCommands().setBit(key1.getBytes(), 4, false)).isNull();
+            assertThat(connection.stringCommands().bitCount(key1.getBytes())).isNull();
+            assertThat(connection.stringCommands().bitCount(key2.getBytes(), 0, 0)).isNull();
+            assertThat(connection.stringCommands().bitOp(BitOperation.OR, destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.stringCommands().bitPos(key1.getBytes(), true)).isNull();
+            
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(true); // GETBIT result
+            assertThat(results.get(1)).isEqualTo(false); // SETBIT resut (old value was 0)
+            assertThat(results.get(2)).isEqualTo(4L); // 4 bits still set
+            assertThat(results.get(3)).isEqualTo(4L); // BITCOUNT result with range
+            assertThat(results.get(4)).isEqualTo(1L); // BITOP result (1 byte processed)
+            assertThat(results.get(5)).isEqualTo(0L); // BITPOS result
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testAdvancedStringOperationsInTransactionMode() {
+        String key1 = "test:tx:advanced1";
+        String key2 = "test:tx:advanced2";
+        
+        try {
+            connection.multi();
+            
+            // Queue advanced operations - assert they return null in transaction mode
+            assertThat(connection.stringCommands().set(key1.getBytes(), "txtest".getBytes(),
+                Expiration.seconds(60), SetOption.ifAbsent())).isNull();
+            assertThat(connection.stringCommands().setGet(key2.getBytes(), "txnewvalue".getBytes(),
+                Expiration.persistent(), SetOption.upsert())).isNull();
+            
+            // BitField operations
+            BitFieldSubCommands subCommands = BitFieldSubCommands.create()
+                .set(BitFieldSubCommands.BitFieldType.unsigned(8)).valueAt(0).to(200)
+                .get(BitFieldSubCommands.BitFieldType.unsigned(8)).valueAt(0);
+            assertThat(connection.stringCommands().bitField(key1.getBytes(), subCommands)).isNull();
+            
+            java.util.List<Object> results = connection.exec();
+            
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(true); // SET with options result
+            assertThat(results.get(1)).isNull(); // SETGET result (no previous value)
+            
+            // BitField results
+            @SuppressWarnings("unchecked")
+            java.util.List<Long> bitFieldResults = (java.util.List<Long>) results.get(2);
+            assertThat(bitFieldResults).isNotNull();
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
         }
     }
 

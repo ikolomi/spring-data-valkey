@@ -27,9 +27,10 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import glide.api.models.GlideString;
+
 /**
- * Stub implementation of {@link RedisStringCommands} for Valkey-Glide.
- * All methods throw UnsupportedOperationException as placeholder.
+ * Implementation of {@link RedisStringCommands} for Valkey-Glide.
  *
  * @author Ilya Kolomin
  * @since 2.0
@@ -54,9 +55,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            // delegate to connection.execute which handles pipelining/transactions
-            Object result = connection.execute("GET", key);
-            return result != null ? (byte[]) result : null;
+            return connection.execute("GET",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -69,8 +70,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("SETNX", key, value);
-            return result != null ? ((Number) result).longValue() != 0 : null;
+            return connection.execute("SETNX",
+                (Long glideResult) -> glideResult != null ? glideResult != 0 : null,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -82,8 +85,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("GETDEL", key);
-            return result != null ? (byte[]) result : null;
+            return connection.execute("GETDEL",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -96,23 +100,31 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(expiration, "Expiration must not be null");
         
         try {
-            Object result;
             if (expiration.isKeepTtl()) {
-                result = connection.execute("GETEX", key, "PERSIST");
+                return connection.execute("GETEX",
+                    (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                    key, "PERSIST");
             } else if (expiration.isUnixTimestamp()) {
                 if (expiration.getTimeUnit() == TimeUnit.SECONDS) {
-                    result = connection.execute("GETEX", key, "EXAT", expiration.getExpirationTime());
+                    return connection.execute("GETEX",
+                        (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                        key, "EXAT", expiration.getExpirationTime());
                 } else {
-                    result = connection.execute("GETEX", key, "PXAT", expiration.getExpirationTime());
+                    return connection.execute("GETEX",
+                        (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                        key, "PXAT", expiration.getExpirationTime());
                 }
             } else {
                 if (expiration.getTimeUnit() == TimeUnit.SECONDS) {
-                    result = connection.execute("GETEX", key, "EX", expiration.getExpirationTime());
+                    return connection.execute("GETEX",
+                        (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                        key, "EX", expiration.getExpirationTime());
                 } else {
-                    result = connection.execute("GETEX", key, "PX", expiration.getExpirationTime());
+                    return connection.execute("GETEX",
+                        (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                        key, "PX", expiration.getExpirationTime());
                 }
             }
-            return result != null ? (byte[]) result : null;
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -125,8 +137,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("GETSET", key, value);
-            return result != null ? (byte[]) result : null;
+            return connection.execute("GETSET",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -139,32 +153,11 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            Object result = connection.execute("MGET", (Object[]) keys);
-            if (result == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (result instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) result;
-                list = castList;
-            } else if (result instanceof Object[]) {
-                // Handle case where Glide returns Object[] instead of List
-                Object[] array = (Object[]) result;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from MGET: " + result.getClass());
-            }
-            
-            List<byte[]> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                resultList.add((byte[]) item);
-            }
-            return resultList;
+            Object[] args = new Object[keys.length];
+            System.arraycopy(keys, 0, args, 0, keys.length);
+            return connection.execute("MGET",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBytesList(glideResult),
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -177,8 +170,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("SET", key, value);
-            return result != null ? (Boolean) result : null;
+            return connection.execute("SET",
+                (String glideResult) -> glideResult != null ? "OK".equals(glideResult) : null,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -212,7 +207,7 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 args.add(expiration.getExpirationTime());
             }
             
-            boolean hasConditionalOption = false;
+            final boolean hasConditionalOption;
             if (option != null) {
                 switch (option) {
                     case SET_IF_ABSENT:
@@ -225,43 +220,24 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                         break;
                     case UPSERT:
                         // No additional argument needed
+                        hasConditionalOption = false;
+                        break;
+                    default:
+                        hasConditionalOption = false;
                         break;
                 }
+            } else {
+                hasConditionalOption = false;
             }
             
-            Object result = connection.execute("SET", args.toArray());
-            
-            // Handle null result based on connection state
-            if (result == null) {
-                // If in pipeline/transaction mode, null means command was deferred
-                if (connection.isPipelined() || connection.isQueueing()) {
-                    return null;
-                }
-                // If not in pipeline/transaction mode and has conditional option,
-                // null means the condition failed (key exists for NX or doesn't exist for XX)
-                if (hasConditionalOption) {
-                    return Boolean.FALSE;
-                }
-                // For non-conditional SET, null result is unexpected - return null
-                return null;
-            }
-            
-            // Handle different result types from SET command
-            if (result instanceof Boolean) {
-                return (Boolean) result;
-            }
-            
-            if (result instanceof String) {
-                String strResult = (String) result;
-                if ("OK".equals(strResult)) {
-                    return Boolean.TRUE;
-                }
-                // Unexpected string result
-                return null;
-            }
-            
-            // Try to convert other types to Boolean
-            return result != null ? (Boolean) result : null;
+            return connection.execute("SET",
+                (String glideResult) -> {
+                    if (glideResult == null) {
+                        return hasConditionalOption ? Boolean.FALSE : null;
+                    }
+                    return "OK".equals(glideResult) ? Boolean.TRUE : null;
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -310,8 +286,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 }
             }
             
-            Object result = connection.execute("SET", args.toArray());
-            return result != null ? (byte[]) result : null;
+            return connection.execute("SET",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -324,8 +301,11 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("SETEX", key, seconds, value);
-            return result != null ? (Boolean) result : null;
+            return connection.execute("SETEX",
+                (String glideResult) -> glideResult != null ? "OK".equals(glideResult) : null,
+                key,
+                seconds,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -338,8 +318,11 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("PSETEX", key, milliseconds, value);
-            return result != null ? (Boolean) result : null;
+            return connection.execute("PSETEX",
+                (String glideResult) -> glideResult != null ? "OK".equals(glideResult) : null,
+                key,
+                milliseconds,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -357,8 +340,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 args.add(entry.getValue());
             }
             
-            Object result = connection.execute("MSET", args.toArray());
-            return result != null ? (Boolean) result : null;
+            return connection.execute("MSET",
+                (String glideResult) -> glideResult != null ? "OK".equals(glideResult) : null,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -376,8 +360,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 args.add(entry.getValue());
             }
             
-            Object result = connection.execute("MSETNX", args.toArray());
-            return result != null ? (Boolean) result : null;
+            return connection.execute("MSETNX",
+                (Boolean glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -389,8 +374,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("INCR", key);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("INCR",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -402,8 +388,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("INCRBY", key, value);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("INCRBY",
+                (Long glideResult) -> glideResult,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -415,15 +403,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("INCRBYFLOAT", key, value);
-            if (result == null) {
-                return null;
-            }
-            if (result instanceof String) {
-                return Double.parseDouble((String) result);
-            } else {
-                return ((Number) result).doubleValue();
-            }
+            return connection.execute("INCRBYFLOAT",
+                (Double glideResult) -> glideResult,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -435,8 +418,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("DECR", key);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("DECR",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -448,8 +432,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("DECRBY", key, value);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("DECRBY",
+                (Long glideResult) -> glideResult,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -462,8 +448,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("APPEND", key, value);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("APPEND",
+                (Long glideResult) -> glideResult,
+                key,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -475,8 +463,11 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("GETRANGE", key, start, end);
-            return result != null ? (byte[]) result : null;
+            return connection.execute("GETRANGE",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key,
+                start,
+                end);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -488,7 +479,11 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            connection.execute("SETRANGE", key, offset, value);
+            connection.execute("SETRANGE",
+                (Long glideResult) -> glideResult,
+                key,
+                offset,
+                value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -500,8 +495,10 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("GETBIT", key, offset);
-            return result != null ? ((Number) result).longValue() != 0 : null;
+            return connection.execute("GETBIT",
+                (Long glideResult) -> glideResult != null ? glideResult != 0 : null,
+                key,
+                offset);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -513,8 +510,23 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("SETBIT", key, offset, value ? 1 : 0);
-            return result != null ? ((Number) result).longValue() != 0 : null;
+            return connection.execute("SETBIT",
+                glideResult -> {
+                    if (glideResult == null) return null;
+                    if (glideResult instanceof Boolean) {
+                        System.err.println("Warning: Glide returned Boolean for SETBIT command");
+                        return (Boolean) glideResult;
+                    }
+                    if (glideResult instanceof Number) {
+                        System.err.println("Warning: Glide returned Number for SETBIT command");
+                        return ((Number) glideResult).longValue() != 0;
+                    }
+                    return false;
+                    //glideResult != null ? glideResult != 0 : null,
+                },
+                key,
+                offset,
+                value ? 1 : 0);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -526,8 +538,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("BITCOUNT", key);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("BITCOUNT",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -539,8 +552,11 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("BITCOUNT", key, start, end);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("BITCOUNT",
+                (Long glideResult) -> glideResult,
+                key,
+                start,
+                end);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -577,36 +593,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 }
             }
             
-            Object result = connection.execute("BITFIELD", args.toArray());
-            if (result == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (result instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) result;
-                list = castList;
-            } else if (result instanceof Object[]) {
-                // Handle case where Glide returns Object[] instead of List
-                Object[] array = (Object[]) result;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from BITFIELD: " + result.getClass());
-            }
-            
-            List<Long> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item instanceof Number) {
-                    resultList.add(((Number) item).longValue());
-                } else {
-                    resultList.add(null);
-                }
-            }
-            return resultList;
+            return connection.execute("BITFIELD",
+                (Object[] glideResult) -> ValkeyGlideConverters.toLongsList(glideResult),
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -628,8 +617,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 args.add(key);
             }
             
-            Object result = connection.execute("BITOP", args.toArray());
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("BITOP",
+                (Long glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -654,8 +644,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
                 }
             }
             
-            Object result = connection.execute("BITPOS", args.toArray());
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("BITPOS",
+                (Long glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -667,8 +658,9 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("STRLEN", key);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("STRLEN",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
