@@ -16,15 +16,19 @@
 package org.springframework.data.redis.connection.valkeyglide;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.redis.connection.RedisSetCommands;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import glide.api.models.GlideString;
 
 /**
  * Implementation of {@link RedisSetCommands} for Valkey-Glide.
@@ -46,76 +50,6 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         this.connection = connection;
     }
 
-    /**
-     * Helper method to convert various object types to byte arrays.
-     */
-    private static byte[] convertToByteArray(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        if (obj instanceof byte[]) {
-            return (byte[]) obj;
-        }
-        if (obj instanceof String) {
-            return ((String) obj).getBytes();
-        }
-        if (obj instanceof Object[]) {
-            Object[] array = (Object[]) obj;
-            if (array.length > 0 && array[0] instanceof Byte) {
-                // Convert Byte[] to byte[]
-                byte[] result = new byte[array.length];
-                for (int i = 0; i < array.length; i++) {
-                    result[i] = (Byte) array[i];
-                }
-                return result;
-            }
-        }
-        
-        // Try to convert using standard conversion first
-        try {
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(obj);
-            if (converted instanceof byte[]) {
-                return (byte[]) converted;
-            }
-            if (converted instanceof String) {
-                return ((String) converted).getBytes();
-            }
-            // Handle nested arrays after conversion
-            if (converted instanceof Object[]) {
-                Object[] convertedArray = (Object[]) converted;
-                if (convertedArray.length > 0 && convertedArray[0] instanceof Byte) {
-                    byte[] result = new byte[convertedArray.length];
-                    for (int i = 0; i < convertedArray.length; i++) {
-                        result[i] = (Byte) convertedArray[i];
-                    }
-                    return result;
-                }
-            }
-        } catch (Exception e) {
-            // If conversion fails, try direct cast as fallback
-        }
-        
-        // As a last resort, try to handle as raw bytes
-        if (obj instanceof Object[]) {
-            Object[] array = (Object[]) obj;
-            try {
-                byte[] result = new byte[array.length];
-                for (int i = 0; i < array.length; i++) {
-                    if (array[i] instanceof Number) {
-                        result[i] = ((Number) array[i]).byteValue();
-                    } else {
-                        return null; // Cannot convert this type
-                    }
-                }
-                return result;
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        
-        return null;
-    }
-
     @Override
     @Nullable
     public Long sAdd(byte[] key, byte[]... values) {
@@ -123,20 +57,14 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(values, "Values must not be null");
         Assert.noNullElements(values, "Values must not contain null elements");
         
-        if (key.length == 0) {
-            throw new IllegalArgumentException("Key must not be empty");
-        }
-        
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(key);
-            for (byte[] value : values) {
-                args.add(value);
-            }
+            Object[] args = new Object[values.length + 1];
+            args[0] = key;
+            System.arraycopy(values, 0, args, 1, values.length);
             
-            Object result = connection.execute("SADD", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("SADD",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -149,20 +77,14 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(values, "Values must not be null");
         Assert.noNullElements(values, "Values must not contain null elements");
         
-        if (key.length == 0) {
-            throw new IllegalArgumentException("Key must not be empty");
-        }
-        
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(key);
-            for (byte[] value : values) {
-                args.add(value);
-            }
+            Object[] args = new Object[values.length + 1];
+            args[0] = key;
+            System.arraycopy(values, 0, args, 1, values.length);
             
-            Object result = connection.execute("SREM", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("SREM",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -174,8 +96,9 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("SPOP", key);
-            return (byte[]) ValkeyGlideConverters.defaultFromGlideResult(result);
+            return connection.execute("SPOP",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -185,17 +108,20 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
     @Nullable
     public List<byte[]> sPop(byte[] key, long count) {
         Assert.notNull(key, "Key must not be null");
-        
+
         try {
-            Object result = connection.execute("SPOP", key, count);
-            @SuppressWarnings("unchecked")
-            Set<Object> setResult = (Set<Object>) ValkeyGlideConverters.defaultFromGlideResult(result);
-            
-            List<byte[]> resultList = new ArrayList<>(setResult.size());
-            for (Object item : setResult) {
-                resultList.add((byte[]) ValkeyGlideConverters.defaultFromGlideResult(item));
-            }
-            return resultList;
+            return connection.execute("SPOP",
+                (HashSet<GlideString> glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    List<byte[]> resultList = new ArrayList<>();
+                    for (GlideString gs : glideResult) {
+                        resultList.add(gs.getBytes());
+                    }
+                    return resultList;
+            },
+            key, count);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -209,9 +135,9 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("SMOVE", srcKey, destKey, value);
-            return (Boolean) ValkeyGlideConverters.defaultFromGlideResult(result);
-            
+            return connection.execute("SMOVE",
+                (Boolean glideResult) -> glideResult,
+                srcKey, destKey, value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -222,14 +148,10 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
     public Long sCard(byte[] key) {
         Assert.notNull(key, "Key must not be null");
         
-        if (key.length == 0) {
-            throw new IllegalArgumentException("Key must not be empty");
-        }
-        
         try {
-            Object result = connection.execute("SCARD", key);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("SCARD",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -242,9 +164,9 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            Object result = connection.execute("SISMEMBER", key, value);
-            return (Boolean) ValkeyGlideConverters.defaultFromGlideResult(result);
-            
+            return connection.execute("SISMEMBER",
+                (Boolean glideResult) -> glideResult,
+                key, value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -258,35 +180,13 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(values, "Values must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(key);
-            for (byte[] value : values) {
-                args.add(value);
-            }
+            Object[] args = new Object[values.length + 1];
+            args[0] = key;
+            System.arraycopy(values, 0, args, 1, values.length);
             
-            Object result = connection.execute("SMISMEMBER", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from SMISMEMBER: " + converted.getClass());
-            }
-            
-            List<Boolean> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                resultList.add((Boolean) ValkeyGlideConverters.defaultFromGlideResult(item));
-            }
-            return resultList;
+            return connection.execute("SMISMEMBER",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBooleansList(glideResult),
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -299,42 +199,20 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            for (byte[] key : keys) {
-                args.add(key);
-            }
-            
-            Object result = connection.execute("SDIFF", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else if (converted instanceof Set) {
-                @SuppressWarnings("unchecked")
-                Set<Object> castSet = (Set<Object>) converted;
-                list = new ArrayList<>(castSet);
-            } else {
-                throw new IllegalStateException("Unexpected result type from SDIFF: " + converted.getClass());
-            }
-            
-            Set<byte[]> resultSet = new HashSet<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
-                resultSet.add((byte[]) convertedItem);
-            }
-            return resultSet;
+            Object[] args = new Object[keys.length];
+            System.arraycopy(keys, 0, args, 0, keys.length);
+            return connection.execute("SDIFF",
+                (HashSet<GlideString> glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    Set<byte[]> resultSet = new HashSet<>();
+                    for (GlideString gs : glideResult) {
+                        resultSet.add(gs.getBytes());
+                    }
+                    return resultSet;
+                },
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -348,15 +226,13 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(destKey);
-            for (byte[] key : keys) {
-                args.add(key);
-            }
+            Object[] args = new Object[keys.length + 1];
+            args[0] = destKey;
+            System.arraycopy(keys, 0, args, 1, keys.length);
             
-            Object result = connection.execute("SDIFFSTORE", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("SDIFFSTORE",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -369,42 +245,20 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            for (byte[] key : keys) {
-                args.add(key);
-            }
-            
-            Object result = connection.execute("SINTER", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else if (converted instanceof Set) {
-                @SuppressWarnings("unchecked")
-                Set<Object> castSet = (Set<Object>) converted;
-                list = new ArrayList<>(castSet);
-            } else {
-                throw new IllegalStateException("Unexpected result type from SINTER: " + converted.getClass());
-            }
-            
-            Set<byte[]> resultSet = new HashSet<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
-                resultSet.add((byte[]) convertedItem);
-            }
-            return resultSet;
+            Object[] args = new Object[keys.length];
+            System.arraycopy(keys, 0, args, 0, keys.length);
+            return connection.execute("SINTER",
+                (HashSet<GlideString> glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    Set<byte[]> resultSet = new HashSet<>();
+                    for (GlideString gs : glideResult) {
+                        resultSet.add(gs.getBytes());
+                    }
+                    return resultSet;
+                },
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -418,15 +272,13 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(destKey);
-            for (byte[] key : keys) {
-                args.add(key);
-            }
+            Object[] args = new Object[keys.length + 1];
+            args[0] = destKey;
+            System.arraycopy(keys, 0, args, 1, keys.length);
             
-            Object result = connection.execute("SINTERSTORE", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("SINTERSTORE",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -439,42 +291,21 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            for (byte[] key : keys) {
-                args.add(key);
-            }
-            
-            Object result = connection.execute("SUNION", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else if (converted instanceof Set) {
-                @SuppressWarnings("unchecked")
-                Set<Object> castSet = (Set<Object>) converted;
-                list = new ArrayList<>(castSet);
-            } else {
-                throw new IllegalStateException("Unexpected result type from SUNION: " + converted.getClass());
-            }
-            
-            Set<byte[]> resultSet = new HashSet<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
-                resultSet.add((byte[]) convertedItem);
-            }
-            return resultSet;
+            Object[] args = new Object[keys.length];
+            System.arraycopy(keys, 0, args, 0, keys.length);
+
+            return connection.execute("SUNION",
+                (HashSet<GlideString> glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    Set<byte[]> resultSet = new HashSet<>();
+                    for (GlideString gs : glideResult) {
+                        resultSet.add(gs.getBytes());
+                    }
+                    return resultSet;
+                },
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -488,14 +319,13 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.noNullElements(keys, "Keys must not contain null elements");
         
         try {
-            List<Object> args = new ArrayList<>();
-            args.add(destKey);
-            for (byte[] key : keys) {
-                args.add(key);
-            }
+            Object[] args = new Object[keys.length + 1];
+            args[0] = destKey;
+            System.arraycopy(keys, 0, args, 1, keys.length);
             
-            Object result = connection.execute("SUNIONSTORE", args.toArray());
-            return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
+            return connection.execute("SUNIONSTORE",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -507,37 +337,18 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("SMEMBERS", key);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else if (converted instanceof Set) {
-                @SuppressWarnings("unchecked")
-                Set<Object> castSet = (Set<Object>) converted;
-                list = new ArrayList<>(castSet);
-            } else {
-                throw new IllegalStateException("Unexpected result type from SMEMBERS: " + converted.getClass());
-            }
-            
-            Set<byte[]> resultSet = new HashSet<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
-                resultSet.add((byte[]) convertedItem);
-            }
-            return resultSet;
+            return connection.execute("SMEMBERS",
+                (HashSet<GlideString> glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    Set<byte[]> resultSet = new HashSet<>();
+                    for (GlideString gs : glideResult) {
+                        resultSet.add(gs.getBytes());
+                    }
+                    return resultSet;
+                },
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -549,8 +360,9 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("SRANDMEMBER", key);
-            return (byte[]) ValkeyGlideConverters.defaultFromGlideResult(result);
+            return connection.execute("SRANDMEMBER",
+                (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -562,33 +374,9 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         Assert.notNull(key, "Key must not be null");
         
         try {
-            Object result = connection.execute("SRANDMEMBER", key, count);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            List<Object> list;
-            if (converted instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> castList = (List<Object>) converted;
-                list = castList;
-            } else if (converted instanceof Object[]) {
-                Object[] array = (Object[]) converted;
-                list = new ArrayList<>(array.length);
-                for (Object item : array) {
-                    list.add(item);
-                }
-            } else {
-                throw new IllegalStateException("Unexpected result type from SRANDMEMBER: " + converted.getClass());
-            }
-            
-            List<byte[]> resultList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                Object convertedItem = ValkeyGlideConverters.defaultFromGlideResult(item);
-                resultList.add((byte[]) convertedItem);
-            }
-            return resultList;
+            return connection.execute("SRANDMEMBER",
+                (Object[] glideResult) -> ValkeyGlideConverters.toBytesList(glideResult),
+                key, count);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -643,6 +431,10 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
         }
         
         private void scanNext() {
+            if (connection.isQueueing() || connection.isPipelined()) {
+                throw new InvalidDataAccessApiUsageException("'SSCAN' cannot be called in pipeline / transaction mode");
+            }
+
             try {
                 List<Object> args = new ArrayList<>();
                 args.add(key);
@@ -658,80 +450,27 @@ public class ValkeyGlideSetCommands implements RedisSetCommands {
                     args.add(options.getCount());
                 }
                 
-                Object result = connection.execute("SSCAN", args.toArray());
-                Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-                
-                List<Object> scanResultList;
-                if (converted instanceof List) {
-                    @SuppressWarnings("unchecked")
-                    List<Object> castList = (List<Object>) converted;
-                    scanResultList = castList;
-                } else if (converted instanceof Object[]) {
-                    Object[] array = (Object[]) converted;
-                    scanResultList = new ArrayList<>(array.length);
-                    for (Object item : array) {
-                        scanResultList.add(item);
-                    }
-                } else {
-                    throw new IllegalStateException("Unexpected SSCAN result type: " + (converted != null ? converted.getClass() : "null"));
-                }
-                
-                if (scanResultList.size() >= 2) {
-                    // First element is the new cursor
-                    Object cursorObj = ValkeyGlideConverters.defaultFromGlideResult(scanResultList.get(0));
-                    
-                    if (cursorObj instanceof String) {
-                        cursor = Long.parseLong((String) cursorObj);
-                    } else if (cursorObj instanceof Number) {
-                        cursor = ((Number) cursorObj).longValue();
-                    } else if (cursorObj instanceof byte[]) {
-                        cursor = Long.parseLong(new String((byte[]) cursorObj));
-                    }
-                    
-                    if (cursor == 0) {
-                        finished = true;
-                    }
-                    
-                    // Second element is the array/list of members
-                    Object membersObj = ValkeyGlideConverters.defaultFromGlideResult(scanResultList.get(1));
-                    
-                    // Reset members for this batch
-                    members.clear();
-                    currentIndex = 0;
-                    
-                    if (membersObj instanceof Object[]) {
-                        Object[] memberArray = (Object[]) membersObj;
-                        // Process members
-                        for (Object memberObj : memberArray) {
-                            Object convertedMember = ValkeyGlideConverters.defaultFromGlideResult(memberObj);
-                            if (convertedMember instanceof byte[]) {
-                                members.add((byte[]) convertedMember);
-                            } else {
-                                // Handle other types that can be converted to byte[]
-                                byte[] memberBytes = convertToByteArray(convertedMember);
-                                if (memberBytes != null) {
-                                    members.add(memberBytes);
-                                }
-                            }
+                connection.execute("SSCAN",
+                    (Object[] glideResult) -> {
+                        if (glideResult == null) {
+                            return null;
                         }
-                    } else if (membersObj instanceof List) {
-                        @SuppressWarnings("unchecked")
-                        List<Object> memberList = (List<Object>) membersObj;
-                        // Process members
-                        for (Object memberObj : memberList) {
-                            Object convertedMember = ValkeyGlideConverters.defaultFromGlideResult(memberObj);
-                            if (convertedMember instanceof byte[]) {
-                                members.add((byte[]) convertedMember);
-                            } else {
-                                // Handle other types that can be converted to byte[]
-                                byte[] memberBytes = convertToByteArray(convertedMember);
-                                if (memberBytes != null) {
-                                    members.add(memberBytes);
-                                }
-                            }
+                    
+                        // First element is the new cursor and is byte[], need to convert to String first
+                        GlideString cursorStr = (GlideString) glideResult[0];
+                        cursor = Long.parseLong(cursorStr.getString());
+                        if (cursor == 0) {
+                            finished = true;
                         }
-                    }
-                }
+                        
+                        // Reset members for this batch
+                        members.clear();
+                        currentIndex = 0;
+                        
+                        members.addAll(ValkeyGlideConverters.toBytesList((Object[]) glideResult[1]));
+                        return null; // We don't need to return anything from this mapper
+                    },
+                    args.toArray());
             } catch (Exception ex) {
                 throw new ValkeyGlideExceptionConverter().convert(ex);
             }

@@ -454,6 +454,19 @@ public abstract class ValkeyGlideConverters {
     }
 
     @Nullable
+    public static List<Boolean> toBooleansList(@Nullable Object[] glideResult) {
+        if (glideResult == null) {
+            return null;
+        }
+
+        List<Boolean> resultList = new ArrayList<>(glideResult.length);
+        for (Object item : glideResult) {
+            resultList.add((Boolean) item);
+        }
+        return resultList;
+    }
+
+    @Nullable
     public static List<byte[]> toBytesList(@Nullable Object result) {
         if (result == null) {
             return new ArrayList<>();
