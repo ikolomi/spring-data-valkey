@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisListCommands.Direction;
 import org.springframework.data.redis.connection.RedisListCommands.Position;
 
@@ -767,7 +767,7 @@ public class ValkeyGlideConnectionListCommandsIntegrationTests extends AbstractV
             
             // Try list operations on string key - should fail or return appropriate response
             assertThatThrownBy(() -> connection.listCommands().lPush(stringKey.getBytes(), "value".getBytes()))
-                .isInstanceOf(Exception.class);
+                .isInstanceOf(DataAccessException.class);
         } finally {
             cleanupKey(stringKey);
         }
@@ -823,6 +823,787 @@ public class ValkeyGlideConnectionListCommandsIntegrationTests extends AbstractV
             assertThat(poppedBinary).isEqualTo(binaryValue1);
         } finally {
             cleanupKey(key);
+        }
+    }
+
+    // ==================== Pipeline Mode Tests ====================
+
+    @Test
+    void testBasicListCommandsInPipelineMode() {
+        String key = "test:list:pipeline:basic";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue basic list commands - assert they return null in pipeline mode
+            assertThat(connection.listCommands().rPush(keyBytes, value1, value2)).isNull();
+            assertThat(connection.listCommands().lPush(keyBytes, value3)).isNull();
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            assertThat(connection.listCommands().lRange(keyBytes, 0, -1)).isNull();
+            assertThat(connection.listCommands().lIndex(keyBytes, 0)).isNull();
+            assertThat(connection.listCommands().rPop(keyBytes)).isNull();
+            assertThat(connection.listCommands().lPop(keyBytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(7);
+            assertThat(results.get(0)).isEqualTo(2L);     // rPush result
+            assertThat(results.get(1)).isEqualTo(3L);     // lPush result
+            assertThat(results.get(2)).isEqualTo(3L);     // lLen result
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> rangeResult = (List<byte[]>) results.get(3);
+            assertThat(rangeResult).hasSize(3);
+            assertThat(rangeResult.get(0)).isEqualTo(value3); // Head after lPush
+            assertThat(rangeResult.get(1)).isEqualTo(value1);
+            assertThat(rangeResult.get(2)).isEqualTo(value2); // Tail
+            
+            assertThat(results.get(4)).isEqualTo(value3); // lIndex result
+            assertThat(results.get(5)).isEqualTo(value2); // rPop result (from tail)
+            assertThat(results.get(6)).isEqualTo(value3); // lPop result (from head)
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testConditionalListCommandsInPipelineMode() {
+        String existingKey = "test:list:pipeline:conditional:existing";
+        String nonExistentKey = "test:list:pipeline:conditional:nonexistent";
+        byte[] existingKeyBytes = existingKey.getBytes();
+        byte[] nonExistentKeyBytes = nonExistentKey.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up existing list
+            connection.listCommands().rPush(existingKeyBytes, value1);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue conditional commands - assert they return null in pipeline mode
+            assertThat(connection.listCommands().rPushX(existingKeyBytes, value2)).isNull();
+            assertThat(connection.listCommands().lPushX(existingKeyBytes, "head".getBytes())).isNull();
+            assertThat(connection.listCommands().rPushX(nonExistentKeyBytes, value1)).isNull();
+            assertThat(connection.listCommands().lPushX(nonExistentKeyBytes, value1)).isNull();
+            assertThat(connection.listCommands().lLen(existingKeyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(nonExistentKeyBytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(2L);  // rPushX on existing - success
+            assertThat(results.get(1)).isEqualTo(3L);  // lPushX on existing - success
+            assertThat(results.get(2)).isEqualTo(0L);  // rPushX on non-existent - fail
+            assertThat(results.get(3)).isEqualTo(0L);  // lPushX on non-existent - fail
+            assertThat(results.get(4)).isEqualTo(3L);  // lLen on existing
+            assertThat(results.get(5)).isEqualTo(0L);  // lLen on non-existent
+            
+        } finally {
+            cleanupKey(existingKey);
+            cleanupKey(nonExistentKey);
+        }
+    }
+
+    @Test
+    void testListPositionCommandsInPipelineMode() {
+        String key = "test:list:pipeline:position";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value1".getBytes(); // duplicate
+        byte[] insertValue = "inserted".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(keyBytes, value1, value2, value3);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue position commands - assert they return null in pipeline mode
+            assertThat(connection.listCommands().lPos(keyBytes, value1, null, 2)).isNull();
+            assertThat(connection.listCommands().lInsert(keyBytes, Position.BEFORE, value2, insertValue)).isNull();
+            assertThat(connection.listCommands().lIndex(keyBytes, 1)).isNull();
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(4);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> lPosResults = (List<Long>) results.get(0);
+            assertThat(lPosResults).containsExactly(0L, 2L); // Both occurrences of value1
+            
+            assertThat(results.get(1)).isEqualTo(4L);  // lInsert result (new list length)
+            assertThat(results.get(2)).isEqualTo(insertValue); // lIndex result
+            assertThat(results.get(3)).isEqualTo(4L);  // lLen result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testListMovementCommandsInPipelineMode() {
+        String sourceKey = "test:list:pipeline:move:source";
+        String destKey = "test:list:pipeline:move:dest";
+        byte[] sourceKeyBytes = sourceKey.getBytes();
+        byte[] destKeyBytes = destKey.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(sourceKeyBytes, value1, value2, value3);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue movement commands - assert they return null in pipeline mode
+            assertThat(connection.listCommands().lMove(sourceKeyBytes, destKeyBytes, Direction.LEFT, Direction.RIGHT)).isNull();
+            assertThat(connection.listCommands().rPopLPush(sourceKeyBytes, destKeyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(sourceKeyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(destKeyBytes)).isNull();
+            assertThat(connection.listCommands().lRange(destKeyBytes, 0, -1)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(value1); // lMove result
+            assertThat(results.get(1)).isEqualTo(value3); // rPopLPush result
+            assertThat(results.get(2)).isEqualTo(1L);     // Source length after moves
+            assertThat(results.get(3)).isEqualTo(2L);     // Dest length after moves
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> destRange = (List<byte[]>) results.get(4);
+            assertThat(destRange).hasSize(2);
+            assertThat(destRange.get(0)).isEqualTo(value3); // Head (from rPopLPush)
+            assertThat(destRange.get(1)).isEqualTo(value1); // Tail (from lMove RIGHT)
+            
+        } finally {
+            cleanupKey(sourceKey);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testListRemovalCommandsInPipelineMode() {
+        String key = "test:list:pipeline:removal";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value1".getBytes(); // duplicate
+        byte[] value4 = "value2".getBytes(); // duplicate
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(keyBytes, value1, value2, value3, value4);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue removal commands - assert they return null in pipeline mode
+            assertThat(connection.listCommands().lRem(keyBytes, 1, value1)).isNull();
+            assertThat(connection.listCommands().lPop(keyBytes, 2)).isNull();
+            assertThat(connection.listCommands().rPop(keyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(4);
+            assertThat(results.get(0)).isEqualTo(1L); // lRem result (removed 1 occurrence)
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> lPopResults = (List<byte[]>) results.get(1);
+            assertThat(lPopResults).hasSize(2);
+            assertThat(lPopResults.get(0)).isEqualTo(value2); // First remaining element
+            assertThat(lPopResults.get(1)).isEqualTo(value3); // Second remaining element
+            
+            assertThat(results.get(2)).isEqualTo(value4); // rPop result
+            assertThat(results.get(3)).isEqualTo(0L);     // Final length (empty)
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testListBlockingCommandsInPipelineMode() {
+        String key1 = "test:list:pipeline:blocking:key1";
+        String key2 = "test:list:pipeline:blocking:key2";
+        byte[] key1Bytes = key1.getBytes();
+        byte[] key2Bytes = key2.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(key1Bytes, value1);
+            connection.listCommands().rPush(key2Bytes, value2);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue blocking commands with short timeout - assert they return null in pipeline mode
+            assertThat(connection.listCommands().bLPop(1, key1Bytes, key2Bytes)).isNull();
+            assertThat(connection.listCommands().bRPop(1, key1Bytes, key2Bytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(2);
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> blPopResult = (List<byte[]>) results.get(0);
+            assertThat(blPopResult).hasSize(2);
+            assertThat(blPopResult.get(0)).isEqualTo(key1Bytes); // Key that had element
+            assertThat(blPopResult.get(1)).isEqualTo(value1);    // Popped element
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> brPopResult = (List<byte[]>) results.get(1);
+            assertThat(brPopResult).hasSize(2);
+            assertThat(brPopResult.get(0)).isEqualTo(key2Bytes); // Key that had element
+            assertThat(brPopResult.get(1)).isEqualTo(value2);    // Popped element
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testListTrimCommandInPipelineMode() {
+        String key = "test:list:pipeline:trim";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        byte[] value4 = "value4".getBytes();
+        byte[] value5 = "value5".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(keyBytes, value1, value2, value3, value4, value5);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue trim and verification commands
+            connection.listCommands().lTrim(keyBytes, 1, 3); // void method, no assertion needed
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            assertThat(connection.listCommands().lRange(keyBytes, 0, -1)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo("OK"); // lTrim result
+            assertThat(results.get(1)).isEqualTo(3L);   // lLen result after trim
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> rangeResult = (List<byte[]>) results.get(2);
+            assertThat(rangeResult).hasSize(3);
+            assertThat(rangeResult.get(0)).isEqualTo(value2); // Trimmed list starts with value2
+            assertThat(rangeResult.get(1)).isEqualTo(value3);
+            assertThat(rangeResult.get(2)).isEqualTo(value4); // Trimmed list ends with value4
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testListAdvancedCommandsInPipelineMode() {
+        String sourceKey1 = "test:list:pipeline:advanced:source1";
+        String destKey1 = "test:list:pipeline:advanced:dest1";
+        String sourceKey2 = "test:list:pipeline:advanced:source2";
+        String destKey2 = "test:list:pipeline:advanced:dest2";
+        byte[] sourceKey1Bytes = sourceKey1.getBytes();
+        byte[] destKey1Bytes = destKey1.getBytes();
+        byte[] sourceKey2Bytes = sourceKey2.getBytes();
+        byte[] destKey2Bytes = destKey2.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(sourceKey1Bytes, value1);
+            connection.listCommands().rPush(sourceKey2Bytes, value2);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue advanced commands - assert they return null in pipeline mode
+            assertThat(connection.listCommands().bLMove(sourceKey1Bytes, destKey1Bytes, Direction.LEFT, Direction.RIGHT, 0.1)).isNull();
+            assertThat(connection.listCommands().bRPopLPush(1, sourceKey2Bytes, destKey2Bytes)).isNull();
+            assertThat(connection.listCommands().lLen(destKey1Bytes)).isNull();
+            assertThat(connection.listCommands().lLen(destKey2Bytes)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(4);
+            assertThat(results.get(0)).isEqualTo(value1); // bLMove result
+            assertThat(results.get(1)).isEqualTo(value2); // bRPopLPush result
+            assertThat(results.get(2)).isEqualTo(1L);     // destKey1 length
+            assertThat(results.get(3)).isEqualTo(1L);     // destKey2 length
+            
+        } finally {
+            cleanupKey(sourceKey1);
+            cleanupKey(destKey1);
+            cleanupKey(sourceKey2);
+            cleanupKey(destKey2);
+        }
+    }
+
+    // ==================== Transaction Mode Tests ====================
+
+    @Test
+    void testBasicListCommandsInTransactionMode() {
+        String key = "test:list:transaction:basic";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue basic list commands - assert they return null in transaction mode
+            assertThat(connection.listCommands().rPush(keyBytes, value1, value2)).isNull();
+            assertThat(connection.listCommands().lPush(keyBytes, value3)).isNull();
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            assertThat(connection.listCommands().lRange(keyBytes, 0, -1)).isNull();
+            assertThat(connection.listCommands().lIndex(keyBytes, 0)).isNull();
+            assertThat(connection.listCommands().rPop(keyBytes)).isNull();
+            assertThat(connection.listCommands().lPop(keyBytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(7);
+            assertThat(results.get(0)).isEqualTo(2L);     // rPush result
+            assertThat(results.get(1)).isEqualTo(3L);     // lPush result
+            assertThat(results.get(2)).isEqualTo(3L);     // lLen result
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> rangeResult = (List<byte[]>) results.get(3);
+            assertThat(rangeResult).hasSize(3);
+            assertThat(rangeResult.get(0)).isEqualTo(value3); // Head after lPush
+            assertThat(rangeResult.get(1)).isEqualTo(value1);
+            assertThat(rangeResult.get(2)).isEqualTo(value2); // Tail
+            
+            assertThat(results.get(4)).isEqualTo(value3); // lIndex result
+            assertThat(results.get(5)).isEqualTo(value2); // rPop result (from tail)
+            assertThat(results.get(6)).isEqualTo(value3); // lPop result (from head)
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testConditionalListCommandsInTransactionMode() {
+        String existingKey = "test:list:transaction:conditional:existing";
+        String nonExistentKey = "test:list:transaction:conditional:nonexistent";
+        byte[] existingKeyBytes = existingKey.getBytes();
+        byte[] nonExistentKeyBytes = nonExistentKey.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up existing list
+            connection.listCommands().rPush(existingKeyBytes, value1);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue conditional commands - assert they return null in transaction mode
+            assertThat(connection.listCommands().rPushX(existingKeyBytes, value2)).isNull();
+            assertThat(connection.listCommands().lPushX(existingKeyBytes, "head".getBytes())).isNull();
+            assertThat(connection.listCommands().rPushX(nonExistentKeyBytes, value1)).isNull();
+            assertThat(connection.listCommands().lPushX(nonExistentKeyBytes, value1)).isNull();
+            assertThat(connection.listCommands().lLen(existingKeyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(nonExistentKeyBytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(6);
+            assertThat(results.get(0)).isEqualTo(2L);  // rPushX on existing - success
+            assertThat(results.get(1)).isEqualTo(3L);  // lPushX on existing - success
+            assertThat(results.get(2)).isEqualTo(0L);  // rPushX on non-existent - fail
+            assertThat(results.get(3)).isEqualTo(0L);  // lPushX on non-existent - fail
+            assertThat(results.get(4)).isEqualTo(3L);  // lLen on existing
+            assertThat(results.get(5)).isEqualTo(0L);  // lLen on non-existent
+            
+        } finally {
+            cleanupKey(existingKey);
+            cleanupKey(nonExistentKey);
+        }
+    }
+
+    @Test
+    void testListPositionCommandsInTransactionMode() {
+        String key = "test:list:transaction:position";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value1".getBytes(); // duplicate
+        byte[] insertValue = "inserted".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(keyBytes, value1, value2, value3);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue position commands - assert they return null in transaction mode
+            assertThat(connection.listCommands().lPos(keyBytes, value1, null, 2)).isNull();
+            assertThat(connection.listCommands().lInsert(keyBytes, Position.BEFORE, value2, insertValue)).isNull();
+            assertThat(connection.listCommands().lIndex(keyBytes, 1)).isNull();
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(4);
+            
+            @SuppressWarnings("unchecked")
+            List<Long> lPosResults = (List<Long>) results.get(0);
+            assertThat(lPosResults).containsExactly(0L, 2L); // Both occurrences of value1
+            
+            assertThat(results.get(1)).isEqualTo(4L);  // lInsert result (new list length)
+            assertThat(results.get(2)).isEqualTo(insertValue); // lIndex result
+            assertThat(results.get(3)).isEqualTo(4L);  // lLen result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testListMovementCommandsInTransactionMode() {
+        String sourceKey = "test:list:transaction:move:source";
+        String destKey = "test:list:transaction:move:dest";
+        byte[] sourceKeyBytes = sourceKey.getBytes();
+        byte[] destKeyBytes = destKey.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(sourceKeyBytes, value1, value2, value3);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue movement commands - assert they return null in transaction mode
+            assertThat(connection.listCommands().lMove(sourceKeyBytes, destKeyBytes, Direction.LEFT, Direction.RIGHT)).isNull();
+            assertThat(connection.listCommands().rPopLPush(sourceKeyBytes, destKeyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(sourceKeyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(destKeyBytes)).isNull();
+            assertThat(connection.listCommands().lRange(destKeyBytes, 0, -1)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(5);
+            assertThat(results.get(0)).isEqualTo(value1); // lMove result
+            assertThat(results.get(1)).isEqualTo(value3); // rPopLPush result
+            assertThat(results.get(2)).isEqualTo(1L);     // Source length after moves
+            assertThat(results.get(3)).isEqualTo(2L);     // Dest length after moves
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> destRange = (List<byte[]>) results.get(4);
+            assertThat(destRange).hasSize(2);
+            assertThat(destRange.get(0)).isEqualTo(value3); // Head (from rPopLPush)
+            assertThat(destRange.get(1)).isEqualTo(value1); // Tail (from lMove RIGHT)
+            
+        } finally {
+            cleanupKey(sourceKey);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testListRemovalCommandsInTransactionMode() {
+        String key = "test:list:transaction:removal";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value1".getBytes(); // duplicate
+        byte[] value4 = "value2".getBytes(); // duplicate
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(keyBytes, value1, value2, value3, value4);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue removal commands - assert they return null in transaction mode
+            assertThat(connection.listCommands().lRem(keyBytes, 1, value1)).isNull();
+            assertThat(connection.listCommands().lPop(keyBytes, 2)).isNull();
+            assertThat(connection.listCommands().rPop(keyBytes)).isNull();
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(4);
+            assertThat(results.get(0)).isEqualTo(1L); // lRem result (removed 1 occurrence)
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> lPopResults = (List<byte[]>) results.get(1);
+            assertThat(lPopResults).hasSize(2);
+            assertThat(lPopResults.get(0)).isEqualTo(value2); // First remaining element
+            assertThat(lPopResults.get(1)).isEqualTo(value3); // Second remaining element
+            
+            assertThat(results.get(2)).isEqualTo(value4); // rPop result
+            assertThat(results.get(3)).isEqualTo(0L);     // Final length (empty)
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testListBlockingCommandsInTransactionMode() {
+        String key1 = "test:list:transaction:blocking:key1";
+        String key2 = "test:list:transaction:blocking:key2";
+        byte[] key1Bytes = key1.getBytes();
+        byte[] key2Bytes = key2.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(key1Bytes, value1);
+            connection.listCommands().rPush(key2Bytes, value2);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue blocking commands with short timeout - assert they return null in transaction mode
+            assertThat(connection.listCommands().bLPop(1, key1Bytes, key2Bytes)).isNull();
+            assertThat(connection.listCommands().bRPop(1, key1Bytes, key2Bytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(2);
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> blPopResult = (List<byte[]>) results.get(0);
+            assertThat(blPopResult).hasSize(2);
+            assertThat(blPopResult.get(0)).isEqualTo(key1Bytes); // Key that had element
+            assertThat(blPopResult.get(1)).isEqualTo(value1);    // Popped element
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> brPopResult = (List<byte[]>) results.get(1);
+            assertThat(brPopResult).hasSize(2);
+            assertThat(brPopResult.get(0)).isEqualTo(key2Bytes); // Key that had element
+            assertThat(brPopResult.get(1)).isEqualTo(value2);    // Popped element
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testListTrimCommandInTransactionMode() {
+        String key = "test:list:transaction:trim";
+        byte[] keyBytes = key.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        byte[] value3 = "value3".getBytes();
+        byte[] value4 = "value4".getBytes();
+        byte[] value5 = "value5".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(keyBytes, value1, value2, value3, value4, value5);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue trim and verification commands
+            connection.listCommands().lTrim(keyBytes, 1, 3); // void method, no assertion
+            assertThat(connection.listCommands().lLen(keyBytes)).isNull();
+            assertThat(connection.listCommands().lRange(keyBytes, 0, -1)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo("OK"); // lTrim result
+            assertThat(results.get(1)).isEqualTo(3L);   // lLen result after trim
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> rangeResult = (List<byte[]>) results.get(2);
+            assertThat(rangeResult).hasSize(3);
+            assertThat(rangeResult.get(0)).isEqualTo(value2); // Trimmed list starts with value2
+            assertThat(rangeResult.get(1)).isEqualTo(value3);
+            assertThat(rangeResult.get(2)).isEqualTo(value4); // Trimmed list ends with value4
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testTransactionDiscardWithListCommands() {
+        String key = "test:list:transaction:discard";
+        byte[] keyBytes = key.getBytes();
+        byte[] value = "value".getBytes();
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue list commands
+            connection.listCommands().rPush(keyBytes, value);
+            connection.listCommands().lLen(keyBytes);
+            
+            // Discard transaction
+            connection.discard();
+            
+            // Verify key doesn't exist (transaction was discarded)
+            Long len = connection.listCommands().lLen(keyBytes);
+            assertThat(len).isEqualTo(0L);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testListAdvancedCommandsInTransactionMode() {
+        String sourceKey1 = "test:list:transaction:advanced:source1";
+        String destKey1 = "test:list:transaction:advanced:dest1";
+        String sourceKey2 = "test:list:transaction:advanced:source2";
+        String destKey2 = "test:list:transaction:advanced:dest2";
+        byte[] sourceKey1Bytes = sourceKey1.getBytes();
+        byte[] destKey1Bytes = destKey1.getBytes();
+        byte[] sourceKey2Bytes = sourceKey2.getBytes();
+        byte[] destKey2Bytes = destKey2.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Set up test data
+            connection.listCommands().rPush(sourceKey1Bytes, value1);
+            connection.listCommands().rPush(sourceKey2Bytes, value2);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue advanced commands - assert they return null in transaction mode
+            assertThat(connection.listCommands().bLMove(sourceKey1Bytes, destKey1Bytes, Direction.LEFT, Direction.RIGHT, 0.1)).isNull();
+            assertThat(connection.listCommands().bRPopLPush(1, sourceKey2Bytes, destKey2Bytes)).isNull();
+            assertThat(connection.listCommands().lLen(destKey1Bytes)).isNull();
+            assertThat(connection.listCommands().lLen(destKey2Bytes)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(4);
+            assertThat(results.get(0)).isEqualTo(value1); // bLMove result
+            assertThat(results.get(1)).isEqualTo(value2); // bRPopLPush result
+            assertThat(results.get(2)).isEqualTo(1L);     // destKey1 length
+            assertThat(results.get(3)).isEqualTo(1L);     // destKey2 length
+            
+        } finally {
+            cleanupKey(sourceKey1);
+            cleanupKey(destKey1);
+            cleanupKey(sourceKey2);
+            cleanupKey(destKey2);
+        }
+    }
+
+    @Test
+    void testWatchWithListCommandsTransaction() throws InterruptedException {
+        String watchKey = "test:list:transaction:watch";
+        String otherKey = "test:list:transaction:other";
+        byte[] watchKeyBytes = watchKey.getBytes();
+        byte[] otherKeyBytes = otherKey.getBytes();
+        byte[] value1 = "value1".getBytes();
+        byte[] value2 = "value2".getBytes();
+        
+        try {
+            // Setup initial data
+            connection.listCommands().rPush(watchKeyBytes, value1);
+            
+            // Watch the key
+            connection.watch(watchKeyBytes);
+            
+            // Modify the watched key from "outside" the transaction
+            // (simulating another client)
+            connection.listCommands().rPush(watchKeyBytes, value2);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue list commands
+            connection.listCommands().rPush(otherKeyBytes, value1);
+            connection.listCommands().lLen(otherKeyBytes);
+            
+            // Execute transaction - should be aborted due to WATCH
+            List<Object> results = connection.exec();
+            
+            // Transaction should be aborted (results should be null)
+            assertThat(results).isNull();
+            
+            // Verify that the other key was not set
+            Long len = connection.listCommands().lLen(otherKeyBytes);
+            assertThat(len).isEqualTo(0L);
+            
+        } finally {
+            cleanupKey(watchKey);
+            cleanupKey(otherKey);
         }
     }
 

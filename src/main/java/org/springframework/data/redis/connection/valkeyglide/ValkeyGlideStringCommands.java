@@ -511,19 +511,7 @@ public class ValkeyGlideStringCommands implements RedisStringCommands {
         
         try {
             return connection.execute("SETBIT",
-                glideResult -> {
-                    if (glideResult == null) return null;
-                    if (glideResult instanceof Boolean) {
-                        System.err.println("Warning: Glide returned Boolean for SETBIT command");
-                        return (Boolean) glideResult;
-                    }
-                    if (glideResult instanceof Number) {
-                        System.err.println("Warning: Glide returned Number for SETBIT command");
-                        return ((Number) glideResult).longValue() != 0;
-                    }
-                    return false;
-                    //glideResult != null ? glideResult != 0 : null,
-                },
+                (Long glideResult) -> glideResult != null ? glideResult != 0 : null,
                 key,
                 offset,
                 value ? 1 : 0);
