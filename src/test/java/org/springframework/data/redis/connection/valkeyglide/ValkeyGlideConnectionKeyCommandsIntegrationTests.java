@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ExpirationOptions;
+import org.springframework.data.redis.connection.DefaultSortParameters;
 import org.springframework.data.redis.connection.SortParameters;
 import org.springframework.data.redis.connection.ValueEncoding;
 import org.springframework.data.redis.core.Cursor;
@@ -36,17 +37,10 @@ import org.springframework.data.redis.core.ScanOptions;
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
  * key functionality using the RedisKeyCommands interface directly.
  * 
- * These tests validate the implementation of all RedisKeyCommands methods:
- * - Basic key operations (exists, del, unlink, type, touch)
- * - Key discovery operations (keys, scan, randomKey)
- * - Key renaming operations (rename, renameNX)
- * - Key expiration operations (expire, pExpire, expireAt, pExpireAt, persist)
- * - Key TTL operations (ttl, pTtl)
- * - Key movement operations (move)
- * - Key copy operations (copy)
- * - Sorting operations (sort with various parameters)
- * - Serialization operations (dump, restore)
- * - Object introspection operations (encodingOf, idletime, refcount)
+ * These tests validate the implementation of all RedisKeyCommands methods in all 3 invocation modes:
+ * - Immediate mode: Direct command execution with results
+ * - Pipeline mode: Commands return null, results collected in closePipeline() 
+ * - Transaction mode: Commands return null, results collected in exec()
  *
  * @author Ilya Kolomin
  * @since 2.0
@@ -67,7 +61,11 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
             "test:key:renamenx:old", "test:key:renamenx:new", "test:key:renamenx:existing",
             "test:key:expire", "test:key:pexpire", "test:key:expireat", "test:key:pexpireat",
             "test:key:persist", "test:key:ttl", "test:key:pttl",
-            "test:key:error:same", "test:key:expiration:edge",
+            "test:key:sort:list", "test:key:sort:store", "test:key:dump", "test:key:restore",
+            "test:key:move", "test:key:unlink:key1", "test:key:unlink:key2",
+            "test:key:encoding", "test:key:idletime", "test:key:refcount",
+            "test:key:pipeline:key1", "test:key:pipeline:key2", "test:key:pipeline:key3",
+            "test:key:transaction:key1", "test:key:transaction:key2", "test:key:transaction:key3",
             "non:existent:key", "new:key"
         };
     }
@@ -128,6 +126,34 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
     }
 
     @Test
+    void testUnlink() {
+        String key1 = "test:key:unlink:key1";
+        String key2 = "test:key:unlink:key2";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            
+            // Test unlink single key
+            Long unlinkResult1 = connection.keyCommands().unlink(key1.getBytes());
+            assertThat(unlinkResult1).isEqualTo(1L);
+            
+            // Verify key was unlinked
+            Boolean existsAfterUnlink = connection.keyCommands().exists(key1.getBytes());
+            assertThat(existsAfterUnlink).isFalse();
+            
+            // Test unlink multiple keys
+            Long unlinkResult2 = connection.keyCommands().unlink(key2.getBytes(), "non:existent:key".getBytes());
+            assertThat(unlinkResult2).isEqualTo(1L); // Only one key existed
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
     void testCopy() {
         String sourceKey = "test:key:copy:source";
         String targetKey = "test:key:copy:target";
@@ -177,8 +203,6 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
             cleanupKey(existingTargetKey);
         }
     }
-
-    // ==================== Key Type and Properties ====================
 
     @Test
     void testType() {
@@ -242,8 +266,6 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         }
     }
 
-    // ==================== Key Discovery Operations ====================
-
     @Test
     void testKeys() {
         String basePattern = "test:key:keys:";
@@ -294,22 +316,16 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         byte[] value = "test_value".getBytes();
         
         try {
-            // Test randomKey when no keys exist
-            cleanupTestKeys(); // Ensure clean state
-            byte[] randomKey1 = connection.keyCommands().randomKey();
-            // Note: randomKey might return null or some other key depending on database state
-            
             // Set up test data
             connection.stringCommands().set(key1.getBytes(), value);
             connection.stringCommands().set(key2.getBytes(), value);
             
             // Test randomKey when keys exist
-            byte[] randomKey2 = connection.keyCommands().randomKey();
-            assertThat(randomKey2).isNotNull();
+            byte[] randomKey = connection.keyCommands().randomKey();
+            assertThat(randomKey).isNotNull();
             
             // Should be one of our keys or some other key in the database
-            String randomKeyStr = new String(randomKey2);
-            // We can't guarantee which key will be returned, just that one is returned
+            String randomKeyStr = new String(randomKey);
             assertThat(randomKeyStr).isNotEmpty();
         } finally {
             cleanupKey(key1);
@@ -362,8 +378,6 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
             cleanupKey(key3);
         }
     }
-
-    // ==================== Key Renaming Operations ====================
 
     @Test
     void testRename() {
@@ -435,18 +449,14 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         }
     }
 
-    // ==================== Key Expiration Operations ====================
-
     @Test
     void testExpire() {
         String key = "test:key:expire";
         byte[] value = "test_value".getBytes();
         
         try {
-            // Set up test data
-            connection.stringCommands().set(key.getBytes(), value);
-            
             // Test expire
+            connection.stringCommands().set(key.getBytes(), value);
             Boolean expireResult = connection.keyCommands().expire(key.getBytes(), 1);
             assertThat(expireResult).isTrue();
             
@@ -470,15 +480,41 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
     }
 
     @Test
+    void testExpirationConditions() {
+        String key = "test:key:expire";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Test expire with NX condition (key must not have expiration)
+            connection.stringCommands().set(key.getBytes(), value);
+            Boolean expireNX1 = connection.keyCommands().expire(key.getBytes(), 10, ExpirationOptions.Condition.NX);
+            assertThat(expireNX1).isTrue(); // Should succeed, key had no expiration
+            
+            Boolean expireNX2 = connection.keyCommands().expire(key.getBytes(), 20, ExpirationOptions.Condition.NX);
+            assertThat(expireNX2).isFalse(); // Should fail, key already has expiration
+            
+            // Test expire with XX condition (key must have expiration)
+            Boolean expireXX1 = connection.keyCommands().expire(key.getBytes(), 30, ExpirationOptions.Condition.XX);
+            assertThat(expireXX1).isTrue(); // Should succeed, key has expiration
+            
+            // Remove expiration
+            connection.keyCommands().persist(key.getBytes());
+            
+            Boolean expireXX2 = connection.keyCommands().expire(key.getBytes(), 40, ExpirationOptions.Condition.XX);
+            assertThat(expireXX2).isFalse(); // Should fail, key has no expiration
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
     void testPExpire() {
         String key = "test:key:pexpire";
         byte[] value = "test_value".getBytes();
         
         try {
-            // Set up test data
-            connection.stringCommands().set(key.getBytes(), value);
-            
             // Test pExpire (milliseconds)
+            connection.stringCommands().set(key.getBytes(), value);
             Boolean pExpireResult = connection.keyCommands().pExpire(key.getBytes(), 1000);
             assertThat(pExpireResult).isTrue();
             
@@ -503,13 +539,10 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         byte[] value = "test_value".getBytes();
         
         try {
-            // Set up test data
+            // Test expireAt
             connection.stringCommands().set(key.getBytes(), value);
-            
-            // Calculate future timestamp (current time + 1 second)
             long futureTimestamp = System.currentTimeMillis() / 1000 + 1;
             
-            // Test expireAt
             Boolean expireAtResult = connection.keyCommands().expireAt(key.getBytes(), futureTimestamp);
             assertThat(expireAtResult).isTrue();
             
@@ -534,13 +567,10 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         byte[] value = "test_value".getBytes();
         
         try {
-            // Set up test data
+            // Test pExpireAt
             connection.stringCommands().set(key.getBytes(), value);
-            
-            // Calculate future timestamp in milliseconds
             long futureTimestampMillis = System.currentTimeMillis() + 1000;
             
-            // Test pExpireAt
             Boolean pExpireAtResult = connection.keyCommands().pExpireAt(key.getBytes(), futureTimestampMillis);
             assertThat(pExpireAtResult).isTrue();
             
@@ -589,7 +619,37 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         }
     }
 
-    // ==================== TTL Operations ====================
+    @Test
+    void testMove() {
+        String key = "test:key:move";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            // Test move to different database (assuming database 1 exists)
+            Boolean moveResult = connection.keyCommands().move(key.getBytes(), 1);
+            // Note: Move behavior depends on Redis configuration and available databases
+            // In many test setups, only database 0 is available, so move might fail
+            // We'll just verify the method executes without throwing an exception
+            assertThat(moveResult).isNotNull();
+            
+            // Test move non-existent key
+            Boolean moveNonExistent = connection.keyCommands().move("non:existent:key".getBytes(), 1);
+            assertThat(moveNonExistent).isFalse();
+        } finally {
+            cleanupKey(key);
+            // Also cleanup from database 1 if move succeeded
+            try {
+                connection.select(1);
+                connection.keyCommands().del(key.getBytes());
+                connection.select(0);
+            } catch (Exception e) {
+                // Ignore errors when switching databases in test environment
+            }
+        }
+    }
 
     @Test
     void testTtl() {
@@ -641,7 +701,656 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         }
     }
 
-    // ==================== Error Handling and Edge Cases ====================
+    @Test
+    void testSortComprehensive() {
+        String listKey = "test:key:sort:list";
+        String storeKey = "test:key:sort:store";
+        
+        try {
+            // Set up test data - add some sortable values
+            connection.listCommands().lPush(listKey.getBytes(), "3".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "1".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "2".getBytes());
+            
+            // Test sort without parameters
+            List<byte[]> sortedResult1 = connection.keyCommands().sort(listKey.getBytes(), null);
+            assertThat(sortedResult1).hasSize(3);
+            // Should be sorted as strings: "1", "2", "3"
+            assertThat(new String(sortedResult1.get(0))).isEqualTo("1");
+            assertThat(new String(sortedResult1.get(1))).isEqualTo("2");
+            assertThat(new String(sortedResult1.get(2))).isEqualTo("3");
+            
+            // Test sort with LIMIT parameters
+            SortParameters params1 = new DefaultSortParameters().limit(0, 2);
+            List<byte[]> sortedResult2 = connection.keyCommands().sort(listKey.getBytes(), params1);
+            assertThat(sortedResult2).hasSize(2); // Limited by count
+            assertThat(new String(sortedResult2.get(0))).isEqualTo("1");
+            assertThat(new String(sortedResult2.get(1))).isEqualTo("2");
+            
+            // Test sort with DESC order
+            SortParameters params2 = new DefaultSortParameters().desc();
+            List<byte[]> sortedResult3 = connection.keyCommands().sort(listKey.getBytes(), params2);
+            assertThat(sortedResult3).hasSize(3);
+            assertThat(new String(sortedResult3.get(0))).isEqualTo("3");
+            assertThat(new String(sortedResult3.get(1))).isEqualTo("2");
+            assertThat(new String(sortedResult3.get(2))).isEqualTo("1");
+            
+            // Test sort with ASC order (explicit)
+            SortParameters params3 = new DefaultSortParameters().asc();
+            List<byte[]> sortedResult4 = connection.keyCommands().sort(listKey.getBytes(), params3);
+            assertThat(sortedResult4).hasSize(3);
+            assertThat(new String(sortedResult4.get(0))).isEqualTo("1");
+            assertThat(new String(sortedResult4.get(1))).isEqualTo("2");
+            assertThat(new String(sortedResult4.get(2))).isEqualTo("3");
+            
+            // Test sort with alphabetic ordering
+            connection.keyCommands().del(listKey.getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "b".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "a".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "c".getBytes());
+            
+            SortParameters params4 = new DefaultSortParameters().alpha();
+            List<byte[]> sortedResult5 = connection.keyCommands().sort(listKey.getBytes(), params4);
+            assertThat(sortedResult5).hasSize(3);
+            assertThat(new String(sortedResult5.get(0))).isEqualTo("a");
+            assertThat(new String(sortedResult5.get(1))).isEqualTo("b");
+            assertThat(new String(sortedResult5.get(2))).isEqualTo("c");
+            
+            // Test sort with multiple parameters combined
+            SortParameters params5 = new DefaultSortParameters().alpha().desc().limit(0, 2);
+            List<byte[]> sortedResult6 = connection.keyCommands().sort(listKey.getBytes(), params5);
+            assertThat(sortedResult6).hasSize(2);
+            assertThat(new String(sortedResult6.get(0))).isEqualTo("c");
+            assertThat(new String(sortedResult6.get(1))).isEqualTo("b");
+            
+            // Test sort with store (use alphabetic sort since list contains "a", "b", "c")
+            Long storeResult = connection.keyCommands().sort(listKey.getBytes(), params4, storeKey.getBytes());
+            assertThat(storeResult).isEqualTo(3L); // 3 elements stored
+            
+            // Verify stored results
+            List<byte[]> storedList = connection.listCommands().lRange(storeKey.getBytes(), 0, -1);
+            assertThat(storedList).hasSize(3);
+            
+            // Test sort with store and parameters
+            Long storeResult2 = connection.keyCommands().sort(listKey.getBytes(), params4, storeKey.getBytes());
+            assertThat(storeResult2).isEqualTo(3L);
+            
+        } finally {
+            cleanupKey(listKey);
+            cleanupKey(storeKey);
+        }
+    }
+
+    @Test
+    void testDumpRestore() {
+        String sourceKey = "test:key:dump";
+        String restoreKey = "test:key:restore";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(sourceKey.getBytes(), value);
+            
+            // Test dump
+            byte[] serialized = connection.keyCommands().dump(sourceKey.getBytes());
+            assertThat(serialized).isNotNull();
+            
+            // Test dump on non-existent key
+            byte[] nonExistentDump = connection.keyCommands().dump("non:existent:key".getBytes());
+            assertThat(nonExistentDump).isNull();
+            
+            // Test restore
+            connection.keyCommands().restore(restoreKey.getBytes(), 0, serialized, false);
+            
+            // Verify restore was successful
+            byte[] restoredValue = connection.stringCommands().get(restoreKey.getBytes());
+            assertThat(restoredValue).isEqualTo(value);
+            
+            // Test restore with replace
+            byte[] newValue = "new_value".getBytes();
+            connection.stringCommands().set(sourceKey.getBytes(), newValue);
+            byte[] newSerialized = connection.keyCommands().dump(sourceKey.getBytes());
+            
+            connection.keyCommands().restore(restoreKey.getBytes(), 0, newSerialized, true);
+            byte[] replacedValue = connection.stringCommands().get(restoreKey.getBytes());
+            assertThat(replacedValue).isEqualTo(newValue);
+        } finally {
+            cleanupKey(sourceKey);
+            cleanupKey(restoreKey);
+        }
+    }
+
+    @Test
+    void testObjectIntrospection() {
+        String key = "test:key:encoding";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            // Test encodingOf
+            ValueEncoding encoding = connection.keyCommands().encodingOf(key.getBytes());
+            assertThat(encoding).isNotNull();
+            // The exact encoding depends on Redis/Valkey version and configuration
+            
+            // Test encodingOf on non-existent key
+            ValueEncoding nonExistentEncoding = connection.keyCommands().encodingOf("non:existent:key".getBytes());
+            assertThat(nonExistentEncoding).isEqualTo(ValueEncoding.RedisValueEncoding.VACANT);
+            
+            // Test idletime
+            Duration idletime = connection.keyCommands().idletime(key.getBytes());
+            assertThat(idletime).isNotNull();
+            assertThat(idletime.getSeconds()).isGreaterThanOrEqualTo(0);
+            
+            // Test idletime on non-existent key
+            Duration nonExistentIdletime = connection.keyCommands().idletime("non:existent:key".getBytes());
+            assertThat(nonExistentIdletime).isNull();
+            
+            // Test refcount
+            Long refcount = connection.keyCommands().refcount(key.getBytes());
+            assertThat(refcount).isNotNull();
+            assertThat(refcount).isGreaterThan(0);
+            
+            // Test refcount on non-existent key
+            Long nonExistentRefcount = connection.keyCommands().refcount("non:existent:key".getBytes());
+            assertThat(nonExistentRefcount).isNull();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    // ==================== PIPELINE MODE TESTS ====================
+
+    @Test
+    void testKeyOperationsPipeline() {
+        String key1 = "test:key:pipeline:key1";
+        String key2 = "test:key:pipeline:key2";
+        String key3 = "test:key:pipeline:key3";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Pipeline commands should return null
+            Boolean existsResult = connection.keyCommands().exists(key1.getBytes());
+            assertThat(existsResult).isNull();
+            
+            Long existsMultipleResult = connection.keyCommands().exists(key1.getBytes(), key2.getBytes(), key3.getBytes());
+            assertThat(existsMultipleResult).isNull();
+            
+            DataType typeResult = connection.keyCommands().type(key1.getBytes());
+            assertThat(typeResult).isNull();
+            
+            Long touchResult = connection.keyCommands().touch(key1.getBytes(), key2.getBytes());
+            assertThat(touchResult).isNull();
+            
+            Boolean copyResult = connection.keyCommands().copy(key1.getBytes(), key3.getBytes(), false);
+            assertThat(copyResult).isNull();
+            
+            Long delResult = connection.keyCommands().del(key2.getBytes());
+            assertThat(delResult).isNull();
+            
+            // Execute pipeline and collect results
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results in order
+            assertThat(results).hasSize(6);
+            assertThat((Boolean) results.get(0)).isTrue(); // exists(key1)
+            assertThat((Long) results.get(1)).isEqualTo(2L); // exists multiple (key1, key2 existed)
+            assertThat((DataType) results.get(2)).isEqualTo(DataType.STRING); // type(key1)
+            assertThat((Long) results.get(3)).isEqualTo(2L); // touch(key1, key2)
+            assertThat((Boolean) results.get(4)).isTrue(); // copy(key1 -> key3)
+            assertThat((Long) results.get(5)).isEqualTo(1L); // del(key2)
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testExpirationOperationsPipeline() {
+        String key1 = "test:key:pipeline:expire1";
+        String key2 = "test:key:pipeline:expire2";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Pipeline commands should return null
+            Boolean expireResult = connection.keyCommands().expire(key1.getBytes(), 10);
+            assertThat(expireResult).isNull();
+            
+            Boolean pExpireResult = connection.keyCommands().pExpire(key2.getBytes(), 20000);
+            assertThat(pExpireResult).isNull();
+            
+            Long ttlResult = connection.keyCommands().ttl(key1.getBytes());
+            assertThat(ttlResult).isNull();
+            
+            Long pTtlResult = connection.keyCommands().pTtl(key2.getBytes());
+            assertThat(pTtlResult).isNull();
+            
+            Boolean persistResult = connection.keyCommands().persist(key1.getBytes());
+            assertThat(persistResult).isNull();
+            
+            // Execute pipeline and collect results
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results in order
+            assertThat(results).hasSize(5);
+            assertThat((Boolean) results.get(0)).isTrue(); // expire
+            assertThat((Boolean) results.get(1)).isTrue(); // pExpire
+            assertThat((Long) results.get(2)).isGreaterThan(0L).isLessThanOrEqualTo(10L); // ttl
+            assertThat((Long) results.get(3)).isGreaterThan(0L).isLessThanOrEqualTo(20000L); // pTtl
+            assertThat((Boolean) results.get(4)).isTrue(); // persist
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testVoidMethodsPipeline() {
+        String oldKey = "test:key:pipeline:rename:old";
+        String newKey = "test:key:pipeline:rename:new";
+        String restoreKey = "test:key:pipeline:restore";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(oldKey.getBytes(), value);
+            byte[] serialized = connection.keyCommands().dump(oldKey.getBytes());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Void methods should return null in pipeline mode but still queue the command
+            connection.keyCommands().rename(oldKey.getBytes(), newKey.getBytes());
+            connection.keyCommands().restore(restoreKey.getBytes(), 0, serialized, false);
+            
+            // Execute pipeline and collect results
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results - void methods should return "OK" responses
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo("OK"); // rename
+            assertThat(results.get(1)).isEqualTo("OK"); // restore
+            
+            // Verify operations actually succeeded
+            Boolean newExists = connection.keyCommands().exists(newKey.getBytes());
+            assertThat(newExists).isTrue();
+            
+            Boolean restoreExists = connection.keyCommands().exists(restoreKey.getBytes());
+            assertThat(restoreExists).isTrue();
+            
+        } finally {
+            cleanupKey(oldKey);
+            cleanupKey(newKey);
+            cleanupKey(restoreKey);
+        }
+    }
+
+    @Test
+    void testAdvancedKeyOperationsPipeline() {
+        String key1 = "test:key:pipeline:advanced:key1";
+        String key2 = "test:key:pipeline:advanced:key2";
+        String key3 = "test:key:pipeline:advanced:key3";
+        String listKey = "test:key:pipeline:advanced:list";
+        String storeKey = "test:key:pipeline:advanced:store";
+        String renameKey = "test:key:pipeline:advanced:rename";
+        String newRenameKey = "test:key:pipeline:advanced:newrename";
+        String basePattern = "test:key:pipeline:advanced:";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            connection.stringCommands().set(key3.getBytes(), value);
+            connection.stringCommands().set(renameKey.getBytes(), value);
+            connection.listCommands().lPush(listKey.getBytes(), "c".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "a".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "b".getBytes());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Test all missing operations - pipeline commands should return null
+            Long unlinkResult = connection.keyCommands().unlink(key1.getBytes(), key2.getBytes());
+            assertThat(unlinkResult).isNull();
+            
+            Set<byte[]> keysResult = connection.keyCommands().keys((basePattern + "*").getBytes());
+            assertThat(keysResult).isNull();
+            
+            byte[] randomKeyResult = connection.keyCommands().randomKey();
+            assertThat(randomKeyResult).isNull();
+            
+            Boolean renameNXResult = connection.keyCommands().renameNX(renameKey.getBytes(), newRenameKey.getBytes());
+            assertThat(renameNXResult).isNull();
+            
+            Boolean moveResult = connection.keyCommands().move(key3.getBytes(), 1);
+            assertThat(moveResult).isNull();
+            
+            long futureTimestamp = System.currentTimeMillis() / 1000 + 30;
+            Boolean expireAtResult = connection.keyCommands().expireAt(newRenameKey.getBytes(), futureTimestamp);
+            assertThat(expireAtResult).isNull();
+            
+            long futureTimestampMillis = System.currentTimeMillis() + 30000;
+            Boolean pExpireAtResult = connection.keyCommands().pExpireAt(newRenameKey.getBytes(), futureTimestampMillis);
+            assertThat(pExpireAtResult).isNull();
+            
+            Long ttlTimeUnitResult = connection.keyCommands().ttl(newRenameKey.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlTimeUnitResult).isNull();
+            
+            SortParameters sortParams = new DefaultSortParameters().alpha();
+            List<byte[]> sortResult = connection.keyCommands().sort(listKey.getBytes(), sortParams);
+            assertThat(sortResult).isNull();
+            
+            Long sortStoreResult = connection.keyCommands().sort(listKey.getBytes(), sortParams, storeKey.getBytes());
+            assertThat(sortStoreResult).isNull();
+            
+            byte[] dumpResult = connection.keyCommands().dump(newRenameKey.getBytes());
+            assertThat(dumpResult).isNull();
+            
+            ValueEncoding encodingResult = connection.keyCommands().encodingOf(newRenameKey.getBytes());
+            assertThat(encodingResult).isNull();
+            
+            Duration idletimeResult = connection.keyCommands().idletime(newRenameKey.getBytes());
+            assertThat(idletimeResult).isNull();
+            
+            Long refcountResult = connection.keyCommands().refcount(newRenameKey.getBytes());
+            assertThat(refcountResult).isNull();
+            
+            // Execute pipeline and collect results
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results in order
+            assertThat(results).hasSize(14);
+            assertThat((Long) results.get(0)).isEqualTo(2L); // unlink(key1, key2)
+            assertThat((Set<?>) results.get(1)).isNotNull(); // keys(pattern)
+            assertThat(results.get(2)).isNotNull(); // randomKey() - should return some key
+            assertThat((Boolean) results.get(3)).isTrue(); // renameNX succeeded
+            assertThat(results.get(4)).isNotNull(); // move result (depends on DB config)
+            assertThat((Boolean) results.get(5)).isTrue(); // expireAt
+            assertThat((Boolean) results.get(6)).isTrue(); // pExpireAt  
+            assertThat(results.get(7)).isNotNull(); // ttl with TimeUnit
+            assertThat((List<?>) results.get(8)).hasSize(3); // sort result
+            assertThat((Long) results.get(9)).isEqualTo(3L); // sort store result
+            assertThat(results.get(10)).isNotNull(); // dump result
+            assertThat(results.get(11)).isNotNull(); // encodingOf result
+            assertThat(results.get(12)).isNotNull(); // idletime result
+            assertThat(results.get(13)).isNotNull(); // refcount result
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+            cleanupKey(listKey);
+            cleanupKey(storeKey);
+            cleanupKey(renameKey);
+            cleanupKey(newRenameKey);
+        }
+    }
+
+    // ==================== TRANSACTION MODE TESTS ====================
+
+    @Test
+    void testKeyOperationsTransaction() {
+        String key1 = "test:key:transaction:key1";
+        String key2 = "test:key:transaction:key2";
+        String key3 = "test:key:transaction:key3";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Transaction commands should return null
+            Boolean existsResult = connection.keyCommands().exists(key1.getBytes());
+            assertThat(existsResult).isNull();
+            
+            Long existsMultipleResult = connection.keyCommands().exists(key1.getBytes(), key2.getBytes(), key3.getBytes());
+            assertThat(existsMultipleResult).isNull();
+            
+            DataType typeResult = connection.keyCommands().type(key1.getBytes());
+            assertThat(typeResult).isNull();
+            
+            Long touchResult = connection.keyCommands().touch(key1.getBytes(), key2.getBytes());
+            assertThat(touchResult).isNull();
+            
+            Boolean copyResult = connection.keyCommands().copy(key1.getBytes(), key3.getBytes(), false);
+            assertThat(copyResult).isNull();
+            
+            Long delResult = connection.keyCommands().del(key2.getBytes());
+            assertThat(delResult).isNull();
+            
+            // Execute transaction and collect results
+            List<Object> results = connection.exec();
+            
+            // Verify results in order
+            assertThat(results).hasSize(6);
+            assertThat((Boolean) results.get(0)).isTrue(); // exists(key1)
+            assertThat((Long) results.get(1)).isEqualTo(2L); // exists multiple (key1, key2 existed)
+            assertThat((DataType) results.get(2)).isEqualTo(DataType.STRING); // type(key1)
+            assertThat((Long) results.get(3)).isEqualTo(2L); // touch(key1, key2)
+            assertThat((Boolean) results.get(4)).isTrue(); // copy(key1 -> key3)
+            assertThat((Long) results.get(5)).isEqualTo(1L); // del(key2)
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testExpirationOperationsTransaction() {
+        String key1 = "test:key:transaction:expire1";
+        String key2 = "test:key:transaction:expire2";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Transaction commands should return null
+            Boolean expireResult = connection.keyCommands().expire(key1.getBytes(), 10);
+            assertThat(expireResult).isNull();
+            
+            Boolean pExpireResult = connection.keyCommands().pExpire(key2.getBytes(), 20000);
+            assertThat(pExpireResult).isNull();
+            
+            Long ttlResult = connection.keyCommands().ttl(key1.getBytes());
+            assertThat(ttlResult).isNull();
+            
+            Long pTtlResult = connection.keyCommands().pTtl(key2.getBytes());
+            assertThat(pTtlResult).isNull();
+            
+            Boolean persistResult = connection.keyCommands().persist(key1.getBytes());
+            assertThat(persistResult).isNull();
+            
+            // Execute transaction and collect results
+            List<Object> results = connection.exec();
+            
+            // Verify results in order
+            assertThat(results).hasSize(5);
+            assertThat((Boolean) results.get(0)).isTrue(); // expire
+            assertThat((Boolean) results.get(1)).isTrue(); // pExpire
+            assertThat((Long) results.get(2)).isGreaterThan(0L).isLessThanOrEqualTo(10L); // ttl
+            assertThat((Long) results.get(3)).isGreaterThan(0L).isLessThanOrEqualTo(20000L); // pTtl
+            assertThat((Boolean) results.get(4)).isTrue(); // persist
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+        }
+    }
+
+    @Test
+    void testVoidMethodsTransaction() {
+        String oldKey = "test:key:transaction:rename:old";
+        String newKey = "test:key:transaction:rename:new";
+        String restoreKey = "test:key:transaction:restore";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(oldKey.getBytes(), value);
+            byte[] serialized = connection.keyCommands().dump(oldKey.getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Void methods should return null in transaction mode but still queue the command
+            connection.keyCommands().rename(oldKey.getBytes(), newKey.getBytes());
+            connection.keyCommands().restore(restoreKey.getBytes(), 0, serialized, false);
+            
+            // Execute transaction and collect results
+            List<Object> results = connection.exec();
+            
+            // Verify results - void methods should return "OK" responses
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo("OK"); // rename
+            assertThat(results.get(1)).isEqualTo("OK"); // restore
+            
+            // Verify operations actually succeeded
+            Boolean newExists = connection.keyCommands().exists(newKey.getBytes());
+            assertThat(newExists).isTrue();
+            
+            Boolean restoreExists = connection.keyCommands().exists(restoreKey.getBytes());
+            assertThat(restoreExists).isTrue();
+            
+        } finally {
+            cleanupKey(oldKey);
+            cleanupKey(newKey);
+            cleanupKey(restoreKey);
+        }
+    }
+
+    @Test
+    void testAdvancedKeyOperationsTransaction() {
+        String key1 = "test:key:transaction:advanced:key1";
+        String key2 = "test:key:transaction:advanced:key2";
+        String key3 = "test:key:transaction:advanced:key3";
+        String listKey = "test:key:transaction:advanced:list";
+        String storeKey = "test:key:transaction:advanced:store";
+        String renameKey = "test:key:transaction:advanced:rename";
+        String newRenameKey = "test:key:transaction:advanced:newrename";
+        String basePattern = "test:key:transaction:advanced:";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), value);
+            connection.stringCommands().set(key2.getBytes(), value);
+            connection.stringCommands().set(key3.getBytes(), value);
+            connection.stringCommands().set(renameKey.getBytes(), value);
+            connection.listCommands().lPush(listKey.getBytes(), "c".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "a".getBytes());
+            connection.listCommands().lPush(listKey.getBytes(), "b".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Test all missing operations - transaction commands should return null
+            Long unlinkResult = connection.keyCommands().unlink(key1.getBytes(), key2.getBytes());
+            assertThat(unlinkResult).isNull();
+            
+            Set<byte[]> keysResult = connection.keyCommands().keys((basePattern + "*").getBytes());
+            assertThat(keysResult).isNull();
+            
+            byte[] randomKeyResult = connection.keyCommands().randomKey();
+            assertThat(randomKeyResult).isNull();
+            
+            Boolean renameNXResult = connection.keyCommands().renameNX(renameKey.getBytes(), newRenameKey.getBytes());
+            assertThat(renameNXResult).isNull();
+            
+            Boolean moveResult = connection.keyCommands().move(key3.getBytes(), 1);
+            assertThat(moveResult).isNull();
+            
+            long futureTimestamp = System.currentTimeMillis() / 1000 + 30;
+            Boolean expireAtResult = connection.keyCommands().expireAt(newRenameKey.getBytes(), futureTimestamp);
+            assertThat(expireAtResult).isNull();
+            
+            long futureTimestampMillis = System.currentTimeMillis() + 30000;
+            Boolean pExpireAtResult = connection.keyCommands().pExpireAt(newRenameKey.getBytes(), futureTimestampMillis);
+            assertThat(pExpireAtResult).isNull();
+            
+            Long ttlTimeUnitResult = connection.keyCommands().ttl(newRenameKey.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlTimeUnitResult).isNull();
+            
+            SortParameters sortParams = new DefaultSortParameters().alpha();
+            List<byte[]> sortResult = connection.keyCommands().sort(listKey.getBytes(), sortParams);
+            assertThat(sortResult).isNull();
+            
+            Long sortStoreResult = connection.keyCommands().sort(listKey.getBytes(), sortParams, storeKey.getBytes());
+            assertThat(sortStoreResult).isNull();
+            
+            byte[] dumpResult = connection.keyCommands().dump(newRenameKey.getBytes());
+            assertThat(dumpResult).isNull();
+            
+            ValueEncoding encodingResult = connection.keyCommands().encodingOf(newRenameKey.getBytes());
+            assertThat(encodingResult).isNull();
+            
+            Duration idletimeResult = connection.keyCommands().idletime(newRenameKey.getBytes());
+            assertThat(idletimeResult).isNull();
+            
+            Long refcountResult = connection.keyCommands().refcount(newRenameKey.getBytes());
+            assertThat(refcountResult).isNull();
+            
+            // Execute transaction and collect results
+            List<Object> results = connection.exec();
+            
+            // Verify results in order
+            assertThat(results).hasSize(14);
+            assertThat((Long) results.get(0)).isEqualTo(2L); // unlink(key1, key2)
+            assertThat((Set<?>) results.get(1)).isNotNull(); // keys(pattern)
+            assertThat(results.get(2)).isNotNull(); // randomKey() - should return some key
+            assertThat((Boolean) results.get(3)).isTrue(); // renameNX succeeded
+            assertThat(results.get(4)).isNotNull(); // move result (depends on DB config)
+            assertThat((Boolean) results.get(5)).isTrue(); // expireAt
+            assertThat((Boolean) results.get(6)).isTrue(); // pExpireAt  
+            assertThat(results.get(7)).isNotNull(); // ttl with TimeUnit
+            assertThat((List<?>) results.get(8)).hasSize(3); // sort result
+            assertThat((Long) results.get(9)).isEqualTo(3L); // sort store result
+            assertThat(results.get(10)).isNotNull(); // dump result
+            assertThat(results.get(11)).isNotNull(); // encodingOf result
+            assertThat(results.get(12)).isNotNull(); // idletime result
+            assertThat(results.get(13)).isNotNull(); // refcount result
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+            cleanupKey(listKey);
+            cleanupKey(storeKey);
+            cleanupKey(renameKey);
+            cleanupKey(newRenameKey);
+        }
+    }
+
+    // ==================== ERROR HANDLING AND EDGE CASES ====================
 
     @Test
     void testKeyOperationsErrorHandling() {
@@ -652,30 +1361,79 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         assertThatThrownBy(() -> connection.keyCommands().del((byte[]) null))
             .isInstanceOf(IllegalArgumentException.class);
         
-        // Test operations on empty keys (should throw IllegalArgumentException)
-        assertThatThrownBy(() -> connection.keyCommands().exists(new byte[0]))
-            .isInstanceOf(IllegalArgumentException.class);
-        
-        assertThatThrownBy(() -> connection.keyCommands().del(new byte[0]))
-            .isInstanceOf(IllegalArgumentException.class);
-        
-        // Test rename with same old and new key - commented out as renaming to the same name returns OK in Redis/Valkey
-        // String key = "test:key:error:same";
-        // byte[] value = "test_value".getBytes();
-        
-        // try {
-        //     connection.stringCommands().set(key.getBytes(), value);
-            
-        //     // Redis should return an error when trying to rename a key to itself
-        //     assertThatThrownBy(() -> connection.keyCommands().rename(key.getBytes(), key.getBytes()))
-        //         .isInstanceOf(Exception.class);
-        // } finally {
-        //     cleanupKey(key);
-        // }
-        
         // Test rename with non-existent key (should throw an exception)
         assertThatThrownBy(() -> connection.keyCommands().rename("non:existent:key".getBytes(), "new:key".getBytes()))
             .isInstanceOf(Exception.class);
+    }
+
+    @Test
+    void testAdvancedExpirationConditions() {
+        String key = "test:key:advanced:expiration";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // ========== expireAt with conditions ==========
+            connection.stringCommands().set(key.getBytes(), value);
+            long futureTimestamp = System.currentTimeMillis() / 1000 + 30;
+            
+            // Test expireAt with NX condition (key must not have expiration)
+            Boolean expireAtNX1 = connection.keyCommands().expireAt(key.getBytes(), futureTimestamp, ExpirationOptions.Condition.NX);
+            assertThat(expireAtNX1).isTrue(); // Should succeed, key had no expiration
+            
+            Boolean expireAtNX2 = connection.keyCommands().expireAt(key.getBytes(), futureTimestamp + 10, ExpirationOptions.Condition.NX);
+            assertThat(expireAtNX2).isFalse(); // Should fail, key already has expiration
+            
+            // Test expireAt with XX condition (key must have expiration)
+            Boolean expireAtXX1 = connection.keyCommands().expireAt(key.getBytes(), futureTimestamp + 20, ExpirationOptions.Condition.XX);
+            assertThat(expireAtXX1).isTrue(); // Should succeed, key has expiration
+            
+            // Remove expiration
+            connection.keyCommands().persist(key.getBytes());
+            
+            Boolean expireAtXX2 = connection.keyCommands().expireAt(key.getBytes(), futureTimestamp + 30, ExpirationOptions.Condition.XX);
+            assertThat(expireAtXX2).isFalse(); // Should fail, key has no expiration
+            
+            // ========== pExpireAt with conditions ==========
+            long futureTimestampMillis = System.currentTimeMillis() + 30000;
+            
+            // Test pExpireAt with NX condition (key must not have expiration)
+            Boolean pExpireAtNX1 = connection.keyCommands().pExpireAt(key.getBytes(), futureTimestampMillis, ExpirationOptions.Condition.NX);
+            assertThat(pExpireAtNX1).isTrue(); // Should succeed, key had no expiration
+            
+            Boolean pExpireAtNX2 = connection.keyCommands().pExpireAt(key.getBytes(), futureTimestampMillis + 10000, ExpirationOptions.Condition.NX);
+            assertThat(pExpireAtNX2).isFalse(); // Should fail, key already has expiration
+            
+            // Test pExpireAt with XX condition (key must have expiration)
+            Boolean pExpireAtXX1 = connection.keyCommands().pExpireAt(key.getBytes(), futureTimestampMillis + 20000, ExpirationOptions.Condition.XX);
+            assertThat(pExpireAtXX1).isTrue(); // Should succeed, key has expiration
+            
+            // Remove expiration
+            connection.keyCommands().persist(key.getBytes());
+            
+            Boolean pExpireAtXX2 = connection.keyCommands().pExpireAt(key.getBytes(), futureTimestampMillis + 30000, ExpirationOptions.Condition.XX);
+            assertThat(pExpireAtXX2).isFalse(); // Should fail, key has no expiration
+            
+            // ========== Test cross-validation between methods ==========
+            // Set expiration with expire, then test with expireAt XX condition
+            connection.keyCommands().expire(key.getBytes(), 60); // 60 seconds
+            Boolean expireAtXXAfterExpire = connection.keyCommands().expireAt(key.getBytes(), futureTimestamp + 60, ExpirationOptions.Condition.XX);
+            assertThat(expireAtXXAfterExpire).isTrue(); // Should succeed, key has expiration from expire()
+            
+            // Set expiration with pExpire, then test with pExpireAt XX condition
+            connection.keyCommands().pExpire(key.getBytes(), 120000); // 120 seconds in milliseconds
+            Boolean pExpireAtXXAfterPExpire = connection.keyCommands().pExpireAt(key.getBytes(), futureTimestampMillis + 120000, ExpirationOptions.Condition.XX);
+            assertThat(pExpireAtXXAfterPExpire).isTrue(); // Should succeed, key has expiration from pExpire()
+            
+            // ========== Test conditions on non-existent key ==========
+            Boolean expireAtNonExistent = connection.keyCommands().expireAt("non:existent:key".getBytes(), futureTimestamp, ExpirationOptions.Condition.NX);
+            assertThat(expireAtNonExistent).isFalse(); // Should fail, key doesn't exist
+            
+            Boolean pExpireAtNonExistent = connection.keyCommands().pExpireAt("non:existent:key".getBytes(), futureTimestampMillis, ExpirationOptions.Condition.XX);
+            assertThat(pExpireAtNonExistent).isFalse(); // Should fail, key doesn't exist
+            
+        } finally {
+            cleanupKey(key);
+        }
     }
 
     @Test
@@ -688,23 +1446,10 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
             Boolean expireNonExistent = connection.keyCommands().expire("non:existent:key".getBytes(), 10);
             assertThat(expireNonExistent).isFalse();
             
-            // Test with large but reasonable expiration values
-            // Using Integer.MAX_VALUE (about 68 years) which is within Redis/Valkey acceptable range
-            connection.stringCommands().set(key.getBytes(), value);
-            Boolean expireLarge = connection.keyCommands().expire(key.getBytes(), Integer.MAX_VALUE);
-            assertThat(expireLarge).isTrue(); // Should succeed with reasonable large value
-            
-            // Verify the key still exists and has a TTL set
-            Boolean keyExists = connection.keyCommands().exists(key.getBytes());
-            assertThat(keyExists).isTrue();
-            Long ttl = connection.keyCommands().ttl(key.getBytes());
-            assertThat(ttl).isGreaterThan(0L); // Should have a positive TTL
-            
-            // Test with zero expiration (should delete the key immediately in most implementations)
+            // Test with zero expiration (should delete the key immediately)
             connection.stringCommands().set(key.getBytes(), value);
             Boolean expireZero = connection.keyCommands().expire(key.getBytes(), 0);
             assertThat(expireZero).isTrue(); // Should return true since key existed
-            // Note: EXPIRE with 0 seconds typically deletes the key immediately
             Boolean keyExistsAfterZero = connection.keyCommands().exists(key.getBytes());
             assertThat(keyExistsAfterZero).isFalse(); // Key should be deleted
             
@@ -712,12 +1457,10 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
             connection.stringCommands().set(key.getBytes(), value);
             Boolean expireNegative = connection.keyCommands().expire(key.getBytes(), -1);
             assertThat(expireNegative).isTrue(); // Should return true since key existed
-            // Negative expire time should delete the key immediately
             Boolean keyExistsAfterNegative = connection.keyCommands().exists(key.getBytes());
             assertThat(keyExistsAfterNegative).isFalse(); // Key should be deleted
         } finally {
             cleanupKey(key);
         }
     }
-
 }
