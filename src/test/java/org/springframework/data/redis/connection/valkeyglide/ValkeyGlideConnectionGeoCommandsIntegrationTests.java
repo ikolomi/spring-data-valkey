@@ -30,6 +30,7 @@ import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
 import org.springframework.data.geo.GeoResults;
 import org.springframework.data.geo.Point;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit;
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation;
@@ -129,9 +130,10 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
             
             // Test adding empty map
             Map<byte[], Point> emptyMap = new HashMap<>();
-            Long emptyResult = connection.geoCommands().geoAdd(key.getBytes(), emptyMap);
-            assertThat(emptyResult).isEqualTo(0L);
-            
+            assertThatThrownBy(() -> connection.geoCommands().geoAdd(key.getBytes(), emptyMap))
+                .isInstanceOf(RedisSystemException.class)
+                .hasMessageContaining("wrong number of arguments for 'geoadd' command");
+
             // Verify all members were added
             List<Point> positions = connection.geoCommands().geoPos(key.getBytes(), 
                 "Palermo".getBytes(), "Catania".getBytes(), "NewYork".getBytes());
@@ -160,8 +162,10 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
             
             // Test adding empty iterable
             List<GeoLocation<byte[]>> emptyList = new ArrayList<>();
-            Long emptyResult = connection.geoCommands().geoAdd(key.getBytes(), emptyList);
-            assertThat(emptyResult).isEqualTo(0L);
+            assertThatThrownBy(() -> connection.geoCommands().geoAdd(key.getBytes(), emptyList))
+                .isInstanceOf(RedisSystemException.class)
+                .hasMessageContaining("wrong number of arguments for 'geoadd' command");
+
             
             // Verify all members were added
             List<Point> positions = connection.geoCommands().geoPos(key.getBytes(), 
@@ -260,7 +264,7 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
             List<String> emptyHashes = connection.geoCommands().geoHash(key.getBytes(), "NonExistent".getBytes());
             assertThat(emptyHashes).hasSize(1);
             assertThat(emptyHashes.get(0)).isNull();
-            
+
             // Setup test data
             Map<byte[], Point> memberCoordinateMap = new HashMap<>();
             memberCoordinateMap.put("Palermo".getBytes(), PALERMO);
@@ -557,11 +561,11 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
             List<Point> emptyPos = connection.geoCommands().geoPos(key.getBytes(), "NonExistent".getBytes());
             assertThat(emptyPos).hasSize(1);
             assertThat(emptyPos.get(0)).isNull();
-            
+
             List<String> emptyHash = connection.geoCommands().geoHash(key.getBytes(), "NonExistent".getBytes());
             assertThat(emptyHash).hasSize(1);
             assertThat(emptyHash.get(0)).isNull();
-            
+
             Distance emptyDist = connection.geoCommands().geoDist(key.getBytes(), 
                 "NonExistent1".getBytes(), "NonExistent2".getBytes());
             assertThat(emptyDist).isNull();
@@ -844,7 +848,667 @@ public class ValkeyGlideConnectionGeoCommandsIntegrationTests extends AbstractVa
         }
     }
 
-    // ==================== Pipeline Mode Tests ====================
+    // ==================== Comprehensive Pipeline Mode Tests ====================
+
+    @Test
+    void testAllGeoAddVariantsInPipelineMode() {
+        String key1 = "test:pipeline:geoadd:single";
+        String key2 = "test:pipeline:geoadd:map";
+        String key3 = "test:pipeline:geoadd:iterable";
+        
+        try {
+            connection.openPipeline();
+            
+            // Test all geoAdd variants return null during pipeline
+            Long result1 = connection.geoCommands().geoAdd(key1.getBytes(), PALERMO, "Palermo".getBytes());
+            assertThat(result1).isNull(); // Should be null during pipeline
+            
+            Map<byte[], Point> memberMap = new HashMap<>();
+            memberMap.put("Rome".getBytes(), ROME);
+            memberMap.put("Milan".getBytes(), new Point(9.1900, 45.4642));
+            Long result2 = connection.geoCommands().geoAdd(key2.getBytes(), memberMap);
+            assertThat(result2).isNull(); // Should be null during pipeline
+            
+            List<GeoLocation<byte[]>> locations = new ArrayList<>();
+            locations.add(new GeoLocation<>("Venice".getBytes(), new Point(12.3155, 45.4408)));
+            locations.add(new GeoLocation<>("Naples".getBytes(), new Point(14.2681, 40.8518)));
+            Long result3 = connection.geoCommands().geoAdd(key3.getBytes(), locations);
+            assertThat(result3).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(1L); // Single point add
+            assertThat(results.get(1)).isEqualTo(2L); // Map add
+            assertThat(results.get(2)).isEqualTo(2L); // Iterable add
+            
+            // Verify final state
+            List<Point> pos1 = connection.geoCommands().geoPos(key1.getBytes(), "Palermo".getBytes());
+            assertThat(pos1.get(0)).isNotNull();
+            
+            List<Point> pos2 = connection.geoCommands().geoPos(key2.getBytes(), "Rome".getBytes(), "Milan".getBytes());
+            assertThat(pos2).hasSize(2);
+            assertThat(pos2.get(0)).isNotNull();
+            assertThat(pos2.get(1)).isNotNull();
+            
+            List<Point> pos3 = connection.geoCommands().geoPos(key3.getBytes(), "Venice".getBytes(), "Naples".getBytes());
+            assertThat(pos3).hasSize(2);
+            assertThat(pos3.get(0)).isNotNull();
+            assertThat(pos3.get(1)).isNotNull();
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testGeoDistVariantsInPipelineMode() {
+        String key = "test:pipeline:geodist";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test both geoDist variants return null during pipeline
+            Distance result1 = connection.geoCommands().geoDist(key.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(result1).isNull(); // Should be null during pipeline
+            
+            Distance result2 = connection.geoCommands().geoDist(key.getBytes(), "Palermo".getBytes(), "Rome".getBytes(), DistanceUnit.KILOMETERS);
+            assertThat(result2).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isInstanceOf(Distance.class);
+            assertThat(results.get(1)).isInstanceOf(Distance.class);
+            
+            Distance dist1 = (Distance) results.get(0);
+            Distance dist2 = (Distance) results.get(1);
+            assertThat(dist1.getValue()).isGreaterThan(0);
+            assertThat(dist2.getValue()).isGreaterThan(0);
+            assertThat(dist1.getMetric()).isEqualTo(DistanceUnit.METERS);
+            assertThat(dist2.getMetric()).isEqualTo(DistanceUnit.KILOMETERS);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoHashAndGeoPosInPipelineMode() {
+        String key = "test:pipeline:geohashpos";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test geoHash returns null during pipeline
+            List<String> hashResult = connection.geoCommands().geoHash(key.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(hashResult).isNull(); // Should be null during pipeline
+            
+            // Test geoPos returns null during pipeline
+            List<Point> posResult = connection.geoCommands().geoPos(key.getBytes(), "Palermo".getBytes(), "Rome".getBytes());
+            assertThat(posResult).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(2);
+            
+            @SuppressWarnings("unchecked")
+            List<String> hashes = (List<String>) results.get(0);
+            assertThat(hashes).hasSize(2);
+            assertThat(hashes.get(0)).isNotNull();
+            assertThat(hashes.get(1)).isNotNull();
+            
+            @SuppressWarnings("unchecked")
+            List<Point> positions = (List<Point>) results.get(1);
+            assertThat(positions).hasSize(2);
+            assertThat(positions.get(0)).isNotNull();
+            assertThat(positions.get(1)).isNotNull();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoRadiusVariantsInPipelineMode() {
+        String key = "test:pipeline:georadius";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test basic geoRadius returns null during pipeline
+            Circle searchArea = new Circle(PALERMO, new Distance(300, DistanceUnit.KILOMETERS));
+            GeoResults<GeoLocation<byte[]>> result1 = connection.geoCommands().geoRadius(key.getBytes(), searchArea);
+            assertThat(result1).isNull(); // Should be null during pipeline
+            
+            // Test geoRadius with args returns null during pipeline
+            GeoRadiusCommandArgs args = GeoRadiusCommandArgs.newGeoRadiusArgs()
+                .includeDistance()
+                .includeCoordinates()
+                .sortAscending()
+                .limit(10);
+            GeoResults<GeoLocation<byte[]>> result2 = connection.geoCommands().geoRadius(key.getBytes(), searchArea, args);
+            assertThat(result2).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(2);
+            for (Object result : results) {
+                assertThat(result).isInstanceOf(GeoResults.class);
+                @SuppressWarnings("unchecked")
+                GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) result;
+                assertThat(geoResults.getContent()).isNotEmpty();
+            }
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoRadiusByMemberVariantsInPipelineMode() {
+        String key = "test:pipeline:georadiusbymember";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test basic geoRadiusByMember returns null during pipeline
+            Distance radius = new Distance(300, DistanceUnit.KILOMETERS);
+            GeoResults<GeoLocation<byte[]>> result1 = connection.geoCommands().geoRadiusByMember(key.getBytes(), "Palermo".getBytes(), radius);
+            assertThat(result1).isNull(); // Should be null during pipeline
+            
+            // Test geoRadiusByMember with args returns null during pipeline
+            GeoRadiusCommandArgs args = GeoRadiusCommandArgs.newGeoRadiusArgs()
+                .includeDistance()
+                .includeCoordinates()
+                .sortDescending()
+                .limit(5);
+            GeoResults<GeoLocation<byte[]>> result2 = connection.geoCommands().geoRadiusByMember(key.getBytes(), "Rome".getBytes(), radius, args);
+            assertThat(result2).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(2);
+            for (Object result : results) {
+                assertThat(result).isInstanceOf(GeoResults.class);
+                @SuppressWarnings("unchecked")
+                GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) result;
+                assertThat(geoResults.getContent()).isNotEmpty();
+            }
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoRemoveInPipelineMode() {
+        String key = "test:pipeline:georemove";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test geoRemove returns null during pipeline
+            Long result1 = connection.geoCommands().geoRemove(key.getBytes(), "Catania".getBytes());
+            assertThat(result1).isNull(); // Should be null during pipeline
+            
+            Long result2 = connection.geoCommands().geoRemove(key.getBytes(), "Palermo".getBytes(), "Rome".getBytes());
+            assertThat(result2).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo(1L); // Single removal
+            assertThat(results.get(1)).isEqualTo(2L); // Multiple removal
+            
+            // Verify final state - all should be removed
+            List<Point> positions = connection.geoCommands().geoPos(key.getBytes(), 
+                "Palermo".getBytes(), "Catania".getBytes(), "Rome".getBytes());
+            assertThat(positions).hasSize(3);
+            assertThat(positions.get(0)).isNull();
+            assertThat(positions.get(1)).isNull();
+            assertThat(positions.get(2)).isNull();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoSearchInPipelineMode() {
+        String key = "test:pipeline:geosearch";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test geoSearch returns null during pipeline
+            GeoReference<byte[]> memberRef = GeoReference.fromMember("Palermo".getBytes());
+            GeoShape radiusShape = GeoShape.byRadius(new Distance(300, DistanceUnit.KILOMETERS));
+            GeoSearchCommandArgs args = GeoSearchCommandArgs.newGeoSearchArgs()
+                .includeDistance()
+                .includeCoordinates()
+                .sortAscending()
+                .limit(10);
+            
+            GeoResults<GeoLocation<byte[]>> result = connection.geoCommands().geoSearch(key.getBytes(), memberRef, radiusShape, args);
+            assertThat(result).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isInstanceOf(GeoResults.class);
+            
+            @SuppressWarnings("unchecked")
+            GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) results.get(0);
+            assertThat(geoResults.getContent()).isNotEmpty();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoSearchStoreInPipelineMode() {
+        String sourceKey = "test:pipeline:geosearchstore:source";
+        String destKey = "test:pipeline:geosearchstore:dest";
+        
+        try {
+            // Setup data
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.openPipeline();
+            
+            // Test geoSearchStore returns null during pipeline
+            GeoReference<byte[]> memberRef = GeoReference.fromMember("Palermo".getBytes());
+            GeoShape radiusShape = GeoShape.byRadius(new Distance(300, DistanceUnit.KILOMETERS));
+            GeoSearchStoreCommandArgs args = GeoSearchStoreCommandArgs.newGeoSearchStoreArgs()
+                .sortAscending()
+                .limit(10);
+            
+            Long result = connection.geoCommands().geoSearchStore(destKey.getBytes(), sourceKey.getBytes(), memberRef, radiusShape, args);
+            assertThat(result).isNull(); // Should be null during pipeline
+            
+            List<Object> results = connection.closePipeline();
+            
+            // Verify pipeline results
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isInstanceOf(Number.class);
+            assertThat(((Number) results.get(0)).longValue()).isGreaterThan(0L);
+            
+            // Verify final state - results stored in destination
+            List<Point> storedPositions = connection.geoCommands().geoPos(destKey.getBytes(), "Palermo".getBytes());
+            assertThat(storedPositions.get(0)).isNotNull();
+        } finally {
+            cleanupKey(sourceKey);
+            cleanupKey(destKey);
+        }
+    }
+
+    // ==================== Comprehensive Transaction Mode Tests ====================
+
+    @Test
+    void testAllGeoAddVariantsInTransactionMode() {
+        String key1 = "test:tx:geoadd:single";
+        String key2 = "test:tx:geoadd:map";
+        String key3 = "test:tx:geoadd:iterable";
+        
+        try {
+            connection.multi();
+            
+            // Test all geoAdd variants return null during transaction
+            Long result1 = connection.geoCommands().geoAdd(key1.getBytes(), PALERMO, "Palermo".getBytes());
+            assertThat(result1).isNull(); // Should be null during transaction
+            
+            Map<byte[], Point> memberMap = new HashMap<>();
+            memberMap.put("Rome".getBytes(), ROME);
+            memberMap.put("Milan".getBytes(), new Point(9.1900, 45.4642));
+            Long result2 = connection.geoCommands().geoAdd(key2.getBytes(), memberMap);
+            assertThat(result2).isNull(); // Should be null during transaction
+            
+            List<GeoLocation<byte[]>> locations = new ArrayList<>();
+            locations.add(new GeoLocation<>("Venice".getBytes(), new Point(12.3155, 45.4408)));
+            locations.add(new GeoLocation<>("Naples".getBytes(), new Point(14.2681, 40.8518)));
+            Long result3 = connection.geoCommands().geoAdd(key3.getBytes(), locations);
+            assertThat(result3).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo(1L); // Single point add
+            assertThat(results.get(1)).isEqualTo(2L); // Map add
+            assertThat(results.get(2)).isEqualTo(2L); // Iterable add
+            
+            // Verify final state
+            List<Point> pos1 = connection.geoCommands().geoPos(key1.getBytes(), "Palermo".getBytes());
+            assertThat(pos1.get(0)).isNotNull();
+            
+            List<Point> pos2 = connection.geoCommands().geoPos(key2.getBytes(), "Rome".getBytes(), "Milan".getBytes());
+            assertThat(pos2).hasSize(2);
+            assertThat(pos2.get(0)).isNotNull();
+            assertThat(pos2.get(1)).isNotNull();
+            
+            List<Point> pos3 = connection.geoCommands().geoPos(key3.getBytes(), "Venice".getBytes(), "Naples".getBytes());
+            assertThat(pos3).hasSize(2);
+            assertThat(pos3.get(0)).isNotNull();
+            assertThat(pos3.get(1)).isNotNull();
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(key3);
+        }
+    }
+
+    @Test
+    void testGeoDistVariantsInTransactionMode() {
+        String key = "test:tx:geodist";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test both geoDist variants return null during transaction
+            Distance result1 = connection.geoCommands().geoDist(key.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(result1).isNull(); // Should be null during transaction
+            
+            Distance result2 = connection.geoCommands().geoDist(key.getBytes(), "Palermo".getBytes(), "Rome".getBytes(), DistanceUnit.KILOMETERS);
+            assertThat(result2).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isInstanceOf(Distance.class);
+            assertThat(results.get(1)).isInstanceOf(Distance.class);
+            
+            Distance dist1 = (Distance) results.get(0);
+            Distance dist2 = (Distance) results.get(1);
+            assertThat(dist1.getValue()).isGreaterThan(0);
+            assertThat(dist2.getValue()).isGreaterThan(0);
+            assertThat(dist1.getMetric()).isEqualTo(DistanceUnit.METERS);
+            assertThat(dist2.getMetric()).isEqualTo(DistanceUnit.KILOMETERS);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoHashAndGeoPosInTransactionMode() {
+        String key = "test:tx:geohashpos";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test geoHash returns null during transaction
+            List<String> hashResult = connection.geoCommands().geoHash(key.getBytes(), "Palermo".getBytes(), "Catania".getBytes());
+            assertThat(hashResult).isNull(); // Should be null during transaction
+            
+            // Test geoPos returns null during transaction
+            List<Point> posResult = connection.geoCommands().geoPos(key.getBytes(), "Palermo".getBytes(), "Rome".getBytes());
+            assertThat(posResult).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(2);
+            
+            @SuppressWarnings("unchecked")
+            List<String> hashes = (List<String>) results.get(0);
+            assertThat(hashes).hasSize(2);
+            assertThat(hashes.get(0)).isNotNull();
+            assertThat(hashes.get(1)).isNotNull();
+            
+            @SuppressWarnings("unchecked")
+            List<Point> positions = (List<Point>) results.get(1);
+            assertThat(positions).hasSize(2);
+            assertThat(positions.get(0)).isNotNull();
+            assertThat(positions.get(1)).isNotNull();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoRadiusVariantsInTransactionMode() {
+        String key = "test:tx:georadius";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test basic geoRadius returns null during transaction
+            Circle searchArea = new Circle(PALERMO, new Distance(300, DistanceUnit.KILOMETERS));
+            GeoResults<GeoLocation<byte[]>> result1 = connection.geoCommands().geoRadius(key.getBytes(), searchArea);
+            assertThat(result1).isNull(); // Should be null during transaction
+            
+            // Test geoRadius with args returns null during transaction
+            GeoRadiusCommandArgs args = GeoRadiusCommandArgs.newGeoRadiusArgs()
+                .includeDistance()
+                .includeCoordinates()
+                .sortAscending()
+                .limit(10);
+            GeoResults<GeoLocation<byte[]>> result2 = connection.geoCommands().geoRadius(key.getBytes(), searchArea, args);
+            assertThat(result2).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(2);
+            for (Object result : results) {
+                assertThat(result).isInstanceOf(GeoResults.class);
+                @SuppressWarnings("unchecked")
+                GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) result;
+                assertThat(geoResults.getContent()).isNotEmpty();
+            }
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoRadiusByMemberVariantsInTransactionMode() {
+        String key = "test:tx:georadiusbymember";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test basic geoRadiusByMember returns null during transaction
+            Distance radius = new Distance(300, DistanceUnit.KILOMETERS);
+            GeoResults<GeoLocation<byte[]>> result1 = connection.geoCommands().geoRadiusByMember(key.getBytes(), "Palermo".getBytes(), radius);
+            assertThat(result1).isNull(); // Should be null during transaction
+            
+            // Test geoRadiusByMember with args returns null during transaction
+            GeoRadiusCommandArgs args = GeoRadiusCommandArgs.newGeoRadiusArgs()
+                .includeDistance()
+                .includeCoordinates()
+                .sortDescending()
+                .limit(5);
+            GeoResults<GeoLocation<byte[]>> result2 = connection.geoCommands().geoRadiusByMember(key.getBytes(), "Rome".getBytes(), radius, args);
+            assertThat(result2).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(2);
+            for (Object result : results) {
+                assertThat(result).isInstanceOf(GeoResults.class);
+                @SuppressWarnings("unchecked")
+                GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) result;
+                assertThat(geoResults.getContent()).isNotEmpty();
+            }
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    // ==================== Transaction Mode Tests ====================
+
+    @Test
+    void testGeoRemoveInTransactionMode() {
+        String key = "test:tx:georemove";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test geoRemove returns null during transaction
+            Long result1 = connection.geoCommands().geoRemove(key.getBytes(), "Catania".getBytes());
+            assertThat(result1).isNull(); // Should be null during transaction
+            
+            Long result2 = connection.geoCommands().geoRemove(key.getBytes(), "Palermo".getBytes(), "Rome".getBytes());
+            assertThat(result2).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo(1L); // Single removal
+            assertThat(results.get(1)).isEqualTo(2L); // Multiple removal
+            
+            // Verify final state - all should be removed
+            List<Point> positions = connection.geoCommands().geoPos(key.getBytes(), 
+                "Palermo".getBytes(), "Catania".getBytes(), "Rome".getBytes());
+            assertThat(positions).hasSize(3);
+            assertThat(positions.get(0)).isNull();
+            assertThat(positions.get(1)).isNull();
+            assertThat(positions.get(2)).isNull();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoSearchInTransactionMode() {
+        String key = "test:tx:geosearch";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(key.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(key.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test geoSearch returns null during transaction
+            GeoReference<byte[]> memberRef = GeoReference.fromMember("Palermo".getBytes());
+            GeoShape radiusShape = GeoShape.byRadius(new Distance(300, DistanceUnit.KILOMETERS));
+            GeoSearchCommandArgs args = GeoSearchCommandArgs.newGeoSearchArgs()
+                .includeDistance()
+                .includeCoordinates()
+                .sortAscending()
+                .limit(10);
+            
+            GeoResults<GeoLocation<byte[]>> result = connection.geoCommands().geoSearch(key.getBytes(), memberRef, radiusShape, args);
+            assertThat(result).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isInstanceOf(GeoResults.class);
+            
+            @SuppressWarnings("unchecked")
+            GeoResults<GeoLocation<byte[]>> geoResults = (GeoResults<GeoLocation<byte[]>>) results.get(0);
+            assertThat(geoResults.getContent()).isNotEmpty();
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGeoSearchStoreInTransactionMode() {
+        String sourceKey = "test:tx:geosearchstore:source";
+        String destKey = "test:tx:geosearchstore:dest";
+        
+        try {
+            // Setup data outside transaction
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), PALERMO, "Palermo".getBytes());
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), CATANIA, "Catania".getBytes());
+            connection.geoCommands().geoAdd(sourceKey.getBytes(), ROME, "Rome".getBytes());
+            
+            connection.multi();
+            
+            // Test geoSearchStore returns null during transaction
+            GeoReference<byte[]> memberRef = GeoReference.fromMember("Palermo".getBytes());
+            GeoShape radiusShape = GeoShape.byRadius(new Distance(300, DistanceUnit.KILOMETERS));
+            GeoSearchStoreCommandArgs args = GeoSearchStoreCommandArgs.newGeoSearchStoreArgs()
+                .sortAscending()
+                .limit(10);
+            
+            Long result = connection.geoCommands().geoSearchStore(destKey.getBytes(), sourceKey.getBytes(), memberRef, radiusShape, args);
+            assertThat(result).isNull(); // Should be null during transaction
+            
+            List<Object> results = connection.exec();
+            
+            // Verify transaction results
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isInstanceOf(Number.class);
+            assertThat(((Number) results.get(0)).longValue()).isGreaterThan(0L);
+            
+            // Verify final state - results stored in destination
+            List<Point> storedPositions = connection.geoCommands().geoPos(destKey.getBytes(), "Palermo".getBytes());
+            assertThat(storedPositions.get(0)).isNotNull();
+        } finally {
+            cleanupKey(sourceKey);
+            cleanupKey(destKey);
+        }
+    }
 
     @Test
     void testGeoOperationsInPipelineMode() {

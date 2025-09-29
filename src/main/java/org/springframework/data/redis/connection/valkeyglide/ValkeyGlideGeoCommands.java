@@ -35,6 +35,8 @@ import org.springframework.data.redis.domain.geo.RadiusShape;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import glide.api.models.GlideString;
+
 /**
  * Implementation of {@link RedisGeoCommands} for Valkey-Glide.
  *
@@ -63,8 +65,9 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
         Assert.notNull(member, "Member must not be null");
 
         try {
-            Object result = connection.execute("GEOADD", key, point.getX(), point.getY(), member);
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("GEOADD",
+                (Long glideResult) -> glideResult,
+                key, point.getX(), point.getY(), member);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -75,10 +78,6 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
     public Long geoAdd(byte[] key, Map<byte[], Point> memberCoordinateMap) {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(memberCoordinateMap, "Member coordinate map must not be null");
-
-        if (memberCoordinateMap.isEmpty()) {
-            return 0L;
-        }
 
         try {
             List<Object> commandArgs = new ArrayList<>();
@@ -91,8 +90,9 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
                 commandArgs.add(entry.getKey());
             }
             
-            Object result = connection.execute("GEOADD", commandArgs.toArray());
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("GEOADD",
+                (Long glideResult) -> glideResult,
+                commandArgs.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -104,25 +104,19 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(locations, "Locations must not be null");
 
-        List<Object> commandArgs = new ArrayList<>();
-        commandArgs.add(key);
-        
-        boolean hasLocations = false;
-        for (GeoLocation<byte[]> location : locations) {
-            hasLocations = true;
-            Point point = location.getPoint();
-            commandArgs.add(point.getX());
-            commandArgs.add(point.getY());
-            commandArgs.add(location.getName());
-        }
-        
-        if (!hasLocations) {
-            return 0L;
-        }
-
         try {
-            Object result = connection.execute("GEOADD", commandArgs.toArray());
-            return result != null ? ((Number) result).longValue() : null;
+            List<Object> commandArgs = new ArrayList<>();
+            commandArgs.add(key);
+            
+            for (GeoLocation<byte[]> location : locations) {
+                Point point = location.getPoint();
+                commandArgs.add(point.getX());
+                commandArgs.add(point.getY());
+                commandArgs.add(location.getName());
+            }
+            return connection.execute("GEOADD",
+                (Long glideResult) -> glideResult,
+                commandArgs.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -143,13 +137,9 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
         Assert.notNull(metric, "Metric must not be null");
 
         try {
-            Object result = connection.execute("GEODIST", key, member1, member2, metric.getAbbreviation());
-            if (result == null) {
-                return null;
-            }
-            
-            double distance = parseDouble(result);
-            return new Distance(distance, metric);
+            return connection.execute("GEODIST",
+                (Double glideResult) -> glideResult == null ? null : new Distance(glideResult, metric),
+                key, member1, member2, metric.getAbbreviation());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -163,31 +153,26 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
         Assert.noNullElements(members, "Members must not contain null elements");
 
         try {
-            List<Object> commandArgs = new ArrayList<>();
-            commandArgs.add(key);
-            for (byte[] member : members) {
-                commandArgs.add(member);
-            }
-            
-            Object result = connection.execute("GEOHASH", commandArgs.toArray());
-            if (result == null) {
-                return new ArrayList<>();
-            }
-            
-            List<Object> list = convertToList(result);
-            List<String> hashList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item == null) {
-                    hashList.add(null);
-                } else if (item instanceof String) {
-                    hashList.add((String) item);
-                } else if (item instanceof byte[]) {
-                    hashList.add(new String((byte[]) item));
-                } else {
-                    hashList.add(item.toString());
-                }
-            }
-            return hashList;
+            Object[] args = new Object[members.length + 1];
+            args[0] = key;
+            System.arraycopy(members, 0, args, 1, members.length);
+            return connection.execute("GEOHASH",
+                (Object[] glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    List<String> hashList = new ArrayList<>(glideResult.length);
+                    for (Object item : glideResult) {
+                        if (item == null) {
+                            hashList.add(null);
+                        }
+                        else {
+                            hashList.add(((GlideString) item).toString());
+                        }
+                    }
+                    return hashList;
+                },
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -201,28 +186,29 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
         Assert.noNullElements(members, "Members must not contain null elements");
 
         try {
-            List<Object> commandArgs = new ArrayList<>();
-            commandArgs.add(key);
-            for (byte[] member : members) {
-                commandArgs.add(member);
-            }
+            Object[] args = new Object[members.length + 1];
+            args[0] = key;
+            System.arraycopy(members, 0, args, 1, members.length);
+
             
-            Object result = connection.execute("GEOPOS", commandArgs.toArray());
-            if (result == null) {
-                return new ArrayList<>();
-            }
-            
-            List<Object> list = convertToList(result);
-            List<Point> pointList = new ArrayList<>(list.size());
-            for (Object item : list) {
-                if (item == null) {
-                    pointList.add(null);
-                } else {
-                    Point point = convertToPoint(item);
-                    pointList.add(point);
-                }
-            }
-            return pointList;
+            return connection.execute("GEOPOS",
+                (Object[] glideResult) -> {
+                    if (glideResult == null) {
+                        return new ArrayList<>();
+                    }
+                    
+                    List<Point> pointList = new ArrayList<>(glideResult.length);
+                    for (Object item : glideResult) {
+                        if (item == null) {
+                            pointList.add(null);
+                        } else {
+                            Point point = convertToPoint(item);
+                            pointList.add(point);
+                        }
+                    }
+                    return pointList;
+                },
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -232,6 +218,12 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
     @Nullable
     public GeoResults<GeoLocation<byte[]>> geoRadius(byte[] key, Circle within) {
         return geoRadius(key, within, GeoRadiusCommandArgs.newGeoRadiusArgs());
+    }
+
+    @Override
+    @Nullable
+    public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
+        return geoRadiusByMember(key, member, radius, GeoRadiusCommandArgs.newGeoRadiusArgs());
     }
 
     @Override
@@ -251,17 +243,12 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             
             appendGeoRadiusArgs(commandArgs, args);
             
-            Object result = connection.execute("GEORADIUS", commandArgs.toArray());
-            return parseGeoResults(result, args, within.getRadius().getMetric());
+            return connection.execute("GEORADIUS",
+                (Object[] glideResult) -> parseGeoResults(glideResult, args, within.getRadius().getMetric()),
+                commandArgs.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-    }
-
-    @Override
-    @Nullable
-    public GeoResults<GeoLocation<byte[]>> geoRadiusByMember(byte[] key, byte[] member, Distance radius) {
-        return geoRadiusByMember(key, member, radius, GeoRadiusCommandArgs.newGeoRadiusArgs());
     }
 
     @Override
@@ -282,8 +269,9 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             
             appendGeoRadiusArgs(commandArgs, args);
             
-            Object result = connection.execute("GEORADIUSBYMEMBER", commandArgs.toArray());
-            return parseGeoResults(result, args, radius.getMetric());
+            return connection.execute("GEORADIUSBYMEMBER",
+                (Object[] glideResult) -> parseGeoResults(glideResult, args, radius.getMetric()),
+                commandArgs.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -297,14 +285,14 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
         Assert.noNullElements(members, "Members must not contain null elements");
 
         try {
-            List<Object> commandArgs = new ArrayList<>();
-            commandArgs.add(key);
-            for (byte[] member : members) {
-                commandArgs.add(member);
-            }
-            
-            Object result = connection.execute("ZREM", commandArgs.toArray());
-            return result != null ? ((Number) result).longValue() : null;
+            Object[] args = new Object[members.length + 1];
+            args[0] = key;
+            System.arraycopy(members, 0, args, 1, members.length);
+
+
+            return connection.execute("ZREM",
+                (Long glideResult) -> glideResult,
+                args);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -327,8 +315,9 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoShape(commandArgs, predicate);
             appendGeoSearchArgs(commandArgs, args);
             
-            Object result = connection.execute("GEOSEARCH", commandArgs.toArray());
-            return parseGeoResults(result, args);
+            return connection.execute("GEOSEARCH",
+                (Object[] glideResult) -> parseGeoResults(glideResult, args, DistanceUnit.METERS),
+                commandArgs.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -353,8 +342,9 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             appendGeoShape(commandArgs, predicate);
             appendGeoSearchStoreArgs(commandArgs, args);
             
-            Object result = connection.execute("GEOSEARCHSTORE", commandArgs.toArray());
-            return result != null ? ((Number) result).longValue() : null;
+            return connection.execute("GEOSEARCHSTORE",
+                (Long glideResult) -> glideResult,
+                commandArgs.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -362,50 +352,30 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
 
     // ==================== Helper Methods ====================
 
-    private List<Object> convertToList(Object obj) {
-        if (obj instanceof List) {
-            return (List<Object>) obj;
-        } else if (obj instanceof Object[]) {
-            Object[] array = (Object[]) obj;
-            List<Object> list = new ArrayList<>(array.length);
-            for (Object item : array) {
-                list.add(item);
-            }
-            return list;
-        } else {
-            throw new IllegalArgumentException("Cannot convert " + obj.getClass() + " to List");
-        }
-    }
-
-    private double parseDouble(Object obj) {
-        if (obj instanceof Number) {
-            return ((Number) obj).doubleValue();
-        } else if (obj instanceof String) {
-            return Double.parseDouble((String) obj);
-        } else if (obj instanceof byte[]) {
-            return Double.parseDouble(new String((byte[]) obj));
-        } else {
-            throw new IllegalArgumentException("Cannot parse double from " + obj.getClass());
-        }
-    }
-
     private Point convertToPoint(Object obj) {
         if (obj == null) {
             return null;
         }
         
-        List<Object> coordinates = convertToList(obj);
-        if (coordinates.size() >= 2) {
-            Object xObj = coordinates.get(0);
-            Object yObj = coordinates.get(1);
-            
-            double x = parseDouble(xObj);
-            double y = parseDouble(yObj);
-            
+        Object[] coordinates = (Object[]) obj;
+        
+        if (coordinates.length >= 2 && coordinates[0] != null && coordinates[1] != null) {
+            double x = parseDouble(coordinates[0]);
+            double y = parseDouble(coordinates[1]);
             return new Point(x, y);
         }
         
         return null;
+    }
+
+    private double parseDouble(Object obj) {
+        if (obj instanceof Number) {
+            return ((Number) obj).doubleValue();
+        } else if (obj instanceof GlideString) {
+            return Double.parseDouble(((GlideString) obj).toString());
+        } else {
+            return Double.parseDouble(obj.toString());
+        }
     }
 
     private void appendGeoRadiusArgs(List<Object> commandArgs, GeoRadiusCommandArgs args) {
@@ -488,65 +458,73 @@ public class ValkeyGlideGeoCommands implements RedisGeoCommands {
             commandArgs.add(boxShape.getBoundingBox().getWidth().getMetric().getAbbreviation());
         }
     }
-
-    private GeoResults<GeoLocation<byte[]>> parseGeoResults(Object result, GeoCommandArgs args) {
-        return parseGeoResults(result, args, DistanceUnit.METERS);
-    }
     
-    private GeoResults<GeoLocation<byte[]>> parseGeoResults(Object result, GeoCommandArgs args, Metric defaultMetric) {
+    private GeoResults<GeoLocation<byte[]>> parseGeoResults(Object[] result, GeoCommandArgs args, Metric defaultMetric) {
         if (result == null) {
             return new GeoResults<>(new ArrayList<>());
         }
         
-        List<Object> list = convertToList(result);
-        List<GeoResult<GeoLocation<byte[]>>> geoResults = new ArrayList<>(list.size());
+        List<GeoResult<GeoLocation<byte[]>>> geoResults = new ArrayList<>(result.length);
         
         boolean hasDistance = args.getFlags().contains(GeoCommandArgs.GeoCommandFlag.withDist());
         boolean hasCoordinate = args.getFlags().contains(GeoCommandArgs.GeoCommandFlag.withCord());
         
-        for (Object item : list) {
+        for (Object item : result) {
             if (hasDistance || hasCoordinate) {
                 // Complex result format with additional information
-                List<Object> itemList = convertToList(item);
+                Object[] itemArray;
+                if (item instanceof Object[]) {
+                    itemArray = (Object[]) item;
+                } else {
+                    continue;
+                }
                 
-                byte[] member = (byte[]) itemList.get(0);
+                byte[] member = convertToBytes(itemArray[0]);
                 Distance distance = null;
                 Point point = null;
                 
                 int index = 1;
-                if (hasDistance && index < itemList.size()) {
-                    Object distObj = itemList.get(index++);
+                if (hasDistance && index < itemArray.length) {
+                    Object distObj = itemArray[index++];
                     if (distObj != null) {
                         try {
                             double dist = parseDouble(distObj);
                             distance = new Distance(dist, defaultMetric);
                         } catch (Exception e) {
-                            // If distance parsing fails, use a default distance to avoid null
                             distance = new Distance(0.0, defaultMetric);
                         }
                     } else {
                         distance = new Distance(0.0, defaultMetric);
                     }
                 }
-                if (hasCoordinate && index < itemList.size()) {
-                    Object coordObj = itemList.get(index);
+                if (hasCoordinate && index < itemArray.length) {
+                    Object coordObj = itemArray[index];
                     point = convertToPoint(coordObj);
                 }
                 
                 GeoLocation<byte[]> location = new GeoLocation<>(member, point);
-                // Ensure we don't pass null distance to GeoResult
                 if (distance == null) {
                     distance = new Distance(0.0, defaultMetric);
                 }
                 geoResults.add(new GeoResult<>(location, distance));
             } else {
                 // Simple result format - just member names
-                byte[] member = (byte[]) item;
+                byte[] member = convertToBytes(item);
                 GeoLocation<byte[]> location = new GeoLocation<>(member, null);
                 geoResults.add(new GeoResult<>(location, new Distance(0.0, defaultMetric)));
             }
         }
         
         return new GeoResults<>(geoResults);
+    }
+
+    private byte[] convertToBytes(Object obj) {
+        if (obj instanceof GlideString) {
+            return ((GlideString) obj).getBytes();
+        } else if (obj instanceof byte[]) {
+            return (byte[]) obj;
+        } else {
+            return obj.toString().getBytes();
+        }
     }
 }
