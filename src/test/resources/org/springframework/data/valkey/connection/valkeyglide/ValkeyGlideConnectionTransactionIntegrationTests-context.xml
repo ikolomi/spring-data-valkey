@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:p="http://www.springframework.org/schema/p"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="connectionFactory" class="org.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory">
+		<constructor-arg>
+			<bean class="org.springframework.data.valkey.connection.valkeyglide.DefaultValkeyGlideClientConfiguration"
+				  factory-method="create">
+				<constructor-arg value="localhost"/>
+				<constructor-arg value="6379"/>
+			</bean>
+		</constructor-arg>
+	</bean>
+</beans>

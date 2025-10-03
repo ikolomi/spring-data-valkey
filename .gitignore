@@ -12,6 +12,7 @@ build
 .project
 .settings
 .idea
+.vscode/
 out
 work
 *.rdb
