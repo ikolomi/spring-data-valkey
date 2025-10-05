@@ -26,6 +26,7 @@ import org.springframework.data.redis.core.types.RedisClientInfo;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import glide.api.models.GlideString;
 
 /**
  * Implementation of {@link RedisServerCommands} for Valkey-Glide.
@@ -50,8 +51,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void bgReWriteAof() {
         try {
-            connection.execute("BGREWRITEAOF");
-            // Command returns "Background AOF rewrite started" on success
+            connection.execute("BGREWRITEAOF",
+                glideResult -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -60,8 +61,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void bgSave() {
         try {
-            connection.execute("BGSAVE");
-            // Command returns "Background saving started" on success
+            connection.execute("BGSAVE",
+                glideResult -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -71,9 +72,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Nullable
     public Long lastSave() {
         try {
-            Object result = connection.execute("LASTSAVE");
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("LASTSAVE",
+                (Long glideResult) -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -82,8 +82,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void save() {
         try {
-            connection.execute("SAVE");
-            // Command returns "OK" on success
+            connection.execute("SAVE",
+                glideResult -> glideResult); // Return the "OK" response for pipeline/transaction modes
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -93,9 +93,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Nullable
     public Long dbSize() {
         try {
-            Object result = connection.execute("DBSIZE");
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return converted instanceof Number ? ((Number) converted).longValue() : null;
+            return connection.execute("DBSIZE",
+                (Long glideResult) -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -104,8 +103,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void flushDb() {
         try {
-            connection.execute("FLUSHDB");
-            // Command returns "OK" on success
+            connection.execute("FLUSHDB",
+                (String glideResult) -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -116,8 +115,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(option, "FlushOption must not be null");
         
         try {
-            connection.execute("FLUSHDB", option.name());
-            // Command returns "OK" on success
+            connection.execute("FLUSHDB",
+                (String glideResult) -> glideResult,
+                option.name());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -126,8 +126,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void flushAll() {
         try {
-            connection.execute("FLUSHALL");
-            // Command returns "OK" on success
+            connection.execute("FLUSHALL",
+                (String glideResult) -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -138,8 +138,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(option, "FlushOption must not be null");
         
         try {
-            connection.execute("FLUSHALL", option.name());
-            // Command returns "OK" on success
+            connection.execute("FLUSHALL",
+                (String glideResult) -> glideResult,
+                option.name());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -149,9 +150,13 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Nullable
     public Properties info() {
         try {
-            Object result = connection.execute("INFO");
-            String infoResponse = convertResultToString(result);
-            return parseInfoResponse(infoResponse);
+            return connection.execute("INFO",
+                (GlideString glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    return parseInfoResponse(glideResult.toString());
+                });
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -163,21 +168,34 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(section, "Section must not be null");
         
         try {
-            Object result = connection.execute("INFO", section);
-            String infoResponse = convertResultToString(result);
-            return parseInfoResponse(infoResponse);
+            return connection.execute("INFO",
+                (GlideString glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+                    return parseInfoResponse(glideResult.toString());
+                },
+                section);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
     }
 
     /**
-     * Converts the command result to a String, handling both byte[] and String types.
+     * Converts the command result to a String, handling both GlideString and other types.
      * 
      * @param result the result from the command execution
      * @return String representation of the result
      */
     private String convertResultToString(Object result) {
+        if (result == null) {
+            return null;
+        }
+        
+        if (result instanceof GlideString) {
+            return ValkeyGlideConverters.toString(((GlideString) result).getBytes());
+        }
+        
         Object convertedResult = ValkeyGlideConverters.defaultFromGlideResult(result);
         if (convertedResult instanceof byte[]) {
             return ValkeyGlideConverters.toString((byte[]) convertedResult);
@@ -269,32 +287,26 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     /**
      * Parses the TIME command response into a Long value in the specified TimeUnit.
      * 
-     * @param result the result from the TIME command
+     * @param result the result from the TIME command (Object[] from Glide)
      * @param timeUnit the desired time unit
      * @return the time in the specified unit
      */
-    private Long parseTimeResponse(Object result, TimeUnit timeUnit) {
-        if (result == null) {
+    private Long parseTimeResponse(Object[] result, TimeUnit timeUnit) {
+        if (result == null || result.length < 2) {
             return null;
         }
         
-        List<Object> list = convertToList(result);
+        // TIME returns [seconds, microseconds] as Object[]
+        Object secondsObj = ValkeyGlideConverters.defaultFromGlideResult(result[0]);
+        Object microsecondsObj = ValkeyGlideConverters.defaultFromGlideResult(result[1]);
         
-        if (list.size() >= 2) {
-            // TIME returns [seconds, microseconds]
-            Object secondsObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(0));
-            Object microsecondsObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(1));
-            
-            long seconds = parseNumber(secondsObj).longValue();
-            long microseconds = parseNumber(microsecondsObj).longValue();
-            
-            // Convert to milliseconds first
-            long milliseconds = seconds * 1000 + microseconds / 1000;
-            
-            return timeUnit.convert(milliseconds, TimeUnit.MILLISECONDS);
-        }
+        long seconds = parseNumber(secondsObj).longValue();
+        long microseconds = parseNumber(microsecondsObj).longValue();
         
-        return null;
+        // Convert to milliseconds first
+        long milliseconds = seconds * 1000 + microseconds / 1000;
+        
+        return timeUnit.convert(milliseconds, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -339,8 +351,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void shutdown() {
         try {
-            connection.execute("SHUTDOWN");
-            // Command does not return a response as server shuts down
+            connection.execute("SHUTDOWN",
+                glideResult -> glideResult);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -351,8 +363,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(option, "ShutdownOption must not be null");
         
         try {
-            connection.execute("SHUTDOWN", option.name());
-            // Command does not return a response as server shuts down
+            connection.execute("SHUTDOWN",
+                glideResult -> glideResult,
+                option.name());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -364,9 +377,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(pattern, "Pattern must not be null");
         
         try {
-            Object result = connection.execute("CONFIG", "GET", pattern);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseConfigResponse(converted);
+            return connection.execute("CONFIG",
+                (Object glideResult) -> parseConfigResponse(glideResult),
+        "GET", pattern);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -378,8 +391,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(value, "Value must not be null");
         
         try {
-            connection.execute("CONFIG", "SET", param, value);
-            // Command returns "OK" on success
+            connection.execute("CONFIG",
+                glideResult -> glideResult,
+        "SET", param, value);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -388,8 +402,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void resetConfigStats() {
         try {
-            connection.execute("CONFIG", "RESETSTAT");
-            // Command returns "OK" on success
+            connection.execute("CONFIG",
+                glideResult -> glideResult,
+        "RESETSTAT");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -398,8 +413,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void rewriteConfig() {
         try {
-            connection.execute("CONFIG", "REWRITE");
-            // Command returns "OK" on success
+            connection.execute("CONFIG",
+                glideResult -> glideResult,
+        "REWRITE");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -411,9 +427,8 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(timeUnit, "TimeUnit must not be null");
         
         try {
-            Object result = connection.execute("TIME");
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseTimeResponse(converted, timeUnit);
+            return connection.execute("TIME",
+                (Object[] glideResult) -> parseTimeResponse(glideResult, timeUnit));
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -424,8 +439,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(host, "Host must not be null");
         
         try {
-            connection.execute("CLIENT", "KILL", host + ":" + port);
-            // Command returns "OK" on success
+            connection.execute("CLIENT",
+                glideResult -> glideResult,
+        "KILL", host + ":" + port);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -436,8 +452,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(name, "Name must not be null");
         
         try {
-            connection.execute("CLIENT", "SETNAME", name);
-            // Command returns "OK" on success
+            connection.execute("CLIENT",
+                glideResult -> glideResult,
+        "SETNAME", name);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -447,13 +464,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Nullable
     public String getClientName() {
         try {
-            Object result = connection.execute("CLIENT", "GETNAME");
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return null;
-            }
-            
-            return convertResultToString(converted);
+            return connection.execute("CLIENT",
+                (GlideString glideResult) -> glideResult != null ? glideResult.toString() : null,
+        "GETNAME");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -463,10 +476,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Nullable
     public List<RedisClientInfo> getClientList() {
         try {
-            Object result = connection.execute("CLIENT", "LIST");
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            String clientListResponse = convertResultToString(converted);
-            return parseClientListResponse(clientListResponse);
+            return connection.execute("CLIENT",
+                (GlideString glideResult) -> glideResult != null ? parseClientListResponse(glideResult.toString()) : null,
+        "LIST");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -477,8 +489,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         Assert.notNull(host, "Host must not be null");
         
         try {
-            connection.execute("REPLICAOF", host, String.valueOf(port));
-            // Command returns "OK" on success
+            connection.execute("REPLICAOF",
+                glideResult -> glideResult,
+                host, String.valueOf(port));
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -487,8 +500,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
     @Override
     public void replicaOfNoOne() {
         try {
-            connection.execute("REPLICAOF", "NO", "ONE");
-            // Command returns "OK" on success
+            connection.execute("REPLICAOF",
+                glideResult -> glideResult,
+        "NO", "ONE");
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -506,7 +520,6 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
         
         try {
             List<Object> args = new ArrayList<>();
-            args.add("MIGRATE");
             args.add(target.getHost());
             args.add(String.valueOf(target.getPort()));
             args.add(key);
@@ -517,8 +530,9 @@ public class ValkeyGlideServerCommands implements RedisServerCommands {
                 args.add(option.name());
             }
             
-            connection.execute("MIGRATE", args.subList(1, args.size()).toArray());
-            // Command returns "OK" on success
+            connection.execute("MIGRATE",
+                (String glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
