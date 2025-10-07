@@ -1,0 +1,124 @@
+/*
+ * Copyright 2013-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.valkey.springframework.data.valkey.core.script;
+
+import org.springframework.core.io.Resource;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
+
+/**
+ * A script to be executed using the <a href="https://valkey.io/commands/eval">Valkey scripting support</a> available as
+ * of version 2.6
+ *
+ * @author Jennifer Hickey
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ * @param <T> The script result type. Should be one of Long, Boolean, List, or deserialized value type. Can be
+ *          {@literal null} if the script returns a throw-away status (i.e "OK")
+ */
+public interface ValkeyScript<T> {
+
+	/**
+	 * @return The SHA1 of the script, used for executing Valkey evalsha command.
+	 */
+	String getSha1();
+
+	/**
+	 * @return The script result type. Should be one of Long, Boolean, List, or deserialized value type. {@literal null}
+	 *         if the script returns a throw-away status (i.e "OK").
+	 */
+	@Nullable
+	Class<T> getResultType();
+
+	/**
+	 * @return The script contents.
+	 */
+	String getScriptAsString();
+
+	/**
+	 * @return {@literal true} if result type is {@literal null} and does not need any further deserialization.
+	 * @since 2.0
+	 */
+	default boolean returnsRawValue() {
+		return getResultType() == null;
+	}
+
+	/**
+	 * Creates new {@link ValkeyScript} from {@code script} as {@link String}.
+	 *
+	 * @param script must not be {@literal null}.
+	 * @return new instance of {@link ValkeyScript}.
+	 * @since 2.0
+	 */
+	static <T> ValkeyScript<T> of(String script) {
+		return new DefaultValkeyScript<>(script);
+	}
+
+	/**
+	 * Creates new {@link ValkeyScript} from {@code script} as {@link String}.
+	 *
+	 * @param script must not be {@literal null}.
+	 * @param resultType must not be {@literal null}.
+	 * @return new instance of {@link ValkeyScript}.
+	 * @since 2.0
+	 */
+	static <T> ValkeyScript<T> of(String script, Class<T> resultType) {
+
+		Assert.notNull(script, "Script must not be null");
+		Assert.notNull(resultType, "ResultType must not be null");
+
+		return new DefaultValkeyScript<>(script, resultType);
+	}
+
+	/**
+	 * Creates new {@link ValkeyScript} (with throw away result) from the given {@link Resource}.
+	 *
+	 * @param resource must not be {@literal null}.
+	 * @return new instance of {@link ValkeyScript}.
+	 * @throws IllegalArgumentException if the required argument is {@literal null}.
+	 * @since 2.2
+	 */
+	static <T> ValkeyScript<T> of(Resource resource) {
+
+		Assert.notNull(resource, "Resource must not be null");
+
+		DefaultValkeyScript<T> script = new DefaultValkeyScript<>();
+		script.setLocation(resource);
+
+		return script;
+	}
+
+	/**
+	 * Creates new {@link ValkeyScript} from {@link Resource}.
+	 *
+	 * @param resource must not be {@literal null}.
+	 * @param resultType must not be {@literal null}.
+	 * @return new instance of {@link ValkeyScript}.
+	 * @throws IllegalArgumentException if any required argument is {@literal null}.
+	 * @since 2.2
+	 */
+	static <T> ValkeyScript<T> of(Resource resource, Class<T> resultType) {
+
+		Assert.notNull(resource, "Resource must not be null");
+		Assert.notNull(resultType, "ResultType must not be null");
+
+		DefaultValkeyScript<T> script = new DefaultValkeyScript<>();
+		script.setResultType(resultType);
+		script.setLocation(resource);
+
+		return script;
+	}
+}

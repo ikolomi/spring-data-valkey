@@ -1,0 +1,505 @@
+/*
+ * Copyright 2014-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.valkey.springframework.data.valkey.connection.lettuce;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyMap;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import io.lettuce.core.KeyScanCursor;
+import io.lettuce.core.MapScanCursor;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisFuture;
+import io.lettuce.core.ScanArgs;
+import io.lettuce.core.ScanCursor;
+import io.lettuce.core.ScoredValue;
+import io.lettuce.core.ScoredValueScanCursor;
+import io.lettuce.core.ValueScanCursor;
+import io.lettuce.core.XAddArgs;
+import io.lettuce.core.XClaimArgs;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.async.RedisAsyncCommands;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.codec.ByteArrayCodec;
+import io.lettuce.core.codec.RedisCodec;
+import io.lettuce.core.codec.StringCodec;
+import io.lettuce.core.output.ScanOutput;
+import io.lettuce.core.output.StatusOutput;
+import io.lettuce.core.protocol.AsyncCommand;
+import io.lettuce.core.protocol.Command;
+import io.lettuce.core.protocol.CommandArgs;
+import io.lettuce.core.protocol.CommandType;
+
+import java.lang.reflect.InvocationTargetException;
+import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import io.valkey.springframework.data.valkey.connection.AbstractConnectionUnitTestBase;
+import io.valkey.springframework.data.valkey.connection.ValkeyServerCommands.ShutdownOption;
+import io.valkey.springframework.data.valkey.connection.ValkeyStreamCommands.XAddOptions;
+import io.valkey.springframework.data.valkey.connection.ValkeyStreamCommands.XClaimOptions;
+import io.valkey.springframework.data.valkey.connection.stream.MapRecord;
+import io.valkey.springframework.data.valkey.connection.zset.Tuple;
+import io.valkey.springframework.data.valkey.core.Cursor;
+import io.valkey.springframework.data.valkey.core.KeyScanOptions;
+import org.springframework.test.util.ReflectionTestUtils;
+
+/**
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ */
+class LettuceConnectionUnitTests {
+
+	protected LettuceConnection connection;
+	private RedisClient clientMock;
+	StatefulRedisConnection<byte[], byte[]> statefulConnectionMock;
+	RedisAsyncCommands<byte[], byte[]> asyncCommandsMock;
+	RedisCommands<byte[], byte[]> commandsMock;
+
+	@BeforeEach
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public void setUp() throws InvocationTargetException, IllegalAccessException {
+
+		clientMock = mock(RedisClient.class);
+		statefulConnectionMock = mock(StatefulRedisConnection.class);
+		when(clientMock.connect((RedisCodec) any())).thenReturn(statefulConnectionMock);
+
+		asyncCommandsMock = Mockito.mock(RedisAsyncCommands.class, invocation -> {
+
+			if (invocation.getMethod().getReturnType().equals(RedisFuture.class)) {
+
+				Command<?, ?, ?> cmd = new Command<>(CommandType.PING, new StatusOutput<>(StringCodec.UTF8));
+				AsyncCommand<?, ?, ?> async = new AsyncCommand<>(cmd);
+				async.complete();
+
+				return async;
+			}
+			return null;
+		});
+		commandsMock = Mockito.mock(RedisCommands.class);
+
+		when(statefulConnectionMock.async()).thenReturn(asyncCommandsMock);
+		when(statefulConnectionMock.sync()).thenReturn(commandsMock);
+		connection = new LettuceConnection(0, clientMock);
+	}
+
+	@Nested
+	@SuppressWarnings({ "rawtypes", "deprecation" })
+	class BasicUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
+
+		@Test // DATAVALKEY-184
+		public void shutdownWithNullOptionsIsCalledCorrectly() {
+
+			connection.shutdown(null);
+			verify(asyncCommandsMock).shutdown(true);
+		}
+
+		@Test // DATAVALKEY-184
+		public void shutdownWithNosaveOptionIsCalledCorrectly() {
+
+			connection.shutdown(ShutdownOption.NOSAVE);
+			verify(asyncCommandsMock).shutdown(false);
+		}
+
+		@Test // DATAVALKEY-184
+		public void shutdownWithSaveOptionIsCalledCorrectly() {
+
+			connection.shutdown(ShutdownOption.SAVE);
+			verify(asyncCommandsMock).shutdown(true);
+		}
+
+		@Test // DATAVALKEY-267
+		public void killClientShouldDelegateCallCorrectly() {
+
+			String ipPort = "127.0.0.1:1001";
+			connection.killClient("127.0.0.1", 1001);
+			verify(asyncCommandsMock).clientKill(eq(ipPort));
+		}
+
+		@Test // DATAVALKEY-270
+		public void getClientNameShouldSendRequestCorrectly() {
+
+			connection.getClientName();
+			verify(asyncCommandsMock).clientGetname();
+		}
+
+		@Test // DATAVALKEY-277
+		void replicaOfShouldThrowExectpionWhenCalledForNullHost() {
+			assertThatIllegalArgumentException().isThrownBy(() -> connection.replicaOf(null, 0));
+		}
+
+		@Test // DATAVALKEY-277
+		public void replicaOfShouldBeSentCorrectly() {
+
+			connection.replicaOf("127.0.0.1", 1001);
+			verify(asyncCommandsMock).slaveof(eq("127.0.0.1"), eq(1001));
+		}
+
+		@Test // DATAVALKEY-277
+		public void replicaOfNoOneShouldBeSentCorrectly() {
+
+			connection.replicaOfNoOne();
+			verify(asyncCommandsMock).slaveofNoOne();
+		}
+
+		@Test // DATAVALKEY-348
+		void shouldThrowExceptionWhenAccessingValkeySentinelsCommandsWhenNoSentinelsConfigured() {
+			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
+					.isThrownBy(() -> connection.getSentinelConnection());
+		}
+
+		@Test // DATAVALKEY-431, GH-2984
+		void dbIndexShouldBeSetWhenObtainingConnection() {
+
+			connection = new LettuceConnection(null, 0, clientMock, 0);
+			connection.select(1);
+			connection.getNativeConnection();
+
+			verify(asyncCommandsMock).dispatch(eq(CommandType.SELECT), any(), any());
+			verifyNoInteractions(commandsMock);
+		}
+
+		@Test // DATAVALKEY-603
+		void translatesUnknownExceptions() {
+
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
+
+			when(asyncCommandsMock.set(any(), any())).thenThrow(exception);
+			connection = new LettuceConnection(null, 0, clientMock, 1);
+
+			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes())).hasRootCause(exception);
+		}
+
+		@Test // DATAVALKEY-603
+		void translatesPipelineUnknownExceptions() {
+
+			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
+
+			when(asyncCommandsMock.set(any(byte[].class), any(byte[].class))).thenThrow(exception);
+			connection = new LettuceConnection(null, 0, clientMock, 1);
+			connection.openPipeline();
+
+			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes())).hasRootCause(exception);
+		}
+
+		@Test // DATAVALKEY-1122
+		void xaddShouldHonorMaxlen() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.maxlen(100));
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
+		}
+
+		@Test // DATAVALKEY-1226
+		void xClaimShouldNotAddJustIdFlagToArgs() {
+
+			connection.streamCommands().xClaim("key".getBytes(), "group", "owner",
+					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
+			ArgumentCaptor<XClaimArgs> args = ArgumentCaptor.forClass(XClaimArgs.class);
+
+			verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
+
+			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(false);
+		}
+
+		@Test // DATAVALKEY-1226
+		void xClaimJustIdShouldAddJustIdFlagToArgs() {
+
+			connection.streamCommands().xClaimJustId("key".getBytes(), "group", "owner",
+					XClaimOptions.minIdle(Duration.ofMillis(100)).ids("1-1"));
+			ArgumentCaptor<XClaimArgs> args = ArgumentCaptor.forClass(XClaimArgs.class);
+
+			verify(asyncCommandsMock).xclaim(any(), any(), args.capture(), any());
+
+			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(true);
+		}
+
+		@Test // GH-1979
+		void executeShouldPassThruCustomCommands() {
+
+			Command<byte[], byte[], String> command = new Command<>(new LettuceConnection.CustomCommandType("FOO.BAR"),
+					new StatusOutput<>(ByteArrayCodec.INSTANCE));
+			AsyncCommand<byte[], byte[], String> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.dispatch(any(), any(), any())).thenReturn((RedisFuture) future);
+
+			connection.execute("foo.bar", command.getOutput());
+
+			verify(asyncCommandsMock).dispatch(eq(command.getType()), eq(command.getOutput()), any(CommandArgs.class));
+		}
+
+		@Test // GH-2047
+		void xaddShouldHonorNoMkStream() {
+
+			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
+
+			connection.streamCommands().xAdd(record, XAddOptions.makeNoStream());
+			ArgumentCaptor<XAddArgs> args = ArgumentCaptor.forClass(XAddArgs.class);
+			verify(asyncCommandsMock).xadd(any(), args.capture(), anyMap());
+
+			assertThat(args.getValue()).extracting("nomkstream").isEqualTo(true);
+		}
+
+		@Test // GH-2796
+		void scanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			KeyScanCursor<byte[]> sc = new KeyScanCursor<>() {
+				@Override
+				public List<byte[]> getKeys() {
+					return List.of("spring".getBytes());
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], KeyScanCursor<byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("SCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], KeyScanCursor<byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.scan(any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future, future);
+
+			Cursor<byte[]> cursor = connection.scan(KeyScanOptions.NONE);
+			cursor.next(); // initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).scan(captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-2796
+		void sScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ValueScanCursor<byte[]> sc = new ValueScanCursor<>() {
+				@Override
+				public List<byte[]> getValues() {
+					return List.of("spring".getBytes());
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], ValueScanCursor<byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("SSCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], ValueScanCursor<byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.sscan(any(byte[].class), any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future,
+					future);
+
+			Cursor<byte[]> cursor = connection.setCommands().sScan("key".getBytes(), KeyScanOptions.NONE);
+			cursor.next(); // initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).sscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-2796
+		void zScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			ScoredValueScanCursor<byte[]> sc = new ScoredValueScanCursor<>() {
+				@Override
+				public List<ScoredValue<byte[]>> getValues() {
+					return List.of(ScoredValue.just(10D, "spring".getBytes()));
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], ScoredValueScanCursor<byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("ZSCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], ScoredValueScanCursor<byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.zscan(any(byte[].class), any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future,
+					future);
+
+			Cursor<Tuple> cursor = connection.zSetCommands().zScan("key".getBytes(), KeyScanOptions.NONE);
+			cursor.next(); // initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).zscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+		@Test // GH-2796
+		void hScanShouldOperateUponUnsigned64BitCursorId() {
+
+			String cursorId = "9286422431637962824";
+			MapScanCursor<byte[], byte[]> sc = new MapScanCursor<>() {
+				@Override
+				public Map<byte[], byte[]> getMap() {
+					return Map.of("spring".getBytes(), "data".getBytes());
+				}
+			};
+			sc.setCursor(cursorId);
+			sc.setFinished(false);
+
+			Command<byte[], byte[], MapScanCursor<byte[], byte[]>> command = new Command<>(
+					new LettuceConnection.CustomCommandType("HSCAN"), new ScanOutput<>(ByteArrayCodec.INSTANCE, sc) {
+						@Override
+						protected void setOutput(ByteBuffer bytes) {
+
+						}
+					});
+			AsyncCommand<byte[], byte[], MapScanCursor<byte[], byte[]>> future = new AsyncCommand<>(command);
+			future.complete();
+
+			when(asyncCommandsMock.hscan(any(byte[].class), any(ScanCursor.class), any(ScanArgs.class))).thenReturn(future,
+					future);
+
+			Cursor<Entry<byte[], byte[]>> cursor = connection.hashCommands().hScan("key".getBytes(), KeyScanOptions.NONE);
+			cursor.next(); // initial
+			assertThat(cursor.getCursorId()).isEqualTo(Long.parseUnsignedLong(cursorId));
+
+			cursor.next(); // fetch next
+			ArgumentCaptor<ScanCursor> captor = ArgumentCaptor.forClass(ScanCursor.class);
+			verify(asyncCommandsMock, times(2)).hscan(any(byte[].class), captor.capture(), any(ScanArgs.class));
+			assertThat(captor.getAllValues()).map(ScanCursor::getCursor).containsExactly("0", cursorId);
+		}
+
+	}
+
+	@Nested
+	class LettucePipelineConnectionUnitTests extends BasicUnitTests {
+
+		@BeforeEach
+		public void setUp() throws InvocationTargetException, IllegalAccessException {
+			connection.openPipeline();
+		}
+
+		@Test // DATAVALKEY-528
+		@Disabled("SHUTDOWN not supported in pipeline")
+		public void shutdownWithSaveOptionIsCalledCorrectly() {
+
+		}
+
+		@Test // DATAVALKEY-528
+		@Disabled("SHUTDOWN not supported in pipeline")
+		public void shutdownWithNosaveOptionIsCalledCorrectly() {
+
+		}
+
+		@Test // DATAVALKEY-528
+		public void replicaOfShouldBeSentCorrectly() {
+
+			connection.replicaOf("127.0.0.1", 1001);
+			verify(asyncCommandsMock).slaveof(eq("127.0.0.1"), eq(1001));
+		}
+
+		@Test // DATAVALKEY-528
+		@Disabled("SHUTDOWN not supported in pipeline")
+		public void shutdownWithNullOptionsIsCalledCorrectly() {
+
+		}
+
+		@Test // DATAVALKEY-528
+		public void killClientShouldDelegateCallCorrectly() {
+
+			String ipPort = "127.0.0.1:1001";
+			connection.killClient("127.0.0.1", 1001);
+			verify(asyncCommandsMock).clientKill(eq(ipPort));
+		}
+
+		@Test // DATAVALKEY-528
+		public void replicaOfNoOneShouldBeSentCorrectly() {
+
+			connection.replicaOfNoOne();
+			verify(asyncCommandsMock).slaveofNoOne();
+		}
+
+		@Test // DATAVALKEY-528
+		public void getClientNameShouldSendRequestCorrectly() {
+
+			connection.getClientName();
+			verify(asyncCommandsMock).clientGetname();
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void scanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void sScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void zScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+
+		@Test
+		@Disabled("scan not supported in pipeline")
+		void hScanShouldOperateUponUnsigned64BitCursorId() {
+
+		}
+	}
+}

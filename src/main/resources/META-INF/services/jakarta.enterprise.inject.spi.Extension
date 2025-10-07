@@ -1,1 +1,1 @@
-org.springframework.data.valkey.repository.cdi.ValkeyRepositoryExtension
+io.valkey.springframework.data.valkey.repository.cdi.ValkeyRepositoryExtension

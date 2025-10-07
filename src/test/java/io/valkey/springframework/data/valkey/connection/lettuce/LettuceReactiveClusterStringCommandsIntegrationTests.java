@@ -1,0 +1,93 @@
+/*
+ * Copyright 2016-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.valkey.springframework.data.valkey.connection.lettuce;
+
+import static org.assertj.core.api.Assertions.*;
+import static io.valkey.springframework.data.valkey.connection.lettuce.LettuceReactiveCommandsTestSupport.*;
+
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+
+import io.valkey.springframework.data.valkey.connection.ValkeyStringCommands;
+
+/**
+ * @author Christoph Strobl
+ * @since 2.0
+ */
+class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
+
+	@Test // DATAVALKEY-525
+	void mSetNXShouldAddMultipleKeyValuePairsWhenMappedToSameSlot() {
+
+		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
+		map.put(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER);
+		map.put(SAME_SLOT_KEY_2_BBUFFER, VALUE_2_BBUFFER);
+
+		connection.stringCommands().mSetNX(map).block();
+
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_1)).isEqualTo(VALUE_1);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
+	}
+
+	@Test // DATAVALKEY-525
+	void mSetNXShouldNotAddMultipleKeyValuePairsWhenAlreadyExitAndMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
+		map.put(SAME_SLOT_KEY_1_BBUFFER, VALUE_1_BBUFFER);
+		map.put(SAME_SLOT_KEY_2_BBUFFER, VALUE_2_BBUFFER);
+
+		assertThat(connection.stringCommands().mSetNX(map).block()).isFalse();
+
+		assertThat(nativeCommands.exists(SAME_SLOT_KEY_1)).isEqualTo(0L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
+	}
+
+	@Test // DATAVALKEY-525
+	void bitOpAndShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				ValkeyStringCommands.BitOperation.AND, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo("value-0");
+	}
+
+	@Test // DATAVALKEY-525
+	void bitOpOrShouldWorkAsExpectedWhenKeysMapToSameSlot() {
+
+		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
+		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
+
+		assertThat(connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+				ValkeyStringCommands.BitOperation.OR, SAME_SLOT_KEY_3_BBUFFER).block()).isEqualTo(7L);
+		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo(VALUE_3);
+	}
+
+	@Test // DATAVALKEY-525
+	void bitNotShouldThrowExceptionWhenMoreThanOnSourceKeyAndKeysMapToSameSlot() {
+		assertThatIllegalArgumentException().isThrownBy(
+				() -> connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),
+						ValkeyStringCommands.BitOperation.NOT, SAME_SLOT_KEY_3_BBUFFER).block());
+	}
+
+}

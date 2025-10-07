@@ -1,1 +1,1 @@
-http\://www.springframework.org/schema/redis=org.springframework.data.valkey.config.ValkeyNamespaceHandler
+http\://www.springframework.org/schema/redis=io.valkey.springframework.data.valkey.config.ValkeyNamespaceHandler

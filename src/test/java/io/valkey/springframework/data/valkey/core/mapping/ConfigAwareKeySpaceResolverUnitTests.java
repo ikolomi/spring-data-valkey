@@ -1,0 +1,63 @@
+/*
+ * Copyright 2015-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.valkey.springframework.data.valkey.core.mapping;
+
+import static org.assertj.core.api.Assertions.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import io.valkey.springframework.data.valkey.core.convert.KeyspaceConfiguration;
+import io.valkey.springframework.data.valkey.core.convert.KeyspaceConfiguration.KeyspaceSettings;
+import io.valkey.springframework.data.valkey.core.mapping.ValkeyMappingContext.ConfigAwareKeySpaceResolver;
+
+/**
+ * Unit tests for {@link ConfigAwareKeySpaceResolver}.
+ *
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ */
+class ConfigAwareKeySpaceResolverUnitTests {
+
+	private KeyspaceConfiguration config = new KeyspaceConfiguration();
+	private ConfigAwareKeySpaceResolver resolver;
+
+	@BeforeEach
+	void setUp() {
+		this.resolver = new ConfigAwareKeySpaceResolver(config);
+	}
+
+	@Test // DATAVALKEY-425
+	void resolveShouldThrowExceptionWhenTypeIsNull() {
+		assertThatIllegalArgumentException().isThrownBy(() -> resolver.resolveKeySpace(null));
+	}
+
+	@Test // DATAVALKEY-425, GH-2457
+	void resolveShouldReturnNullAsDefaultKeyspace() {
+		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isNull();
+	}
+
+	@Test // DATAVALKEY-425
+	void resolveShouldFavorConfiguredNameOverClassName() {
+
+		config.addKeyspaceSettings(new KeyspaceSettings(TypeWithoutAnySettings.class, "ji'e'toh"));
+		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isEqualTo("ji'e'toh");
+	}
+
+	private static class TypeWithoutAnySettings {
+
+	}
+
+}
