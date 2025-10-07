@@ -315,7 +315,7 @@ public interface ValkeyGeoCommands {
 			}
 
 			static GeoCommandFlag storeDist() {
-				return Flag.STOVALKEYT;
+				return Flag.STOREDIST;
 			}
 		}
 	}
@@ -490,13 +490,13 @@ public interface ValkeyGeoCommands {
 		}
 
 		/**
-		 * Sets the {@link Flag#STOVALKEYT} flag to also store the distance of the returned items from the specified center.
+		 * Sets the {@link Flag#STOREDIST} flag to also store the distance of the returned items from the specified center.
 		 *
 		 * @return never {@literal null}.
 		 */
 		public GeoSearchStoreCommandArgs storeDistance() {
 
-			flags.add(Flag.STOVALKEYT);
+			flags.add(Flag.STOREDIST);
 			return this;
 		}
 
@@ -687,7 +687,7 @@ public interface ValkeyGeoCommands {
 		}
 
 		public enum Flag implements GeoCommandFlag {
-			WITHCOORD, WITHDIST, ANY, STOVALKEYT
+			WITHCOORD, WITHDIST, ANY, STOREDIST
 		}
 
 		@Override

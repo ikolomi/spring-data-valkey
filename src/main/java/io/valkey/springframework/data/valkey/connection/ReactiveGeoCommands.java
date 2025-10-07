@@ -786,7 +786,7 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * <b>NOTE:</b> STOVALKEYT option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
+		 * <b>NOTE:</b> STOREDIST option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
 		 *
 		 * @param key must not be {@literal null}.
 		 * @return new instance of {@link GeoRadiusCommand}.
@@ -1119,7 +1119,7 @@ public interface ReactiveGeoCommands {
 		}
 
 		/**
-		 * <b>NOTE:</b> STOVALKEYT option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
+		 * <b>NOTE:</b> STOREDIST option is not compatible with WITHDIST, WITHHASH and WITHCOORDS options.
 		 *
 		 * @param key must not be {@literal null}.
 		 * @return new instance of {@link GeoRadiusByMemberCommand}.

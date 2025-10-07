@@ -418,7 +418,7 @@ public class ValkeyGlideGeoCommands implements ValkeyGeoCommands {
 
     private void appendGeoSearchStoreArgs(List<Object> commandArgs, GeoSearchStoreCommandArgs args) {
         if (args.isStoreDistance()) {
-            commandArgs.add("STOVALKEYT");
+            commandArgs.add("STOREDIST");
         }
         if (args.hasLimit()) {
             commandArgs.add("COUNT");
