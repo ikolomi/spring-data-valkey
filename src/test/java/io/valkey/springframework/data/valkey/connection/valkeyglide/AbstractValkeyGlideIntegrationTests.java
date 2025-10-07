@@ -56,7 +56,7 @@ import io.valkey.springframework.data.valkey.connection.ValkeyStandaloneConfigur
 @TestInstance(Lifecycle.PER_CLASS)
 public abstract class AbstractValkeyGlideIntegrationTests {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractValkeyGlideIntegrationTests.class);
+    protected static final Logger logger = LoggerFactory.getLogger(AbstractValkeyGlideIntegrationTests.class);
 
     protected ValkeyGlideConnectionFactory connectionFactory;
     protected ValkeyConnection connection;

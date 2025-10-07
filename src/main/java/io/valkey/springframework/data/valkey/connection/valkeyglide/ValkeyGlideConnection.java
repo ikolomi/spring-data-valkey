@@ -309,7 +309,10 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
                 timeout, 
                 new ValkeyGlideExceptionConverter()
             );
-
+            // We have to clear the currentBatch before processing results to allow
+            // mappers to diffrentiate between normal and pipeline/transaction mode.
+            // e.g. LUA scripts return null for FALSE, requiring special handling in the mapper
+            currentBatch = null;
             List<Object> resultList = new ArrayList<>(results.length);
             for (int i = 0; i < results.length; i++) {
                 Object item = results[i];
@@ -383,30 +386,10 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
                 }
             }
             
-            // // Convert results from Glide format to Spring Data Valkey format
-            // List<Object> resultList = new ArrayList<>(results.length);
-            // for (int i = 0; i < results.length; i++) {
-            //     Object item = results[i];
-            //     if (item instanceof Exception) {
-            //         // Convert exceptions in transaction results
-            //         resultList.add(new ValkeyGlideExceptionConverter().convert((Exception) item));
-            //         continue;
-            //     }
-                
-            //     // First apply generic conversion
-            //     Object result = ValkeyGlideConverters.defaultFromGlideResult(item);
-                
-            //     // Then apply command-specific conversion if needed
-            //     if (i < batchCommands.size()) {
-            //         String commandName = batchCommands.get(i);
-            //         if (NUMERIC_TO_BOOLEAN_COMMANDS.contains(commandName) && result instanceof Number) {
-            //             result = ((Number) result).longValue() != 0;
-            //         } else if (GEO_COMMANDS.contains(commandName)) {
-            //             result = convertGeoResult(commandName, result);
-            //         }
-            //     }
-            //     resultList.add(result);
-            //}
+            // We have to clear the currentBatch before processing results to allow
+            // mappers to diffrentiate between normal and pipeline/transaction mode.
+            // e.g. LUA scripts return null for FALSE, requiring special handling in the mapper
+            currentBatch = null;
             List<Object> resultList = new ArrayList<>(results.length);
             for (int i = 0; i < results.length; i++) {
                 Object item = results[i];
@@ -419,9 +402,7 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
                 ResultMapper<Object, ?> mapper = (ResultMapper<Object, ?>) batchCommandsConverters.get(i);
                 resultList.add(mapper.map(item));
             }
-
             return resultList;
-
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         } finally {
@@ -763,6 +744,7 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
      *                pipelining/transaction is active (result will be available after
      *                {@link #closePipeline()} or {@link #exec()}).
      */
+    @SuppressWarnings("unchecked")
     @Nullable
     public <I, R> R execute(String command, ResultMapper<I, R> mapper, Object... args) {
         verifyConnectionOpen();

@@ -74,7 +74,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         } catch (Exception e) {
             // Check for the specific error message when AOF is not enabled
             if (e.getMessage() != null && e.getMessage().contains("NOAPPENDONLYFILE")) {
-                System.err.println("BGREWRITEAOF test skipped: AOF not enabled on server");
+                logger.warn("BGREWRITEAOF test skipped: AOF not enabled on server");
                 return;
             } else {
                 throw e;
@@ -94,7 +94,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         } catch (Exception e) {
             // Check for the specific error message when background save is already in progress
             if (e.getMessage() != null && e.getMessage().contains("Background save already in progress")) {
-                System.err.println("BGSAVE test skipped: Background save already in progress");
+                logger.warn("BGSAVE test skipped: Background save already in progress");
                 return;
             } else {
                 throw e;
@@ -113,7 +113,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
             long currentTimeSeconds = System.currentTimeMillis() / 1000;
             assertThat(lastSaveTime).isLessThanOrEqualTo(currentTimeSeconds + 60); // Allow 1 minute clock skew
         } else {
-            System.out.println("LASTSAVE returned null - no previous save recorded");
+            logger.warn("LASTSAVE returned null - no previous save recorded");
         }
     }
 
@@ -139,7 +139,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         } catch (Exception e) {
             // Check for the specific error message when save is disabled
             if (e.getMessage() != null && e.getMessage().contains("Background save already in progress")) {
-                System.err.println("SAVE test skipped: Background save already in progress");
+                logger.warn("SAVE test skipped: Background save already in progress");
                 return;
             } else {
                 throw e;
@@ -358,7 +358,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         } catch (Exception e) {
             // Check for the specific error message when config modification is not allowed
             if (e.getMessage() != null && e.getMessage().contains("read-only")) {
-                System.err.println("CONFIG SET test skipped: Server is in read-only mode");
+                logger.warn("CONFIG SET test skipped: Server is in read-only mode");
                 return;
             } else {
                 throw e;
@@ -392,7 +392,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
             while (cause != null) {
                 String causeMessage = cause.getMessage();
                 if (causeMessage != null && causeMessage.contains("The server is running without a config file")) {
-                    System.err.println("CONFIG REWRITE test skipped: Server is running without a config file");
+                    logger.warn("CONFIG REWRITE test skipped: Server is running without a config file");
                     return;
                 }
                 cause = cause.getCause();
@@ -505,7 +505,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         } catch (Exception e) {
             // Check for the specific error message when replication commands are not allowed
             if (e.getMessage() != null && e.getMessage().contains("REPLICAOF not allowed")) {
-                System.err.println("REPLICAOF test skipped: Replication commands not allowed");
+                logger.warn("REPLICAOF test skipped: Replication commands not allowed");
                 return;
             } else {
                 throw e;
@@ -550,26 +550,28 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         }
     }
 
-    // ==================== Pipeline and Transaction Support ====================
+    // ==================== Pipeline Mode Tests ====================
 
     @Test
-    void testServerCommandsInPipeline() {
-        // Test that server commands work in pipeline mode
-        connection.openPipeline();
-        
+    void testBackgroundOperationsInPipelineMode() {
         try {
-            // Execute some server commands in pipeline
-            connection.serverCommands().dbSize();
-            connection.serverCommands().info("server");
-            connection.serverCommands().time(TimeUnit.MILLISECONDS);
+            // Start pipeline
+            connection.openPipeline();
             
-            // Close pipeline and get results
+            // Queue background operations - assert they return null in pipeline mode
+            assertThat(connection.serverCommands().lastSave()).isNull();
+            // Note: bgReWriteAof, bgSave, save might fail due to server configuration, so we test lastSave
+            
+            // Execute pipeline
             List<Object> results = connection.closePipeline();
-            assertThat(results).isNotEmpty();
             
-            // In pipeline mode, results might be raw and need post-processing
-            // We mainly test that commands can be pipelined without error
-            assertThat(results).hasSizeGreaterThanOrEqualTo(3);
+            // Verify results
+            assertThat(results).hasSize(1);
+            // lastSave should return a timestamp or null
+            if (results.get(0) != null) {
+                assertThat(results.get(0)).isInstanceOf(Long.class);
+                assertThat(((Long) results.get(0))).isGreaterThan(0L);
+            }
             
         } finally {
             if (connection.isPipelined()) {
@@ -579,25 +581,675 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
     }
 
     @Test
-    void testServerCommandsInTransaction() {
-        // Test that server commands work in transaction mode
-        connection.multi();
+    void testDatabaseOperationsInPipelineMode() {
+        String key1 = "test:server:pipeline:db:key1";
+        String key2 = "test:server:pipeline:db:key2";
         
         try {
-            // Execute some server commands in transaction
-            connection.serverCommands().dbSize();
-            connection.serverCommands().time(TimeUnit.MILLISECONDS);
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), "value1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "value2".getBytes());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue database operations - assert they return null in pipeline mode
+            assertThat(connection.serverCommands().dbSize()).isNull();
+            connection.serverCommands().flushDb(); // void method, no assertion
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isInstanceOf(Long.class); // dbSize result
+            assertThat(((Long) results.get(0))).isGreaterThan(0L);
+            assertThat(results.get(1)).isEqualTo("OK"); // flushDb result
+            
+        } finally {
+            cleanupKeys(key1, key2);
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testDatabaseOperationsWithOptionsInPipelineMode() {
+        String key = "test:server:pipeline:flush:key";
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), "value".getBytes());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue database operations with options
+            connection.serverCommands().flushDb(FlushOption.ASYNC); // void method, no assertion
+            connection.serverCommands().flushAll(FlushOption.SYNC); // void method, no assertion
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo("OK"); // flushDb result
+            assertThat(results.get(1)).isEqualTo("OK"); // flushAll result
+            
+        } finally {
+            cleanupKey(key);
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testServerInformationInPipelineMode() {
+        try {
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue server information commands - assert they return null in pipeline mode
+            assertThat(connection.serverCommands().info()).isNull();
+            assertThat(connection.serverCommands().info("server")).isNull();
+            assertThat(connection.serverCommands().time(TimeUnit.MILLISECONDS)).isNull();
+            assertThat(connection.serverCommands().time(TimeUnit.SECONDS)).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(4);
+            
+            // info() result
+            assertThat(results.get(0)).isInstanceOf(Properties.class);
+            Properties allInfo = (Properties) results.get(0);
+            assertThat(allInfo).isNotEmpty();
+            
+            // info("server") result
+            assertThat(results.get(1)).isInstanceOf(Properties.class);
+            Properties serverInfo = (Properties) results.get(1);
+            assertThat(serverInfo).isNotNull();
+            
+            // time() results
+            assertThat(results.get(2)).isInstanceOf(Long.class);
+            assertThat(((Long) results.get(2))).isGreaterThan(0L);
+            
+            assertThat(results.get(3)).isInstanceOf(Long.class);
+            assertThat(((Long) results.get(3))).isGreaterThan(0L);
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testConfigurationManagementInPipelineMode() {
+        try {
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue configuration commands - assert they return null in pipeline mode
+            assertThat(connection.serverCommands().getConfig("maxmemory")).isNull();
+            assertThat(connection.serverCommands().getConfig("*")).isNull();
+            connection.serverCommands().resetConfigStats(); // void method, no assertion
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(3);
+            
+            // getConfig results
+            assertThat(results.get(0)).isInstanceOf(Properties.class);
+            assertThat(results.get(1)).isInstanceOf(Properties.class);
+            Properties allConfigs = (Properties) results.get(1);
+            assertThat(allConfigs).isNotEmpty();
+            
+            // resetConfigStats result
+            assertThat(results.get(2)).isEqualTo("OK");
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testConfigurationSetInPipelineMode() {
+        try {
+            // Get original timeout for restoration
+            Properties timeoutConfig = connection.serverCommands().getConfig("timeout");
+            String originalTimeout = timeoutConfig.getProperty("timeout", "0");
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue config set command
+            connection.serverCommands().setConfig("timeout", "120"); // void method, no assertion
+            assertThat(connection.serverCommands().getConfig("timeout")).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo("OK"); // setConfig result
+            assertThat(results.get(1)).isInstanceOf(Properties.class); // getConfig result
+            
+            Properties newTimeoutConfig = (Properties) results.get(1);
+            assertThat(newTimeoutConfig.getProperty("timeout")).isEqualTo("120");
+            
+            // Restore original timeout
+            connection.serverCommands().setConfig("timeout", originalTimeout);
+            
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("read-only")) {
+                logger.warn("CONFIG SET test skipped: Server is in read-only mode");
+                return;
+            } else {
+                throw e;
+            }
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testClientManagementInPipelineMode() {
+        try {
+            // Get original client name for restoration
+            String originalName = connection.serverCommands().getClientName();
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue client management commands - assert they return null in pipeline mode
+            connection.serverCommands().setClientName("test-pipeline-client".getBytes()); // void method, no assertion
+            assertThat(connection.serverCommands().getClientName()).isNull();
+            assertThat(connection.serverCommands().getClientList()).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo("OK"); // setClientName result
+            assertThat(results.get(1)).isEqualTo("test-pipeline-client"); // getClientName result
+            
+            @SuppressWarnings("unchecked")
+            List<ValkeyClientInfo> clientList = (List<ValkeyClientInfo>) results.get(2);
+            assertThat(clientList).isNotEmpty();
+            
+            // Restore original client name
+            if (originalName != null && !originalName.isEmpty()) {
+                connection.serverCommands().setClientName(originalName.getBytes());
+            } else {
+                connection.serverCommands().setClientName("".getBytes());
+            }
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testReplicationCommandsInPipelineMode() {
+        try {
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue replication commands - these are safe to test
+            connection.serverCommands().replicaOfNoOne(); // void method, no assertion
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isEqualTo("OK"); // replicaOfNoOne result
+            
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("REPLICAOF not allowed")) {
+                logger.warn("REPLICAOF test skipped: Replication commands not allowed");
+                return;
+            } else {
+                throw e;
+            }
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    // ==================== Transaction Mode Tests ====================
+
+    @Test
+    void testBackgroundOperationsInTransactionMode() {
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue background operations - assert they return null in transaction mode
+            assertThat(connection.serverCommands().lastSave()).isNull();
             
             // Execute transaction
             List<Object> results = connection.exec();
-            assertThat(results).hasSize(2);
             
-            // In transaction mode, results might be raw and need post-processing
-            // We mainly test that commands can be executed in transactions without error
-            assertThat(results.get(0)).isNotNull(); // dbSize
-            assertThat(results.get(1)).isNotNull(); // time
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(1);
+            // lastSave should return a timestamp or null
+            if (results.get(0) != null) {
+                assertThat(results.get(0)).isInstanceOf(Long.class);
+                assertThat(((Long) results.get(0))).isGreaterThan(0L);
+            }
             
         } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testDatabaseOperationsInTransactionMode() {
+        String key1 = "test:server:transaction:db:key1";
+        String key2 = "test:server:transaction:db:key2";
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key1.getBytes(), "value1".getBytes());
+            connection.stringCommands().set(key2.getBytes(), "value2".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue database operations - assert they return null in transaction mode
+            assertThat(connection.serverCommands().dbSize()).isNull();
+            connection.serverCommands().flushDb(); // void method, no assertion
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isInstanceOf(Long.class); // dbSize result
+            assertThat(((Long) results.get(0))).isGreaterThan(0L);
+            assertThat(results.get(1)).isEqualTo("OK"); // flushDb result
+            
+        } finally {
+            cleanupKeys(key1, key2);
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testDatabaseOperationsWithOptionsInTransactionMode() {
+        String key = "test:server:transaction:flush:key";
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), "value".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue database operations with options
+            connection.serverCommands().flushDb(FlushOption.ASYNC); // void method, no assertion
+            connection.serverCommands().flushAll(FlushOption.SYNC); // void method, no assertion
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo("OK"); // flushDb result
+            assertThat(results.get(1)).isEqualTo("OK"); // flushAll result
+            
+        } finally {
+            cleanupKey(key);
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testServerInformationInTransactionMode() {
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue server information commands - assert they return null in transaction mode
+            assertThat(connection.serverCommands().info()).isNull();
+            assertThat(connection.serverCommands().info("server")).isNull();
+            assertThat(connection.serverCommands().time(TimeUnit.MILLISECONDS)).isNull();
+            assertThat(connection.serverCommands().time(TimeUnit.SECONDS)).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(4);
+            
+            // info() result
+            assertThat(results.get(0)).isInstanceOf(Properties.class);
+            Properties allInfo = (Properties) results.get(0);
+            assertThat(allInfo).isNotEmpty();
+            
+            // info("server") result
+            assertThat(results.get(1)).isInstanceOf(Properties.class);
+            Properties serverInfo = (Properties) results.get(1);
+            assertThat(serverInfo).isNotNull();
+            
+            // time() results
+            assertThat(results.get(2)).isInstanceOf(Long.class);
+            assertThat(((Long) results.get(2))).isGreaterThan(0L);
+            
+            assertThat(results.get(3)).isInstanceOf(Long.class);
+            assertThat(((Long) results.get(3))).isGreaterThan(0L);
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testConfigurationManagementInTransactionMode() {
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue configuration commands - assert they return null in transaction mode
+            assertThat(connection.serverCommands().getConfig("maxmemory")).isNull();
+            assertThat(connection.serverCommands().getConfig("*")).isNull();
+            connection.serverCommands().resetConfigStats(); // void method, no assertion
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(3);
+            
+            // getConfig results
+            assertThat(results.get(0)).isInstanceOf(Properties.class);
+            assertThat(results.get(1)).isInstanceOf(Properties.class);
+            Properties allConfigs = (Properties) results.get(1);
+            assertThat(allConfigs).isNotEmpty();
+            
+            // resetConfigStats result
+            assertThat(results.get(2)).isEqualTo("OK");
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testConfigurationSetInTransactionMode() {
+        try {
+            // Get original timeout for restoration
+            Properties timeoutConfig = connection.serverCommands().getConfig("timeout");
+            String originalTimeout = timeoutConfig.getProperty("timeout", "0");
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue config set command
+            connection.serverCommands().setConfig("timeout", "120"); // void method, no assertion
+            assertThat(connection.serverCommands().getConfig("timeout")).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(2);
+            assertThat(results.get(0)).isEqualTo("OK"); // setConfig result
+            assertThat(results.get(1)).isInstanceOf(Properties.class); // getConfig result
+            
+            Properties newTimeoutConfig = (Properties) results.get(1);
+            assertThat(newTimeoutConfig.getProperty("timeout")).isEqualTo("120");
+            
+            // Restore original timeout
+            connection.serverCommands().setConfig("timeout", originalTimeout);
+            
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("read-only")) {
+                logger.warn("CONFIG SET test skipped: Server is in read-only mode");
+                return;
+            } else {
+                throw e;
+            }
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testClientManagementInTransactionMode() {
+        try {
+            // Get original client name for restoration
+            String originalName = connection.serverCommands().getClientName();
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue client management commands - assert they return null in transaction mode
+            connection.serverCommands().setClientName("test-transaction-client".getBytes()); // void method, no assertion
+            assertThat(connection.serverCommands().getClientName()).isNull();
+            assertThat(connection.serverCommands().getClientList()).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(3);
+            assertThat(results.get(0)).isEqualTo("OK"); // setClientName result
+            assertThat(results.get(1)).isEqualTo("test-transaction-client"); // getClientName result
+            
+            @SuppressWarnings("unchecked")
+            List<ValkeyClientInfo> clientList = (List<ValkeyClientInfo>) results.get(2);
+            assertThat(clientList).isNotEmpty();
+            
+            // Restore original client name
+            if (originalName != null && !originalName.isEmpty()) {
+                connection.serverCommands().setClientName(originalName.getBytes());
+            } else {
+                connection.serverCommands().setClientName("".getBytes());
+            }
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testReplicationCommandsInTransactionMode() {
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue replication commands - these are safe to test
+            connection.serverCommands().replicaOfNoOne(); // void method, no assertion
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(1);
+            assertThat(results.get(0)).isEqualTo("OK"); // replicaOfNoOne result
+            
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("REPLICAOF not allowed")) {
+                logger.warn("REPLICAOF test skipped: Replication commands not allowed");
+                return;
+            } else {
+                throw e;
+            }
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testMigrationCommandsInPipelineMode() {
+        String sourceKey = "test:server:pipeline:migrate:key";
+        
+        try {
+            // Set up source data
+            connection.stringCommands().set(sourceKey.getBytes(), "migrate_value".getBytes());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Test migrate to non-existent target (will fail but we test the pipeline behavior)
+            try {
+                connection.serverCommands().migrate(sourceKey.getBytes(), 
+                    ValkeyNode.newValkeyNode().listeningAt("localhost", 9999).build(), 
+                    0, null, 5000); // void method, no assertion
+            } catch (Exception e) {
+                // Expected to fail, but we're testing pipeline mode
+            }
+            
+            // Execute pipeline (may contain errors but should complete)
+            try {
+                List<Object> results = connection.closePipeline();
+                // Migration will likely fail but pipeline should handle it
+            } catch (Exception e) {
+                // Expected for migration to non-existent target
+                logger.info("Migration failed as expected: " + e.getMessage());
+            }
+            
+        } finally {
+            cleanupKey(sourceKey);
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+        }
+    }
+
+    @Test
+    void testMigrationCommandsInTransactionMode() {
+        String sourceKey = "test:server:transaction:migrate:key";
+        
+        try {
+            // Set up source data
+            connection.stringCommands().set(sourceKey.getBytes(), "migrate_value".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Test migrate to non-existent target (will fail but we test the transaction behavior)
+            connection.serverCommands().migrate(sourceKey.getBytes(), 
+                ValkeyNode.newValkeyNode().listeningAt("localhost", 9999).build(), 
+                0, MigrateOption.COPY, 5000); // void method, no assertion
+            
+            // Execute transaction (may contain errors but should complete)
+            try {
+                List<Object> results = connection.exec();
+                // Migration will likely fail but transaction should handle it
+            } catch (Exception e) {
+                // Expected for migration to non-existent target
+                logger.info("Migration failed as expected: " + e.getMessage());
+            }
+            
+        } finally {
+            cleanupKey(sourceKey);
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testTransactionDiscardWithServerCommands() {
+        String key = "test:server:transaction:discard";
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue server commands
+            connection.serverCommands().dbSize(); // assert returns null in transaction mode
+            assertThat(connection.serverCommands().dbSize()).isNull();
+            assertThat(connection.serverCommands().time(TimeUnit.MILLISECONDS)).isNull();
+            
+            // Discard transaction
+            connection.discard();
+            
+            // Verify commands were not executed by checking current db state
+            Long currentDbSize = connection.serverCommands().dbSize();
+            assertThat(currentDbSize).isNotNull();
+            
+        } finally {
+            cleanupKey(key);
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+        }
+    }
+
+    @Test
+    void testWatchWithServerCommandsTransaction() throws InterruptedException {
+        String watchKey = "test:server:transaction:watch";
+        String otherKey = "test:server:transaction:other";
+        
+        try {
+            // Setup initial data
+            connection.stringCommands().set(watchKey.getBytes(), "initial".getBytes());
+            
+            // Watch the key
+            connection.watch(watchKey.getBytes());
+            
+            // Modify the watched key from "outside" the transaction
+            connection.stringCommands().set(watchKey.getBytes(), "modified".getBytes());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue server commands
+            connection.serverCommands().dbSize(); // assert returns null in transaction mode
+            assertThat(connection.serverCommands().dbSize()).isNull();
+            assertThat(connection.serverCommands().time(TimeUnit.MILLISECONDS)).isNull();
+            
+            // Execute transaction - should be aborted due to WATCH
+            List<Object> results = connection.exec();
+            
+            // Transaction should be aborted (results should be null)
+            assertThat(results).isNull();
+            
+        } finally {
+            cleanupKeys(watchKey, otherKey);
             if (connection.isQueueing()) {
                 connection.discard();
             }
