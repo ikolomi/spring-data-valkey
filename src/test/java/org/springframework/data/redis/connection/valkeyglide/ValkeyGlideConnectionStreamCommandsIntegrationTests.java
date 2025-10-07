@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,22 +32,27 @@ import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoConsumers;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoGroups;
 import org.springframework.data.redis.connection.stream.StreamInfo.XInfoStream;
+import org.springframework.data.redis.RedisSystemException;
 
 /**
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
  * stream functionality using the RedisStreamCommands interface directly.
  * 
- * These tests validate the implementation of all RedisStreamCommands methods:
- * - Basic stream operations (xAdd, xDel, xLen, xTrim)
- * - Range queries (xRange, xRevRange)
- * - Stream reading (xRead, xReadGroup)
- * - Consumer group management (xGroupCreate, xGroupDestroy, xGroupDelConsumer)
- * - Acknowledgements (xAck)
- * - Claiming messages (xClaim, xClaimJustId)
- * - Pending messages (xPending)
- * - Stream information (xInfo, xInfoGroups, xInfoConsumers)
- * - Error handling and validation
- * - Pipeline and transaction support
+ * These tests systematically validate all RedisStreamCommands methods in three modes:
+ * 1. IMMEDIATE MODE - Direct command execution
+ * 2. PIPELINE MODE - Batched command execution
+ * 3. TRANSACTION MODE - Atomic command execution
+ * 
+ * Stream Commands Coverage:
+ * - Basic operations: xAdd, xDel, xLen, xTrim
+ * - Range queries: xRange, xRevRange  
+ * - Stream reading: xRead, xReadGroup
+ * - Consumer groups: xGroupCreate, xGroupDestroy, xGroupDelConsumer
+ * - Acknowledgements: xAck
+ * - Message claiming: xClaim, xClaimJustId
+ * - Pending messages: xPending (summary and detailed)
+ * - Stream information: xInfo, xInfoGroups, xInfoConsumers
+ * - Error handling and edge cases
  *
  * @author Ilya Kolomin
  * @since 2.0
@@ -265,20 +269,21 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
                 assertThat(length).isEqualTo(0L);
                 
             } finally {
-                cleanupKey(streamKey2);
                 try {
                     connection.streamCommands().xGroupDestroy(streamKey2.getBytes(), groupName);
                 } catch (Exception ignored) {}
+                cleanupKey(streamKey2);
             }
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testConsumerManagement() {
         String streamKey = "test:stream:consumer";
@@ -318,15 +323,16 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
         assertThat(notDeleted).isFalse();
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
     // ==================== Stream Reading Operations ====================
 
+    @SuppressWarnings("unchecked")
     @Test
     void testStreamReading() {
         String streamKey = "test:stream:read";
@@ -366,6 +372,7 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testStreamGroupReading() {
         String streamKey = "test:stream:groupread";
@@ -380,6 +387,7 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
                 .ofMap(fields);
             
             RecordId addedId = connection.streamCommands().xAdd(record);
+            assertThat(addedId).isNotNull();
             
             // Create consumer group
             connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
@@ -407,15 +415,16 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             }
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
     // ==================== Pending Messages Operations ====================
 
+    @SuppressWarnings("unchecked")
     @Test
     void testPendingMessages() {
         String streamKey = "test:stream:pending";
@@ -474,15 +483,16 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             }
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
     // ==================== Message Claiming Operations ====================
 
+    @SuppressWarnings("unchecked")
     @Test
     void testMessageClaiming() {
         String streamKey = "test:stream:claim";
@@ -536,15 +546,16 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             }
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
     // ==================== Stream Information Operations ====================
 
+    @SuppressWarnings("unchecked")
     @Test
     void testStreamInformation() {
         String streamKey = "test:stream:info";
@@ -560,18 +571,18 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             
             RecordId addedRecordId = connection.streamCommands().xAdd(record);
             assertThat(addedRecordId).isNotNull();
-            
+
             // Test stream info - verify actual content
             XInfoStream streamInfo = connection.streamCommands().xInfo(streamKey.getBytes());
             assertThat(streamInfo).isNotNull();
             assertThat(streamInfo.streamLength()).isEqualTo(1L);
             assertThat(streamInfo.getFirstEntry()).isNotNull();
             assertThat(streamInfo.getLastEntry()).isNotNull();
-            
+
             // Create consumer group and test group info - verify actual content
             String createResult = connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
             assertThat(createResult).isEqualTo("OK");
-            
+
             XInfoGroups groupsInfo = connection.streamCommands().xInfoGroups(streamKey.getBytes());
             assertThat(groupsInfo).isNotNull();
             assertThat(groupsInfo.isEmpty()).isFalse();
@@ -623,10 +634,10 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             assertThat(updatedGroupInfo.pendingCount()).isEqualTo(1L); // One pending message
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
@@ -684,6 +695,7 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
 
     // ==================== Error Handling and Validation ====================
 
+    @SuppressWarnings({ "unchecked", "unchecked" })
     @Test
     void testErrorHandling() {
         String streamKey = "test:stream:validation";
@@ -712,52 +724,95 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             assertThat(length).isEqualTo(0L);
             
             // Test reading from non-existent stream
+            @SuppressWarnings("unchecked")
             List<ByteRecord> records = connection.streamCommands().xRead(
                 StreamReadOptions.empty(),
                 StreamOffset.create("non:existent".getBytes(), ReadOffset.from("0"))
             );
             assertThat(records).isEmpty();
             
+            // Test xReadGroup on non-existent consumer group - should throw exception
+            assertThatThrownBy(() -> connection.streamCommands().xReadGroup(
+                Consumer.from("non-existent-group", "consumer"),
+                StreamReadOptions.empty(),
+                StreamOffset.create("non:existent".getBytes(), ReadOffset.from("0"))
+            ))
+            .isInstanceOf(RedisSystemException.class)
+            .hasMessageContaining("NOGROUP");
+            
+            // Test xRange on non-existent stream  
+            List<ByteRecord> rangeRecords = connection.streamCommands()
+                .xRange("non:existent".getBytes(), Range.unbounded(), Limit.unlimited());
+            assertThat(rangeRecords).isEmpty();
+            
+            // Test xRevRange on non-existent stream
+            List<ByteRecord> revRangeRecords = connection.streamCommands()
+                .xRevRange("non:existent".getBytes(), Range.unbounded(), Limit.unlimited());
+            assertThat(revRangeRecords).isEmpty();
+            
+            // Test xClaim on non-existent consumer group - should throw exception
+            assertThatThrownBy(() -> connection.streamCommands()
+                .xClaim("non:existent".getBytes(), "group", "consumer", 
+                    RedisStreamCommands.XClaimOptions.minIdle(Duration.ofMillis(0)).ids(RecordId.of("0-0"))))
+            .isInstanceOf(RedisSystemException.class)
+            .hasMessageContaining("NOGROUP");
+            
+            // Test xClaimJustId on non-existent consumer group - should throw exception
+            assertThatThrownBy(() -> connection.streamCommands()
+                .xClaimJustId("non:existent".getBytes(), "group", "consumer",
+                    RedisStreamCommands.XClaimOptions.minIdle(Duration.ofMillis(0)).ids(RecordId.of("0-0"))))
+            .isInstanceOf(RedisSystemException.class)
+            .hasMessageContaining("NOGROUP");
+            
         } finally {
             cleanupKey(streamKey);
         }
     }
 
-    // ==================== Pipeline and Transaction Support ====================
+    // ==================== Comprehensive Pipeline Mode Tests ====================
 
     @Test
-    void testStreamCommandsInPipeline() {
-        String streamKey = "test:stream:pipeline";
+    void testStreamBasicOperationsPipeline() {
+        String streamKey = "test:stream:pipeline:basic";
         
         try {
             connection.openPipeline();
             
-            // Add operations to pipeline
-            Map<byte[], byte[]> fields = Map.of(
-                "pipeline".getBytes(), "test".getBytes()
-            );
-            
-            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+            // Test xAdd and xLen in pipeline
+            Map<byte[], byte[]> fields1 = Map.of("field1".getBytes(), "value1".getBytes());
+            MapRecord<byte[], byte[], byte[]> record1 = StreamRecords.newRecord()
                 .in(streamKey.getBytes())
-                .ofMap(fields);
+                .ofMap(fields1);
             
-            connection.streamCommands().xAdd(record);
-            connection.streamCommands().xLen(streamKey.getBytes());
+            // Pipeline commands should return null
+            RecordId addResult1 = connection.streamCommands().xAdd(record1);
+            assertThat(addResult1).isNull();
             
-            // Execute pipeline
+            Long lenResult1 = connection.streamCommands().xLen(streamKey.getBytes());
+            assertThat(lenResult1).isNull();
+            
+            Map<byte[], byte[]> fields2 = Map.of("field2".getBytes(), "value2".getBytes());
+            MapRecord<byte[], byte[], byte[]> record2 = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields2);
+            
+            RecordId addResult2 = connection.streamCommands().xAdd(record2);
+            assertThat(addResult2).isNull();
+            
+            Long lenResult2 = connection.streamCommands().xLen(streamKey.getBytes());
+            assertThat(lenResult2).isNull();
+            
             List<Object> results = connection.closePipeline();
-            assertThat(results).isNotEmpty();
-            // Pipeline results may include additional metadata, so check for at least our 2 commands
-            assertThat(results.size()).isGreaterThanOrEqualTo(2);
+            assertThat(results).hasSize(4);
             
-            // Verify the actual results we care about
-            Object recordIdResult = results.get(0);
-            assertThat(recordIdResult).isNotNull(); // Should be the record ID
-            
-            Object lengthResult = results.get(1);
-            if (lengthResult instanceof Number) {
-                assertThat(((Number) lengthResult).longValue()).isGreaterThan(0L);
-            }
+            // First xAdd result should be a record ID
+            assertThat(results.get(0)).isNotNull();
+            // First xLen result should be 1
+            assertThat(((Number) results.get(1)).longValue()).isEqualTo(1L);
+            // Second xAdd result should be a record ID
+            assertThat(results.get(2)).isNotNull();
+            // Second xLen result should be 2
+            assertThat(((Number) results.get(3)).longValue()).isEqualTo(2L);
             
         } finally {
             if (connection.isPipelined()) {
@@ -768,28 +823,264 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
     }
 
     @Test
-    void testStreamCommandsInTransaction() {
-        String streamKey = "test:stream:transaction";
+    void testStreamRangeOperationsPipeline() {
+        String streamKey = "test:stream:pipeline:range";
+        
+        try {
+            // Setup data first
+            for (int i = 0; i < 5; i++) {
+                Map<byte[], byte[]> fields = Map.of("index".getBytes(), String.valueOf(i).getBytes());
+                MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                    .in(streamKey.getBytes())
+                    .ofMap(fields);
+                connection.streamCommands().xAdd(record);
+            }
+            
+            connection.openPipeline();
+            
+            // Test range operations in pipeline - pipeline commands should return null
+            List<ByteRecord> rangeResult = connection.streamCommands().xRange(streamKey.getBytes(), Range.unbounded(), Limit.unlimited());
+            assertThat(rangeResult).isNull();
+            
+            List<ByteRecord> revRangeResult = connection.streamCommands().xRevRange(streamKey.getBytes(), Range.unbounded(), Limit.limit().count(3));
+            assertThat(revRangeResult).isNull();
+            
+            Long lenResult = connection.streamCommands().xLen(streamKey.getBytes());
+            assertThat(lenResult).isNull();
+            
+            List<Object> results = connection.closePipeline();
+            assertThat(results).hasSize(3);
+            
+            // First result should be all 5 records
+            @SuppressWarnings("unchecked")
+            List<ByteRecord> rangeRecords = (List<ByteRecord>) results.get(0);
+            assertThat(rangeRecords).hasSize(5);
+            
+            // Second result should be 3 records in reverse order
+            @SuppressWarnings("unchecked")
+            List<ByteRecord> revRangeRecords = (List<ByteRecord>) results.get(1);
+            assertThat(revRangeRecords).hasSize(3);
+            
+            // Third result should be length 5
+            assertThat(((Number) results.get(2)).longValue()).isEqualTo(5L);
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+            cleanupKey(streamKey);
+        }
+    }
+
+    @Test
+    void testStreamGroupOperationsPipeline() {
+        String streamKey = "test:stream:pipeline:group";
+        String groupName = "test-group";
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> fields = Map.of("data".getBytes(), "test".getBytes());
+            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields);
+            connection.streamCommands().xAdd(record);
+            
+            connection.openPipeline();
+            
+            // Test group operations in pipeline - pipeline commands should return null
+            String createResult = connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
+            assertThat(createResult).isNull();
+            
+            XInfoGroups groupsResult = connection.streamCommands().xInfoGroups(streamKey.getBytes());
+            assertThat(groupsResult).isNull();
+            
+            Boolean destroyResult = connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
+            assertThat(destroyResult).isNull();
+            
+            List<Object> results = connection.closePipeline();
+            assertThat(results).hasSize(3);
+            
+            // First result should be "OK"
+            assertThat(results.get(0)).isEqualTo("OK");
+            
+            // Second result should be groups info
+            assertThat(results.get(1)).isInstanceOf(XInfoGroups.class);
+            XInfoGroups groupsInfo = (XInfoGroups) results.get(1);
+            assertThat(groupsInfo.size()).isEqualTo(1);
+            
+            // Third result should be true (group destroyed)
+            assertThat(results.get(2)).isEqualTo(true);
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+            try {
+                connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
+            } catch (Exception ignored) {}
+            cleanupKey(streamKey);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testStreamReadOperationsPipeline() {
+        String streamKey = "test:stream:pipeline:read";
+        
+        try {
+            // Setup data first
+            for (int i = 0; i < 3; i++) {
+                Map<byte[], byte[]> fields = Map.of("index".getBytes(), String.valueOf(i).getBytes());
+                MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                    .in(streamKey.getBytes())
+                    .ofMap(fields);
+                connection.streamCommands().xAdd(record);
+            }
+            
+            connection.openPipeline();
+            
+            // Test read operations in pipeline
+            connection.streamCommands().xRead(
+                StreamReadOptions.empty(),
+                StreamOffset.create(streamKey.getBytes(), ReadOffset.from("0"))
+            );
+            connection.streamCommands().xRead(
+                StreamReadOptions.empty().count(2),
+                StreamOffset.create(streamKey.getBytes(), ReadOffset.from("0"))
+            );
+            connection.streamCommands().xLen(streamKey.getBytes());
+            
+            List<Object> results = connection.closePipeline();
+            assertThat(results).hasSize(3);
+            
+            // First result should be all 3 records
+            List<ByteRecord> allRecords = (List<ByteRecord>) results.get(0);
+            assertThat(allRecords).hasSize(3);
+            
+            // Second result should be 2 records
+            List<ByteRecord> limitedRecords = (List<ByteRecord>) results.get(1);
+            assertThat(limitedRecords).hasSize(2);
+            
+            // Third result should be length 3
+            assertThat(((Number) results.get(2)).longValue()).isEqualTo(3L);
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+            cleanupKey(streamKey);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testStreamInfoOperationsPipeline() {
+        String streamKey = "test:stream:pipeline:info";
+        String groupName = "test-group";
+        String consumerName = "test-consumer";
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> fields = Map.of("info".getBytes(), "test".getBytes());
+            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields);
+            connection.streamCommands().xAdd(record);
+            
+            // Create group and consumer with pending message
+            connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
+            connection.streamCommands().xReadGroup(
+                Consumer.from(groupName, consumerName),
+                StreamReadOptions.empty(),
+                StreamOffset.create(streamKey.getBytes(), ReadOffset.lastConsumed())
+            );
+            
+            connection.openPipeline();
+            
+            // Test info operations in pipeline
+            connection.streamCommands().xInfo(streamKey.getBytes());
+            connection.streamCommands().xInfoGroups(streamKey.getBytes());
+            connection.streamCommands().xInfoConsumers(streamKey.getBytes(), groupName);
+            connection.streamCommands().xPending(streamKey.getBytes(), groupName);
+            
+            List<Object> results = connection.closePipeline();
+            assertThat(results).hasSize(4);
+            
+            // Verify stream info
+            assertThat(results.get(0)).isInstanceOf(XInfoStream.class);
+            XInfoStream streamInfo = (XInfoStream) results.get(0);
+            assertThat(streamInfo.streamLength()).isEqualTo(1L);
+            
+            // Verify groups info
+            assertThat(results.get(1)).isInstanceOf(XInfoGroups.class);
+            XInfoGroups groupsInfo = (XInfoGroups) results.get(1);
+            assertThat(groupsInfo.size()).isEqualTo(1);
+            
+            // Verify consumers info
+            assertThat(results.get(2)).isInstanceOf(XInfoConsumers.class);
+            XInfoConsumers consumersInfo = (XInfoConsumers) results.get(2);
+            assertThat(consumersInfo.size()).isEqualTo(1);
+            
+            // Verify pending messages
+            assertThat(results.get(3)).isInstanceOf(PendingMessagesSummary.class);
+            PendingMessagesSummary pendingSummary = (PendingMessagesSummary) results.get(3);
+            assertThat(pendingSummary.getTotalPendingMessages()).isEqualTo(1L);
+            
+        } finally {
+            if (connection.isPipelined()) {
+                connection.closePipeline();
+            }
+            try {
+                connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
+            } catch (Exception ignored) {}
+            cleanupKey(streamKey);
+        }
+    }
+
+    // ==================== Comprehensive Transaction Mode Tests ====================
+
+    @Test
+    void testStreamBasicOperationsTransaction() {
+        String streamKey = "test:stream:transaction:basic";
         
         try {
             connection.multi();
             
-            // Add operations to transaction
-            Map<byte[], byte[]> fields = Map.of(
-                "transaction".getBytes(), "test".getBytes()
-            );
-            
-            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+            // Test xAdd and xLen in transaction
+            Map<byte[], byte[]> fields1 = Map.of("field1".getBytes(), "value1".getBytes());
+            MapRecord<byte[], byte[], byte[]> record1 = StreamRecords.newRecord()
                 .in(streamKey.getBytes())
-                .ofMap(fields);
+                .ofMap(fields1);
             
-            connection.streamCommands().xAdd(record);
-            connection.streamCommands().xLen(streamKey.getBytes());
+            // Transaction commands should return null
+            RecordId addResult1 = connection.streamCommands().xAdd(record1);
+            assertThat(addResult1).isNull();
             
-            // Execute transaction
+            Long lenResult1 = connection.streamCommands().xLen(streamKey.getBytes());
+            assertThat(lenResult1).isNull();
+            
+            Map<byte[], byte[]> fields2 = Map.of("field2".getBytes(), "value2".getBytes());
+            MapRecord<byte[], byte[], byte[]> record2 = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields2);
+            
+            RecordId addResult2 = connection.streamCommands().xAdd(record2);
+            assertThat(addResult2).isNull();
+            
+            Long lenResult2 = connection.streamCommands().xLen(streamKey.getBytes());
+            assertThat(lenResult2).isNull();
+            
             List<Object> results = connection.exec();
-            assertThat(results).isNotEmpty();
-            assertThat(results).hasSize(2);
+            assertThat(results).hasSize(4);
+            
+            // First xAdd result should be a record ID
+            assertThat(results.get(0)).isNotNull();
+            // First xLen result should be 1
+            assertThat(((Number) results.get(1)).longValue()).isEqualTo(1L);
+            // Second xAdd result should be a record ID
+            assertThat(results.get(2)).isNotNull();
+            // Second xLen result should be 2
+            assertThat(((Number) results.get(3)).longValue()).isEqualTo(2L);
             
         } finally {
             if (connection.isQueueing()) {
@@ -799,8 +1090,260 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
         }
     }
 
+    @Test
+    void testStreamRangeOperationsTransaction() {
+        String streamKey = "test:stream:transaction:range";
+        
+        try {
+            // Setup data first
+            for (int i = 0; i < 5; i++) {
+                Map<byte[], byte[]> fields = Map.of("index".getBytes(), String.valueOf(i).getBytes());
+                MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                    .in(streamKey.getBytes())
+                    .ofMap(fields);
+                connection.streamCommands().xAdd(record);
+            }
+            
+            connection.multi();
+            
+            // Test range operations in transaction
+            connection.streamCommands().xRange(streamKey.getBytes(), Range.unbounded(), Limit.unlimited());
+            connection.streamCommands().xRevRange(streamKey.getBytes(), Range.unbounded(), Limit.limit().count(3));
+            connection.streamCommands().xLen(streamKey.getBytes());
+            
+            List<Object> results = connection.exec();
+            assertThat(results).hasSize(3);
+            
+            // First result should be all 5 records
+            @SuppressWarnings("unchecked")
+            List<ByteRecord> rangeRecords = (List<ByteRecord>) results.get(0);
+            assertThat(rangeRecords).hasSize(5);
+            
+            // Second result should be 3 records in reverse order
+            @SuppressWarnings("unchecked")
+            List<ByteRecord> revRangeRecords = (List<ByteRecord>) results.get(1);
+            assertThat(revRangeRecords).hasSize(3);
+            
+            // Third result should be length 5
+            assertThat(((Number) results.get(2)).longValue()).isEqualTo(5L);
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+            cleanupKey(streamKey);
+        }
+    }
+
+    @Test
+    void testStreamGroupOperationsTransaction() {
+        String streamKey = "test:stream:transaction:group";
+        String groupName = "test-group";
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> fields = Map.of("data".getBytes(), "test".getBytes());
+            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields);
+            connection.streamCommands().xAdd(record);
+            
+            connection.multi();
+            
+            // Test group operations in transaction
+            connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
+            connection.streamCommands().xInfoGroups(streamKey.getBytes());
+            
+            List<Object> results = connection.exec();
+            assertThat(results).hasSize(2);
+            
+            // First result should be "OK"
+            assertThat(results.get(0)).isEqualTo("OK");
+            
+            // Second result should be groups info
+            assertThat(results.get(1)).isInstanceOf(XInfoGroups.class);
+            XInfoGroups groupsInfo = (XInfoGroups) results.get(1);
+            assertThat(groupsInfo.size()).isEqualTo(1);
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+            try {
+                connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
+            } catch (Exception ignored) {}
+            cleanupKey(streamKey);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testStreamReadOperationsTransaction() {
+        String streamKey = "test:stream:transaction:read";
+        
+        try {
+            // Setup data first
+            for (int i = 0; i < 3; i++) {
+                Map<byte[], byte[]> fields = Map.of("index".getBytes(), String.valueOf(i).getBytes());
+                MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                    .in(streamKey.getBytes())
+                    .ofMap(fields);
+                connection.streamCommands().xAdd(record);
+            }
+            
+            connection.multi();
+            
+            // Test read operations in transaction
+            connection.streamCommands().xRead(
+                StreamReadOptions.empty(),
+                StreamOffset.create(streamKey.getBytes(), ReadOffset.from("0"))
+            );
+            connection.streamCommands().xRead(
+                StreamReadOptions.empty().count(2),
+                StreamOffset.create(streamKey.getBytes(), ReadOffset.from("0"))
+            );
+            connection.streamCommands().xLen(streamKey.getBytes());
+            
+            List<Object> results = connection.exec();
+            assertThat(results).hasSize(3);
+            
+            // First result should be all 3 records
+            List<ByteRecord> allRecords = (List<ByteRecord>) results.get(0);
+            assertThat(allRecords).hasSize(3);
+            
+            // Second result should be 2 records
+            List<ByteRecord> limitedRecords = (List<ByteRecord>) results.get(1);
+            assertThat(limitedRecords).hasSize(2);
+            
+            // Third result should be length 3
+            assertThat(((Number) results.get(2)).longValue()).isEqualTo(3L);
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+            cleanupKey(streamKey);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testStreamInfoOperationsTransaction() {
+        String streamKey = "test:stream:transaction:info";
+        String groupName = "test-group";
+        String consumerName = "test-consumer";
+        
+        try {
+            // Setup data first
+            Map<byte[], byte[]> fields = Map.of("info".getBytes(), "test".getBytes());
+            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields);
+            connection.streamCommands().xAdd(record);
+            
+            // Create group and consumer with pending message
+            connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
+            connection.streamCommands().xReadGroup(
+                Consumer.from(groupName, consumerName),
+                StreamReadOptions.empty(),
+                StreamOffset.create(streamKey.getBytes(), ReadOffset.lastConsumed())
+            );
+            
+            connection.multi();
+            
+            // Test info operations in transaction
+            connection.streamCommands().xInfo(streamKey.getBytes());
+            connection.streamCommands().xInfoGroups(streamKey.getBytes());
+            connection.streamCommands().xInfoConsumers(streamKey.getBytes(), groupName);
+            connection.streamCommands().xPending(streamKey.getBytes(), groupName);
+            
+            List<Object> results = connection.exec();
+            assertThat(results).hasSize(4);
+            
+            // Verify stream info
+            assertThat(results.get(0)).isInstanceOf(XInfoStream.class);
+            XInfoStream streamInfo = (XInfoStream) results.get(0);
+            assertThat(streamInfo.streamLength()).isEqualTo(1L);
+            
+            // Verify groups info
+            assertThat(results.get(1)).isInstanceOf(XInfoGroups.class);
+            XInfoGroups groupsInfo = (XInfoGroups) results.get(1);
+            assertThat(groupsInfo.size()).isEqualTo(1);
+            
+            // Verify consumers info
+            assertThat(results.get(2)).isInstanceOf(XInfoConsumers.class);
+            XInfoConsumers consumersInfo = (XInfoConsumers) results.get(2);
+            assertThat(consumersInfo.size()).isEqualTo(1);
+            
+            // Verify pending messages
+            assertThat(results.get(3)).isInstanceOf(PendingMessagesSummary.class);
+            PendingMessagesSummary pendingSummary = (PendingMessagesSummary) results.get(3);
+            assertThat(pendingSummary.getTotalPendingMessages()).isEqualTo(1L);
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+            try {
+                connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
+            } catch (Exception ignored) {}
+            cleanupKey(streamKey);
+        }
+    }
+
+    @Test
+    void testComplexStreamScenarioTransaction() {
+        String streamKey = "test:stream:transaction:complex";
+        String groupName = "test-group";
+        
+        try {
+            // Setup initial data
+            Map<byte[], byte[]> fields = Map.of("data".getBytes(), "initial".getBytes());
+            MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields);
+            connection.streamCommands().xAdd(record);
+            
+            connection.multi();
+            
+            // Complex scenario: add records, create group, read, acknowledge in one transaction
+            Map<byte[], byte[]> fields1 = Map.of("step".getBytes(), "1".getBytes());
+            MapRecord<byte[], byte[], byte[]> record1 = StreamRecords.newRecord()
+                .in(streamKey.getBytes())
+                .ofMap(fields1);
+            connection.streamCommands().xAdd(record1);
+            
+            connection.streamCommands().xGroupCreate(streamKey.getBytes(), groupName, ReadOffset.from("0"));
+            connection.streamCommands().xLen(streamKey.getBytes());
+            connection.streamCommands().xInfo(streamKey.getBytes());
+            
+            List<Object> results = connection.exec();
+            assertThat(results).hasSize(4);
+            
+            // Verify transaction results
+            assertThat(results.get(0)).isNotNull(); // Record ID from xAdd
+            assertThat(results.get(1)).isEqualTo("OK"); // Group create result
+            assertThat(((Number) results.get(2)).longValue()).isEqualTo(2L); // Stream length
+            assertThat(results.get(3)).isInstanceOf(XInfoStream.class); // Stream info
+            
+            XInfoStream streamInfo = (XInfoStream) results.get(3);
+            assertThat(streamInfo.streamLength()).isEqualTo(2L);
+            assertThat(streamInfo.groupCount()).isEqualTo(1L);
+            
+        } finally {
+            if (connection.isQueueing()) {
+                connection.discard();
+            }
+            try {
+                connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
+            } catch (Exception ignored) {}
+            cleanupKey(streamKey);
+        }
+    }
+
     // ==================== Edge Cases and Complex Scenarios ====================
 
+    @SuppressWarnings("unchecked")
     @Test
     void testComplexStreamScenario() {
         String streamKey = "test:stream:edge";
@@ -930,13 +1473,14 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
             assertThat(consumerNames).containsExactlyInAnyOrder(consumer1, consumer2);
             
         } finally {
-            cleanupKey(streamKey);
             try {
                 connection.streamCommands().xGroupDestroy(streamKey.getBytes(), groupName);
             } catch (Exception ignored) {}
+            cleanupKey(streamKey);
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     void testMultipleStreamsReading() {
         String stream1 = "test:stream:multi1";
