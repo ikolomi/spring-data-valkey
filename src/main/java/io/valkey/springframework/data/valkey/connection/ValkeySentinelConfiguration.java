@@ -47,13 +47,13 @@ import org.springframework.util.StringUtils;
  */
 public class ValkeySentinelConfiguration implements ValkeyConfiguration, SentinelConfiguration {
 
-	private static final String VALKEY_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.redis.sentinel.master";
-	private static final String VALKEY_SENTINEL_NODES_CONFIG_PROPERTY = "spring.redis.sentinel.nodes";
-	private static final String VALKEY_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.username";
-	private static final String VALKEY_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.password";
-	private static final String VALKEY_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.username";
-	private static final String VALKEY_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.password";
-	private static final String VALKEY_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY = "spring.redis.sentinel.dataNode.database";
+	private static final String VALKEY_SENTINEL_MASTER_CONFIG_PROPERTY = "spring.valkey.sentinel.master";
+	private static final String VALKEY_SENTINEL_NODES_CONFIG_PROPERTY = "spring.valkey.sentinel.nodes";
+	private static final String VALKEY_SENTINEL_USERNAME_CONFIG_PROPERTY = "spring.valkey.sentinel.username";
+	private static final String VALKEY_SENTINEL_PASSWORD_CONFIG_PROPERTY = "spring.valkey.sentinel.password";
+	private static final String VALKEY_SENTINEL_DATA_NODE_USERNAME_CONFIG_PROPERTY = "spring.valkey.sentinel.dataNode.username";
+	private static final String VALKEY_SENTINEL_DATA_NODE_PASSWORD_CONFIG_PROPERTY = "spring.valkey.sentinel.dataNode.password";
+	private static final String VALKEY_SENTINEL_DATA_NODE_DATABASE_CONFIG_PROPERTY = "spring.valkey.sentinel.dataNode.database";
 
 	private int database;
 
@@ -94,8 +94,8 @@ public class ValkeySentinelConfiguration implements ValkeyConfiguration, Sentine
 	 * {@link PropertySource}.
 	 *
 	 * <pre class="code">
-	 * spring.redis.sentinel.master=myMaster
-	 * spring.redis.sentinel.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
+	 * spring.valkey.sentinel.master=myMaster
+	 * spring.valkey.sentinel.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
 	 * </pre>
 	 *
 	 * @param propertySource must not be {@literal null}.

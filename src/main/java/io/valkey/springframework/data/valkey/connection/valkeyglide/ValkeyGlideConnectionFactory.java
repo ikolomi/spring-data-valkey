@@ -536,7 +536,7 @@ public class ValkeyGlideConnectionFactory
      */
     private String buildValkeyUri() {
         StringBuilder uriBuilder = new StringBuilder();
-        uriBuilder.append("redis://");
+        uriBuilder.append("valkey://");
         
         // Add authentication if available
         String username = getOptionalUsername();

@@ -43,8 +43,8 @@ import org.springframework.util.StringUtils;
  */
 public class ValkeyClusterConfiguration implements ValkeyConfiguration, ClusterConfiguration {
 
-	private static final String VALKEY_CLUSTER_NODES_CONFIG_PROPERTY = "spring.redis.cluster.nodes";
-	private static final String VALKEY_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.redis.cluster.max-redirects";
+	private static final String VALKEY_CLUSTER_NODES_CONFIG_PROPERTY = "spring.valkey.cluster.nodes";
+	private static final String VALKEY_CLUSTER_MAX_REDIRECTS_CONFIG_PROPERTY = "spring.valkey.cluster.max-redirects";
 
 	private @Nullable Integer maxRedirects;
 
@@ -78,8 +78,8 @@ public class ValkeyClusterConfiguration implements ValkeyConfiguration, ClusterC
 	 * {@link PropertySource}.
 	 *
 	 * <pre class="code">
-	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
-	 * spring.redis.cluster.max-redirects=3
+	 * spring.valkey.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
+	 * spring.valkey.cluster.max-redirects=3
 	 * </pre>
 	 *
 	 * @param propertySource must not be {@literal null}.
@@ -112,8 +112,8 @@ public class ValkeyClusterConfiguration implements ValkeyConfiguration, ClusterC
 	 * {@link PropertySource}.
 	 *
 	 * <pre class="code">
-	 * spring.redis.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
-	 * spring.redis.cluster.max-redirects=3
+	 * spring.valkey.cluster.nodes=127.0.0.1:23679,127.0.0.1:23680,127.0.0.1:23681
+	 * spring.valkey.cluster.max-redirects=3
 	 * </pre>
 	 *
 	 * @param propertySource must not be {@literal null}.

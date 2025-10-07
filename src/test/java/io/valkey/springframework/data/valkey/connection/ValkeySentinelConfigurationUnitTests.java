@@ -105,8 +105,8 @@ class ValkeySentinelConfigurationUnitTests {
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMasterAndSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
-		propertySource.setProperty("spring.redis.sentinel.nodes", HOST_AND_PORT_1);
+		propertySource.setProperty("spring.valkey.sentinel.master", "myMaster");
+		propertySource.setProperty("spring.valkey.sentinel.nodes", HOST_AND_PORT_1);
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
 
@@ -120,8 +120,8 @@ class ValkeySentinelConfigurationUnitTests {
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMasterAndMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
-		propertySource.setProperty("spring.redis.sentinel.nodes",
+		propertySource.setProperty("spring.valkey.sentinel.master", "myMaster");
+		propertySource.setProperty("spring.valkey.sentinel.nodes",
 				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
@@ -158,9 +158,9 @@ class ValkeySentinelConfigurationUnitTests {
 	void readSentinelPasswordFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
-		propertySource.setProperty("spring.redis.sentinel.nodes", HOST_AND_PORT_1);
-		propertySource.setProperty("spring.redis.sentinel.password", "computer-says-no");
+		propertySource.setProperty("spring.valkey.sentinel.master", "myMaster");
+		propertySource.setProperty("spring.valkey.sentinel.nodes", HOST_AND_PORT_1);
+		propertySource.setProperty("spring.valkey.sentinel.password", "computer-says-no");
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
 
@@ -172,10 +172,10 @@ class ValkeySentinelConfigurationUnitTests {
 	void readSentinelUsernameFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.master", "myMaster");
-		propertySource.setProperty("spring.redis.sentinel.nodes", HOST_AND_PORT_1);
-		propertySource.setProperty("spring.redis.sentinel.username", "sentinel-admin");
-		propertySource.setProperty("spring.redis.sentinel.password", "foo");
+		propertySource.setProperty("spring.valkey.sentinel.master", "myMaster");
+		propertySource.setProperty("spring.valkey.sentinel.nodes", HOST_AND_PORT_1);
+		propertySource.setProperty("spring.valkey.sentinel.username", "sentinel-admin");
+		propertySource.setProperty("spring.valkey.sentinel.password", "foo");
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
 
@@ -188,7 +188,7 @@ class ValkeySentinelConfigurationUnitTests {
 	void readSentinelDataNodeUsernameFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.dataNode.username", "datanode-user");
+		propertySource.setProperty("spring.valkey.sentinel.dataNode.username", "datanode-user");
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
 
@@ -199,7 +199,7 @@ class ValkeySentinelConfigurationUnitTests {
 	void readSentinelDataNodePasswordFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.dataNode.password", "datanode-password");
+		propertySource.setProperty("spring.valkey.sentinel.dataNode.password", "datanode-password");
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
 
@@ -210,7 +210,7 @@ class ValkeySentinelConfigurationUnitTests {
 	void readSentinelDataNodeDatabaseFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.dataNode.database", "5");
+		propertySource.setProperty("spring.valkey.sentinel.dataNode.database", "5");
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(propertySource);
 
@@ -221,7 +221,7 @@ class ValkeySentinelConfigurationUnitTests {
 	void shouldThrowErrorWhen() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.dataNode.database", "thisIsNotAnInteger");
+		propertySource.setProperty("spring.valkey.sentinel.dataNode.database", "thisIsNotAnInteger");
 
 		ThrowableAssert.ThrowingCallable call = () -> ValkeySentinelConfiguration.of(propertySource);
 
@@ -233,7 +233,7 @@ class ValkeySentinelConfigurationUnitTests {
 	void shouldThrowErrorWhen2() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.sentinel.dataNode.database", "null");
+		propertySource.setProperty("spring.valkey.sentinel.dataNode.database", "null");
 
 		ThrowableAssert.ThrowingCallable call = () -> ValkeySentinelConfiguration.of(propertySource);
 

@@ -105,8 +105,8 @@ class ValkeyClusterConfigurationUnitTests {
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.cluster.nodes", HOST_AND_PORT_1);
-		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
+		propertySource.setProperty("spring.valkey.cluster.nodes", HOST_AND_PORT_1);
+		propertySource.setProperty("spring.valkey.cluster.max-redirects", "5");
 
 		ValkeyClusterConfiguration config = ValkeyClusterConfiguration.of(propertySource);
 
@@ -118,9 +118,9 @@ class ValkeyClusterConfigurationUnitTests {
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
-		propertySource.setProperty("spring.redis.cluster.nodes",
+		propertySource.setProperty("spring.valkey.cluster.nodes",
 				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_1, HOST_AND_PORT_2, HOST_AND_PORT_3)));
-		propertySource.setProperty("spring.redis.cluster.max-redirects", "5");
+		propertySource.setProperty("spring.valkey.cluster.max-redirects", "5");
 
 		ValkeyClusterConfiguration config = ValkeyClusterConfiguration.of(propertySource);
 
@@ -134,9 +134,9 @@ class ValkeyClusterConfigurationUnitTests {
 
 		MockPropertySource propertySource = new MockPropertySource();
 
-		propertySource.setProperty("spring.redis.cluster.nodes",
+		propertySource.setProperty("spring.valkey.cluster.nodes",
 				StringUtils.collectionToCommaDelimitedString(Arrays.asList(HOST_AND_PORT_4, HOST_AND_PORT_5)));
-		propertySource.setProperty("spring.redis.cluster.max-redirects", 2);
+		propertySource.setProperty("spring.valkey.cluster.max-redirects", 2);
 
 		ValkeyClusterConfiguration configuration = ValkeyClusterConfiguration.of(propertySource);
 
