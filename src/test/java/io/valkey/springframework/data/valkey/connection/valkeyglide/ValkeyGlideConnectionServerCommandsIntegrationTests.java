@@ -288,7 +288,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         // Test getting specific section
         Properties serverInfo = connection.serverCommands().info("server");
         assertThat(serverInfo).isNotNull();
-        assertThat(serverInfo.containsKey("valkey_version") || serverInfo.containsKey("valkey_version")).isTrue();
+        assertThat(serverInfo.containsKey("redis_version") || serverInfo.containsKey("valkey_version")).isTrue();
         
         // Test getting memory info
         Properties memoryInfo = connection.serverCommands().info("memory");
@@ -382,7 +382,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
     void testRewriteConfig() {
         // Test rewriting config file
         // This command rewrites the config file, so we mainly test that it doesn't throw
-        // Note: This might fail if Valkey is running without a config file
+        // Note: This might fail if Redis is running without a config file
         try {
             connection.serverCommands().rewriteConfig();
         } catch (Exception e) {
@@ -444,7 +444,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         assertThat(firstClient).isNotNull();
         
         // Check that basic client info properties exist
-        // Some properties might be null or empty depending on Valkey version and configuration
+        // Some properties might be null or empty depending on Redis version and configuration
         assertThat(firstClient.get("addr")).isNotNull();
         assertThat(firstClient.get("fd")).isNotNull();
         
@@ -518,7 +518,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
     @Test
     void testMigrate() {
         // Test migrate command
-        // This is complex to test as it requires another Valkey instance
+        // This is complex to test as it requires another Redis instance
         // We test with a non-existent target to verify command structure
         
         String sourceKey = "test:server:migrate:source";

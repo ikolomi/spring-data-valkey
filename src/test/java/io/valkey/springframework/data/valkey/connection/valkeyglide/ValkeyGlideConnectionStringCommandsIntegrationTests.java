@@ -818,8 +818,8 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             // Queue string manipulation operations - assert they return null in pipeline mode
             assertThat(connection.stringCommands().append(key1.getBytes(), " World".getBytes())).isNull();
             assertThat(connection.stringCommands().strLen(key1.getBytes())).isNull();
-            assertThat(connection.stringCommands().getRange(key2.getBytes(), 0, 4)).isNull();
-            connection.stringCommands().setRange(key2.getBytes(), "Valkey".getBytes(), 6); // void method
+            assertThat(connection.stringCommands().getRange(key2.getBytes(), 0, 5)).isNull();
+            connection.stringCommands().setRange(key2.getBytes(), "Valkey".getBytes(), 7); // void method
             assertThat(connection.stringCommands().get(key2.getBytes())).isNull();
             
             java.util.List<Object> results = connection.closePipeline();
@@ -829,7 +829,7 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             assertThat(results.get(0)).isEqualTo(11L); // APPEND result (length)
             assertThat(results.get(1)).isEqualTo(11L); // STRLEN result
             assertThat(results.get(2)).isEqualTo("Valkey".getBytes()); // GETRANGE result
-            assertThat(results.get(3)).isEqualTo(12L); // SETRANGE result (new length)
+            assertThat(results.get(3)).isEqualTo(13L); // SETRANGE result (new length)
             assertThat(results.get(4)).isEqualTo("Valkey Valkey".getBytes()); // GET result after setrange
             
         } finally {
@@ -1071,8 +1071,8 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             // Queue string manipulation operations - assert they return null in transaction mode
             assertThat(connection.stringCommands().append(key1.getBytes(), " World".getBytes())).isNull();
             assertThat(connection.stringCommands().strLen(key1.getBytes())).isNull();
-            assertThat(connection.stringCommands().getRange(key2.getBytes(), 0, 6)).isNull();
-            connection.stringCommands().setRange(key2.getBytes(), "Valkey".getBytes(), 8); // void method
+            assertThat(connection.stringCommands().getRange(key2.getBytes(), 0, 7)).isNull();
+            connection.stringCommands().setRange(key2.getBytes(), "Valkey".getBytes(), 9); // void method
             assertThat(connection.stringCommands().get(key2.getBytes())).isNull();
             
             java.util.List<Object> results = connection.exec();
@@ -1082,7 +1082,7 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             assertThat(results.get(0)).isEqualTo(13L); // APPEND result (length)
             assertThat(results.get(1)).isEqualTo(13L); // STRLEN result
             assertThat(results.get(2)).isEqualTo("TxValkey".getBytes()); // GETRANGE result
-            assertThat(results.get(3)).isEqualTo(14L); // SETRANGE result (new length)
+            assertThat(results.get(3)).isEqualTo(15L); // SETRANGE result (new length)
             assertThat(results.get(4)).isEqualTo("TxValkey Valkey".getBytes()); // GET result after setrange
             
         } finally {

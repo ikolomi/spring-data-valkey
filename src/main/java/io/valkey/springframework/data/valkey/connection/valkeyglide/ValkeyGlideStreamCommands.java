@@ -15,16 +15,14 @@
  */
 package io.valkey.springframework.data.valkey.connection.valkeyglide;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Range;
 import io.valkey.springframework.data.valkey.connection.Limit;
 import io.valkey.springframework.data.valkey.connection.ValkeyStreamCommands;
@@ -34,6 +32,8 @@ import io.valkey.springframework.data.valkey.connection.stream.StreamInfo.XInfoG
 import io.valkey.springframework.data.valkey.connection.stream.StreamInfo.XInfoStream;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import glide.api.models.GlideString;
 
 /**
  * Implementation of {@link ValkeyStreamCommands} for Valkey-Glide.
@@ -61,10 +61,6 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.notNull(group, "Group must not be null!");
         Assert.notNull(recordIds, "Record IDs must not be null!");
 
-        if (recordIds.length == 0) {
-            return 0L;
-        }
-
         try {
             Object[] params = new Object[recordIds.length + 2];
             params[0] = key;
@@ -74,9 +70,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 params[i + 2] = recordIds[i].getValue();
             }
 
-            Object result = connection.execute("XACK", params);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return ((Number) converted).longValue();
+            return connection.execute("XACK",
+                (Long glideResult) -> glideResult,
+                params);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -134,10 +130,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 params.add(entry.getValue());
             }
 
-            Object result = connection.execute("XADD", params.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            String response = convertResultToString(converted);
-            return RecordId.of(response);
+            return connection.execute("XADD",
+                (GlideString glideResult) -> glideResult != null ? RecordId.of(glideResult.toString()) : null,
+                params.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -154,9 +149,21 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
             List<Object> args = buildXClaimArgs(key, group, newOwner, options);
             args.add("JUSTID");
             
-            Object result = connection.execute("XCLAIM", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseRecordIds(converted);
+            return connection.execute("XCLAIM",
+                (Object[] glideResult) -> {
+                    if (connection.isPipelined() || connection.isQueueing()) {
+                        return null;
+                    }
+                    if (glideResult == null) {
+                        return Collections.emptyList();
+                    }
+                    List<RecordId> recordIds = new ArrayList<>(glideResult.length);
+                    for (Object item : glideResult) {
+                        recordIds.add(RecordId.of(((GlideString) item).toString()));
+                    }
+                    return recordIds;
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -172,9 +179,14 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         try {
             List<Object> args = buildXClaimArgs(key, group, newOwner, options);
             
-            Object result = connection.execute("XCLAIM", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseByteRecords(converted, key, false);
+            return connection.execute("XCLAIM",
+                (Map<?, ?> glideResult) -> {
+                    if (connection.isPipelined() || connection.isQueueing()) {
+                        return null;
+                    }
+                    return parseByteRecords(glideResult, key, false);
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -185,10 +197,6 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.notNull(key, "Key must not be null!");
         Assert.notNull(recordIds, "Record IDs must not be null!");
         
-        if (recordIds.length == 0) {
-            return 0L;
-        }
-        
         try {
             Object[] params = new Object[recordIds.length + 1];
             params[0] = key;
@@ -197,9 +205,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 params[i + 1] = recordIds[i].getValue();
             }
             
-            Object result = connection.execute("XDEL", params);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return ((Number) converted).longValue();
+            return connection.execute("XDEL",
+                (Long glideResult) -> glideResult,
+                params);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -227,9 +235,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 args.add("MKSTREAM");
             }
 
-            Object result = connection.execute("XGROUP", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return convertResultToString(converted);
+            return connection.execute("XGROUP",
+                (String glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -241,9 +249,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.notNull(consumer, "Consumer must not be null!");
 
         try {
-            Object result = connection.execute("XGROUP", "DELCONSUMER", key, consumer.getGroup(), consumer.getName());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return ((Number) converted).longValue() > 0;
+            return connection.execute("XGROUP",
+                (Long glideResult) -> glideResult != null ? glideResult > 0 : null,
+            "DELCONSUMER", key, consumer.getGroup(), consumer.getName());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -255,9 +263,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.hasText(groupName, "Group name must not be null or empty!");
 
         try {
-            Object result = connection.execute("XGROUP", "DESTROY", key, groupName);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return (Boolean) converted;
+            return connection.execute("XGROUP",
+                (Boolean glideResult) -> glideResult,
+                "DESTROY", key, groupName);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -268,9 +276,42 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.notNull(key, "Key must not be null!");
 
         try {
-            Object result = connection.execute("XINFO", "STREAM", key);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseXInfoStream(converted);
+            return connection.execute("XINFO",
+                (Map<?, ?> glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+
+                    // Convert the result to a List<Object>
+                    // XInfoStream.fromList() expects a List<Object> with alternating keys and values
+                    // Valkey-Glide returns a Map, so we need to convert it
+                    // first-entry and last-entry are special cases with nested structures and need to be converted to Map
+                    List<Object> list = new ArrayList<>(glideResult.size() * 2);
+
+                    for (Map.Entry<?, ?> entry : glideResult.entrySet()) {
+                        list.add(entry.getKey().toString());
+                        if (entry.getKey().toString().equals("first-entry") || entry.getKey().toString().equals("last-entry")) {
+                            Object[] entryObjects = (Object[]) entry.getValue();
+                            Map<byte[], Map<byte[], byte[]>> entryMap = new HashMap<>();
+                            for (int i = 0; i < entryObjects.length; i += 2) {
+                                byte[] recordIdString = ((GlideString) entryObjects[i]).getBytes();
+                                Map<byte[], byte[]> fields = new HashMap<>();
+                                Object[] fieldsArr = (Object[]) entryObjects[i + 1];
+                                for (int j = 0; j < fieldsArr.length; j += 2) {
+                                    byte[] field = ((GlideString) fieldsArr[j]).getBytes();
+                                    byte[] value = ((GlideString) fieldsArr[j + 1]).getBytes();
+                                    fields.put(field, value);
+                                }
+                                entryMap.put(recordIdString, fields);
+                            }
+                            list.add(entryMap);
+                        } else {
+                            list.add(ValkeyGlideConverters.defaultFromGlideResult(entry.getValue()));
+                        }
+                    }
+                    return XInfoStream.fromList(list);
+                },
+                "STREAM", key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -281,9 +322,35 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.notNull(key, "Key must not be null!");
 
         try {
-            Object result = connection.execute("XINFO", "GROUPS", key);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseXInfoGroups(converted);
+            return connection.execute("XINFO",
+                (Object[] glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+
+                    // XInfoGroups.fromList expects a list where each group is represented as a separate List
+                    // Format: [group1List, group2List, ...] where each groupList is [key1, value1, key2, value2, ...]
+                    List<Object> groupsList = new ArrayList<>(glideResult.length);
+
+                    for (Object groupInfo : glideResult) {
+                        Map<?, ?> groupMap = (Map<?, ?>) groupInfo;
+                        List<Object> singleGroupList = new ArrayList<>(groupMap.size() * 2);
+                        for (Map.Entry<?, ?> entry : groupMap.entrySet()) {
+                            singleGroupList.add(entry.getKey().toString());
+                            if (entry.getValue() == null) {
+                                singleGroupList.add(null);
+                            } else if (entry.getValue() instanceof Number n) {
+                                // convert to long
+                                singleGroupList.add(n.longValue());
+                            } else {
+                                singleGroupList.add(entry.getValue().toString());
+                            }
+                        }
+                        groupsList.add(singleGroupList);
+                    }
+                    return XInfoGroups.fromList(groupsList);
+                },
+                "GROUPS", key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -295,9 +362,32 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.hasText(groupName, "Group name must not be null or empty!");
 
         try {
-            Object result = connection.execute("XINFO", "CONSUMERS", key, groupName);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseXInfoConsumers(converted);
+            return connection.execute("XINFO",
+                (Object[] glideResult) -> {
+                    if (glideResult == null) {
+                        return null;
+                    }
+
+                    List<Object> consumersList = new ArrayList<>(glideResult.length);
+                    for (Object groupInfo : glideResult) {
+                        Map<?, ?> groupMap = (Map<?, ?>) groupInfo;
+                        List<Object> singleConsumerList = new ArrayList<>(groupMap.size() * 2);
+                        for (Map.Entry<?, ?> entry : groupMap.entrySet()) {
+                            singleConsumerList.add(entry.getKey().toString());
+                            if (entry.getValue() == null) {
+                                singleConsumerList.add(null);
+                            } else if (entry.getValue() instanceof Number n) {
+                                // convert to long
+                                singleConsumerList.add(n.longValue());
+                            } else {
+                                singleConsumerList.add(entry.getValue().toString());
+                            }
+                        }
+                        consumersList.add(singleConsumerList);
+                    }
+                    return XInfoConsumers.fromList("", consumersList);
+                },
+                "CONSUMERS", key, groupName);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -308,12 +398,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.notNull(key, "Key must not be null!");
         
         try {
-            Object result = connection.execute("XLEN", key);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            if (converted == null) {
-                return 0L;
-            }
-            return ((Number) converted).longValue();
+            return connection.execute("XLEN",
+                (Long glideResult) -> glideResult,
+                key);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -325,9 +412,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         Assert.hasText(groupName, "Group name must not be null or empty!");
 
         try {
-            Object result = connection.execute("XPENDING", key, groupName);
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parsePendingMessagesSummary(converted);
+            return connection.execute("XPENDING",
+                (Object glideResult) -> glideResult != null ? parsePendingMessagesSummary(glideResult) : null,
+                key, groupName);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -358,9 +445,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 }
             }
 
-            Object result = connection.execute("XPENDING", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parsePendingMessages(converted, groupName);
+            return connection.execute("XPENDING",
+                (Object glideResult) -> glideResult != null ? parsePendingMessages(glideResult, groupName) : null,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -399,9 +486,14 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 args.add(limit.getCount());
             }
 
-            Object result = connection.execute("XRANGE", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseByteRecords(converted, key, false);
+            return connection.execute("XRANGE",
+                (Map<?, ?> glideResult) -> {
+                    if (connection.isPipelined() || connection.isQueueing()) {
+                        return null;
+                    }
+                    return parseByteRecords(glideResult, key, false);
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -436,9 +528,14 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 args.add(stream.getOffset().getOffset());
             }
 
-            Object result = connection.execute("XREAD", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseMultiStreamByteRecords(converted);
+            return connection.execute("XREAD",
+                (Object glideResult) -> {
+                    if (connection.isPipelined() || connection.isQueueing()) {
+                        return null;
+                    }
+                    return parseMultiStreamByteRecords(glideResult);
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -481,9 +578,14 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 args.add(stream.getOffset().getOffset());
             }
 
-            Object result = connection.execute("XREADGROUP", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseMultiStreamByteRecords(converted);
+            return connection.execute("XREADGROUP",
+                (Object glideResult) -> {
+                    if (connection.isPipelined() || connection.isQueueing()) {
+                        return null;
+                    }
+                    return parseMultiStreamByteRecords(glideResult);
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -509,9 +611,14 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 args.add(limit.getCount());
             }
 
-            Object result = connection.execute("XREVRANGE", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return parseByteRecords(converted, key, true);
+            return connection.execute("XREVRANGE",
+                (Map<?, ?> glideResult) -> {
+                    if (connection.isPipelined() || connection.isQueueing()) {
+                        return null;
+                    }
+                    return parseByteRecords(glideResult, key, true);
+                },
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -537,9 +644,9 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
             
             args.add(String.valueOf(count));
 
-            Object result = connection.execute("XTRIM", args.toArray());
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
-            return ((Number) converted).longValue();
+            return connection.execute("XTRIM",
+                (Long glideResult) -> glideResult,
+                args.toArray());
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -549,7 +656,7 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
 
     private String convertResultToString(Object result) {
         if (result instanceof byte[]) {
-            return ValkeyGlideConverters.toString((byte[]) result);
+            return new String((byte[]) result, StandardCharsets.UTF_8);
         } else if (result instanceof String) {
             return (String) result;
         } else if (result == null) {
@@ -594,23 +701,6 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         return args;
     }
 
-    private List<RecordId> parseRecordIds(Object result) {
-        if (result == null) {
-            return new ArrayList<>();
-        }
-
-        List<Object> list = convertToList(result);
-        List<RecordId> recordIds = new ArrayList<>(list.size());
-
-        for (Object item : list) {
-            Object converted = ValkeyGlideConverters.defaultFromGlideResult(item);
-            String recordIdString = convertResultToString(converted);
-            recordIds.add(RecordId.of(recordIdString));
-        }
-
-        return recordIds;
-    }
-
     private List<Object> convertToList(Object obj) {
         if (obj instanceof List) {
             return (List<Object>) obj;
@@ -640,114 +730,43 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         }
     }
 
-    private Map<String, Object> convertToMap(Object obj) {
-        if (obj instanceof Map) {
-            return (Map<String, Object>) obj;
-        } else if (obj instanceof List) {
-            List<Object> list = (List<Object>) obj;
-            Map<String, Object> map = new HashMap<>();
-            for (int i = 0; i < list.size(); i += 2) {
-                if (i + 1 < list.size()) {
-                    String key = convertResultToString(ValkeyGlideConverters.defaultFromGlideResult(list.get(i)));
-                    Object value = ValkeyGlideConverters.defaultFromGlideResult(list.get(i + 1));
-                    map.put(key, value);
-                }
-            }
-            return map;
-        } else {
-            throw new IllegalArgumentException("Cannot convert " + obj.getClass() + " to Map");
-        }
-    }
-
-    private List<ByteRecord> parseByteRecords(Object result, byte[] streamKey, boolean reverseOrder) {
+    private List<ByteRecord> parseByteRecords(Map<?, ?> result, byte[] streamKey, boolean reverseOrder) {
         if (result == null) {
             return new ArrayList<>();
         }
 
-        // Handle HashMap format from Valkey-Glide XRANGE response
-        if (result instanceof Map) {
-            Map<?, ?> recordsMap = (Map<?, ?>) result;
-            List<ByteRecord> byteRecords = new ArrayList<>(recordsMap.size());
-            
-            // Sort entries by record ID timestamp to maintain correct order
-            List<Map.Entry<?, ?>> sortedEntries = new ArrayList<>(recordsMap.entrySet());
-            sortedEntries.sort((e1, e2) -> {
-                String id1 = ValkeyGlideConverters.toString((byte[]) e1.getKey());
-                String id2 = ValkeyGlideConverters.toString((byte[]) e2.getKey());
-                
-                // Extract timestamp part (before the dash)
-                long timestamp1 = Long.parseLong(id1.split("-")[0]);
-                long timestamp2 = Long.parseLong(id2.split("-")[0]);
-                
-                int comparison = Long.compare(timestamp1, timestamp2);
-                return reverseOrder ? -comparison : comparison;
-            });
-            
-            for (Map.Entry<?, ?> entry : sortedEntries) {
-                byte[] recordIdBytes = (byte[]) entry.getKey();
-                String recordIdString = ValkeyGlideConverters.toString(recordIdBytes);
-                
-                Object fieldsListObj = entry.getValue();
-                Map<byte[], byte[]> fields = new HashMap<>();
-                
-                if (fieldsListObj instanceof List) {
-                    List<Object> fieldPairs = (List<Object>) fieldsListObj;
-                    
-                    for (int i = 0; i < fieldPairs.size(); i++) {
-                        Object fieldPair = fieldPairs.get(i);
-                        
-                        if (fieldPair instanceof List) {
-                            List<Object> pairList = (List<Object>) fieldPair;
-                            if (pairList.size() >= 2) {
-                                Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(pairList.get(0));
-                                Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(pairList.get(1));
-                                
-                                byte[] key = keyObj instanceof byte[] ? (byte[]) keyObj : keyObj.toString().getBytes();
-                                byte[] value = valueObj instanceof byte[] ? (byte[]) valueObj : valueObj.toString().getBytes();
-                                
-                                fields.put(key, value);
-                            }
-                        }
-                    }
-                }
-                
-                ByteRecord byteRecord = StreamRecords.newRecord()
-                        .in(streamKey)
-                        .withId(RecordId.of(recordIdString))
-                        .ofBytes(fields);
-                byteRecords.add(byteRecord);
-            }
-            
-            return byteRecords;
-        }
-
-        // Fallback to original list-based parsing for other formats
-        List<Object> records = convertToList(result);
-        List<ByteRecord> byteRecords = new ArrayList<>(records.size());
-
-        for (Object record : records) {
-            Object convertedRecord = ValkeyGlideConverters.defaultFromGlideResult(record);
-            
-            if (convertedRecord instanceof List) {
-                List<Object> recordData = (List<Object>) convertedRecord;
-                
-                if (recordData.size() >= 2) {
-                    Object rawRecordId = recordData.get(0);
-                    Object convertedRecordId = ValkeyGlideConverters.defaultFromGlideResult(rawRecordId);
-                    String recordIdString = convertResultToString(convertedRecordId);
-                    
-                    Object fieldsObj = recordData.get(1);
-                    Map<byte[], byte[]> fields = parseFields(fieldsObj);
-                    
-                    ByteRecord byteRecord = StreamRecords.newRecord()
-                            .in(streamKey)
-                            .withId(RecordId.of(recordIdString))
-                            .ofBytes(fields);
-                    byteRecords.add(byteRecord);
-                }
-            }
-        }
+        List<ByteRecord> byteRecords = new ArrayList<>(result.size());
         
+        // Sort entries by record ID timestamp to maintain correct order
+        List<Map.Entry<?, ?>> sortedEntries = new ArrayList<>(result.entrySet());
+        sortedEntries.sort((e1, e2) -> {
+            String id1 = ((GlideString) e1.getKey()).toString();
+            String id2 = ((GlideString) e2.getKey()).toString();
+            
+            // Extract timestamp part (before the dash)
+            long timestamp1 = Long.parseLong(id1.split("-")[0]);
+            long timestamp2 = Long.parseLong(id2.split("-")[0]);
+            int comparison = Long.compare(timestamp1, timestamp2);
+            return reverseOrder ? -comparison : comparison;
+        });
+
+        // Valkey-Glide encodes entry of an ID encoded as Object[[field, value]]
+        for (Map.Entry<?, ?> entry : sortedEntries) {
+            String recordIdString = ((GlideString) entry.getKey()).toString();
+            Map<byte[], byte[]> fields = new HashMap<>();
+            Object[] fieldsArr = (Object[]) entry.getValue();
+            for (Object item : fieldsArr) {
+                Object[] itemArr = (Object[]) item;
+                GlideString field = (GlideString) itemArr[0];
+                GlideString value = (GlideString) itemArr[1];
+                fields.put(field.getBytes(), value.getBytes());
+            }
+            ByteRecord byteRecord = StreamRecords.newRecord()
+                    .in(streamKey)
+                    .withId(RecordId.of(recordIdString))
+                    .ofBytes(fields);
+            byteRecords.add(byteRecord);
+        }
         return byteRecords;
     }
 
@@ -765,7 +784,7 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
             
             for (Map.Entry<?, ?> streamEntry : streamsMap.entrySet()) {
                 Object streamKeyObj = streamEntry.getKey();
-                Object streamRecordsObj = streamEntry.getValue();
+                Map<?, ?> streamRecordsObj = (Map<?, ?>) streamEntry.getValue();
                 
                 byte[] streamKey = streamKeyObj instanceof byte[] ? 
                     (byte[]) streamKeyObj : streamKeyObj.toString().getBytes();
@@ -773,249 +792,12 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 List<ByteRecord> streamRecords = parseByteRecords(streamRecordsObj, streamKey, false);
                 allRecords.addAll(streamRecords);
             }
-        } else if (result instanceof List) {
-            List<Object> streamResults = (List<Object>) result;
-
-            for (Object streamResult : streamResults) {
-                Object convertedStreamResult = ValkeyGlideConverters.defaultFromGlideResult(streamResult);
-
-                if (convertedStreamResult instanceof List) {
-                    List<Object> streamData = (List<Object>) convertedStreamResult;
-
-                    if (streamData.size() >= 2) {
-                        Object streamKeyObj = streamData.get(0);
-                        Object streamRecordsObj = streamData.get(1);
-
-                        byte[] streamKey = ValkeyGlideConverters.defaultFromGlideResult(streamKeyObj) instanceof byte[] ?
-                                (byte[]) ValkeyGlideConverters.defaultFromGlideResult(streamKeyObj) :
-                                streamKeyObj.toString().getBytes();
-
-                        List<ByteRecord> streamRecords = parseByteRecords(streamRecordsObj, streamKey, false);
-                        allRecords.addAll(streamRecords);
-                    }
-                } else if (convertedStreamResult instanceof Map) {
-                    // Handle nested Map format within List
-                    Map<?, ?> streamMap = (Map<?, ?>) convertedStreamResult;
-                    for (Map.Entry<?, ?> entry : streamMap.entrySet()) {
-                        byte[] streamKey = entry.getKey() instanceof byte[] ? 
-                            (byte[]) entry.getKey() : entry.getKey().toString().getBytes();
-                        List<ByteRecord> streamRecords = parseByteRecords(entry.getValue(), streamKey, false);
-                        allRecords.addAll(streamRecords);
-                    }
-                }
-            }
-        }
-
+        } 
         return allRecords;
     }
 
-    private Map<byte[], byte[]> parseFields(Object fieldsObj) {
-        Map<byte[], byte[]> fields = new HashMap<>();
-        
-        if (fieldsObj instanceof List) {
-            List<Object> fieldList = (List<Object>) fieldsObj;
-            
-            for (int i = 0; i < fieldList.size(); i += 2) {
-                if (i + 1 < fieldList.size()) {
-                    Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(fieldList.get(i));
-                    Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(fieldList.get(i + 1));
-                    
-                    byte[] key = keyObj instanceof byte[] ? (byte[]) keyObj : 
-                        (keyObj != null ? keyObj.toString().getBytes() : new byte[0]);
-                    byte[] value = valueObj instanceof byte[] ? (byte[]) valueObj : 
-                        (valueObj != null ? valueObj.toString().getBytes() : new byte[0]);
-                    
-                    fields.put(key, value);
-                }
-            }
-        }
-        
-        return fields;
-    }
 
-    private XInfoStream parseXInfoStream(Object result) {
-        try {
-            List<Object> list = convertToList(result);
-            return XInfoStream.fromList(list);
-        } catch (Exception e) {
-            throw new ValkeyGlideExceptionConverter().convert(e);
-        }
-    }
-
-    private XInfoGroups parseXInfoGroups(Object result) {
-        try {
-            // XInfoGroups.fromList expects a list where each group is represented as a separate List
-            // Format: [group1List, group2List, ...] where each groupList is [key1, value1, key2, value2, ...]
-            List<Object> groupsList = new ArrayList<>();
-            
-            if (result instanceof List) {
-                List<Object> resultList = (List<Object>) result;
-                
-                for (Object groupInfo : resultList) {
-                    Object convertedGroup = ValkeyGlideConverters.defaultFromGlideResult(groupInfo);
-                    
-                    if (convertedGroup instanceof Map) {
-                        // Convert each group Map to a separate list with key-value pairs
-                        Map<?, ?> groupMap = (Map<?, ?>) convertedGroup;
-                        List<Object> singleGroupList = new ArrayList<>();
-                        
-                        for (Map.Entry<?, ?> entry : groupMap.entrySet()) {
-                            Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
-                            Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
-                            
-                            String keyStr = convertResultToString(key);
-                            singleGroupList.add(keyStr);
-                            
-                            // Keep numeric values as numbers, convert others to strings
-                            if (("consumers".equals(keyStr) || "pending".equals(keyStr)) && value instanceof Number) {
-                                singleGroupList.add(((Number) value).longValue());
-                            } else {
-                                singleGroupList.add(convertResultToString(value));
-                            }
-                        }
-                        
-                        groupsList.add(singleGroupList);
-                    } else if (convertedGroup instanceof List) {
-                        // Already in list format - preserve numeric values where appropriate
-                        List<Object> groupList = (List<Object>) convertedGroup;
-                        List<Object> convertedGroupList = new ArrayList<>();
-                        
-                        for (int i = 0; i < groupList.size(); i += 2) {
-                            if (i + 1 < groupList.size()) {
-                                Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(groupList.get(i));
-                                Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(groupList.get(i + 1));
-                                
-                                String keyStr = convertResultToString(keyObj);
-                                convertedGroupList.add(keyStr);
-                                
-                                // Keep numeric values as numbers, convert others to strings
-                                if (("consumers".equals(keyStr) || "pending".equals(keyStr)) && valueObj instanceof Number) {
-                                    convertedGroupList.add(((Number) valueObj).longValue());
-                                } else {
-                                    convertedGroupList.add(convertResultToString(valueObj));
-                                }
-                            }
-                        }
-                        
-                        groupsList.add(convertedGroupList);
-                    }
-                }
-            } else if (result instanceof Map) {
-                // Single group in map format
-                Map<?, ?> resultMap = (Map<?, ?>) result;
-                List<Object> singleGroupList = new ArrayList<>();
-                
-                for (Map.Entry<?, ?> entry : resultMap.entrySet()) {
-                    Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
-                    Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
-                    
-                    String keyStr = convertResultToString(key);
-                    singleGroupList.add(keyStr);
-                    
-                    // Keep numeric values as numbers, convert others to strings
-                    if (("consumers".equals(keyStr) || "pending".equals(keyStr)) && value instanceof Number) {
-                        singleGroupList.add(((Number) value).longValue());
-                    } else {
-                        singleGroupList.add(convertResultToString(value));
-                    }
-                }
-                
-                groupsList.add(singleGroupList);
-            }
-            
-            return XInfoGroups.fromList(groupsList);
-        } catch (Exception e) {
-            throw new ValkeyGlideExceptionConverter().convert(e);
-        }
-    }
-
-    private XInfoConsumers parseXInfoConsumers(Object result) {
-        try {
-            // XInfoConsumers.fromList expects a list where each consumer is represented as a separate List
-            // Format: [consumer1List, consumer2List, ...] where each consumerList is [key1, value1, key2, value2, ...]
-            List<Object> consumersList = new ArrayList<>();
-            
-            if (result instanceof List) {
-                List<Object> resultList = (List<Object>) result;
-                
-                for (Object consumerInfo : resultList) {
-                    Object convertedConsumer = ValkeyGlideConverters.defaultFromGlideResult(consumerInfo);
-                    
-                    if (convertedConsumer instanceof Map) {
-                        // Convert each consumer Map to a separate list with key-value pairs
-                        Map<?, ?> consumerMap = (Map<?, ?>) convertedConsumer;
-                        List<Object> singleConsumerList = new ArrayList<>();
-                        
-                        for (Map.Entry<?, ?> entry : consumerMap.entrySet()) {
-                            Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
-                            Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
-                            
-                            String keyStr = convertResultToString(key);
-                            singleConsumerList.add(keyStr);
-                            
-                            // Keep numeric values as numbers, convert others to strings
-                            if (("pending".equals(keyStr) || "idle".equals(keyStr)) && value instanceof Number) {
-                                singleConsumerList.add(((Number) value).longValue());
-                            } else {
-                                singleConsumerList.add(convertResultToString(value));
-                            }
-                        }
-                        
-                        consumersList.add(singleConsumerList);
-                    } else if (convertedConsumer instanceof List) {
-                        // Already in list format - preserve numeric values where appropriate
-                        List<Object> consumerList = (List<Object>) convertedConsumer;
-                        List<Object> convertedConsumerList = new ArrayList<>();
-                        
-                        for (int i = 0; i < consumerList.size(); i += 2) {
-                            if (i + 1 < consumerList.size()) {
-                                Object keyObj = ValkeyGlideConverters.defaultFromGlideResult(consumerList.get(i));
-                                Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(consumerList.get(i + 1));
-                                
-                                String keyStr = convertResultToString(keyObj);
-                                convertedConsumerList.add(keyStr);
-                                
-                                // Keep numeric values as numbers, convert others to strings
-                                if (("pending".equals(keyStr) || "idle".equals(keyStr)) && valueObj instanceof Number) {
-                                    convertedConsumerList.add(((Number) valueObj).longValue());
-                                } else {
-                                    convertedConsumerList.add(convertResultToString(valueObj));
-                                }
-                            }
-                        }
-                        
-                        consumersList.add(convertedConsumerList);
-                    }
-                }
-            } else if (result instanceof Map) {
-                // Single consumer in map format
-                Map<?, ?> resultMap = (Map<?, ?>) result;
-                List<Object> singleConsumerList = new ArrayList<>();
-                
-                for (Map.Entry<?, ?> entry : resultMap.entrySet()) {
-                    Object key = ValkeyGlideConverters.defaultFromGlideResult(entry.getKey());
-                    Object value = ValkeyGlideConverters.defaultFromGlideResult(entry.getValue());
-                    
-                    String keyStr = convertResultToString(key);
-                    singleConsumerList.add(keyStr);
-                    
-                    // Keep numeric values as numbers, convert others to strings
-                    if (("pending".equals(keyStr) || "idle".equals(keyStr)) && value instanceof Number) {
-                        singleConsumerList.add(((Number) value).longValue());
-                    } else {
-                        singleConsumerList.add(convertResultToString(value));
-                    }
-                }
-                
-                consumersList.add(singleConsumerList);
-            }
-            
-            return XInfoConsumers.fromList("", consumersList);
-        } catch (Exception e) {
-            throw new ValkeyGlideExceptionConverter().convert(e);
-        }
-    }
-
+    // This is a LLM-generated code and it's so hellish i cant even think to refactor it. I am ashemed to show it here, but it works.
     private PendingMessagesSummary parsePendingMessagesSummary(Object result) {
         if (result == null) {
             return new PendingMessagesSummary("", 0L, Range.closed("", ""), Collections.emptyMap());
@@ -1044,85 +826,60 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 Map<String, Long> consumerMessageCount = new HashMap<>();
                 Object consumersObj = list.get(3);
                 
-                if (consumersObj instanceof List) {
-                    List<Object> consumers = (List<Object>) consumersObj;
+                
+                if (consumersObj instanceof Object[]) {
+                    // Handle Object[] format: [[consumerName, count], [consumerName, count], ...]
+                    Object[] consumersArray = (Object[]) consumersObj;
                     
-                    // Check if consumers list contains pairs or nested lists
-                    if (!consumers.isEmpty() && consumers.get(0) instanceof List) {
-                        // Handle case where each consumer is a separate list: [[consumerName, count], [consumerName, count], ...]
-                        for (Object consumerPair : consumers) {
-                            if (consumerPair instanceof List) {
-                                List<Object> pair = (List<Object>) consumerPair;
-                                if (pair.size() >= 2) {
-                                    Object consumerNameObj = ValkeyGlideConverters.defaultFromGlideResult(pair.get(0));
-                                    Object countObj = ValkeyGlideConverters.defaultFromGlideResult(pair.get(1));
-                                    
-                                    String consumerName = convertResultToString(consumerNameObj);
-                                    
-                                    Long messageCount = 0L;
-                                    if (countObj instanceof Number) {
-                                        messageCount = ((Number) countObj).longValue();
-                                    } else if (countObj instanceof byte[]) {
-                                        String countStr = new String((byte[]) countObj);
-                                        messageCount = Long.parseLong(countStr);
-                                    } else if (countObj != null) {
-                                        String countStr = countObj.toString();
-                                        messageCount = Long.parseLong(countStr);
-                                    }
-                                    
-                                    consumerMessageCount.put(consumerName, messageCount);
-                                }
-                            }
-                        }
-                    } else {
-                        // Handle flat list format: [consumerName1, count1, consumerName2, count2, ...]
-                        for (int i = 0; i < consumers.size(); i += 2) {
-                            if (i + 1 < consumers.size()) {
-                                Object consumerNameObj = ValkeyGlideConverters.defaultFromGlideResult(consumers.get(i));
-                                Object countObj = ValkeyGlideConverters.defaultFromGlideResult(consumers.get(i + 1));
+                    for (Object consumerPair : consumersArray) {
+                        if (consumerPair instanceof Object[]) {
+                            Object[] pair = (Object[]) consumerPair;
+                            if (pair.length >= 2) {
+                                Object consumerNameObj = ValkeyGlideConverters.defaultFromGlideResult(pair[0]);
+                                Object countObj = ValkeyGlideConverters.defaultFromGlideResult(pair[1]);
                                 
-                                // Enhanced byte array to string conversion with nested array handling
-                                String consumerName;
-                                if (consumerNameObj instanceof byte[]) {
-                                    consumerName = new String((byte[]) consumerNameObj);
-                                } else if (consumerNameObj instanceof byte[][]) {
-                                    // Handle byte[][] case - take first element
-                                    byte[][] nestedArrays = (byte[][]) consumerNameObj;
-                                    if (nestedArrays.length > 0 && nestedArrays[0] != null) {
-                                        consumerName = new String(nestedArrays[0]);
-                                    } else {
-                                        consumerName = convertResultToString(consumerNameObj);
-                                    }
-                                } else if (consumerNameObj instanceof List) {
-                                    // Handle nested list case - extract the byte[] and convert
-                                    List<?> nestedList = (List<?>) consumerNameObj;
-                                    if (!nestedList.isEmpty()) {
-                                        Object firstElement = nestedList.get(0);
-                                        if (firstElement instanceof byte[]) {
-                                            consumerName = new String((byte[]) firstElement);
-                                        } else if (firstElement instanceof byte[][]) {
-                                            byte[][] nestedArrays = (byte[][]) firstElement;
-                                            if (nestedArrays.length > 0 && nestedArrays[0] != null) {
-                                                consumerName = new String(nestedArrays[0]);
-                                            } else {
-                                                consumerName = convertResultToString(consumerNameObj);
-                                            }
-                                        } else {
-                                            consumerName = convertResultToString(firstElement);
-                                        }
-                                    } else {
-                                        consumerName = convertResultToString(consumerNameObj);
-                                    }
-                                } else {
-                                    consumerName = convertResultToString(consumerNameObj);
-                                }
+                                String consumerName = convertResultToString(consumerNameObj);
                                 
                                 Long messageCount = 0L;
                                 if (countObj instanceof Number) {
                                     messageCount = ((Number) countObj).longValue();
+                                } else if (countObj != null) {
+                                    try {
+                                        // Use convertResultToString to handle byte[] properly
+                                        String countStr = convertResultToString(countObj);
+                                        messageCount = Long.parseLong(countStr);
+                                    } catch (NumberFormatException e) {
+                                        messageCount = 0L;
+                                    }
                                 }
+                                
                                 consumerMessageCount.put(consumerName, messageCount);
                             }
+                        }
+                    }
+                } else if (consumersObj instanceof List) {
+                    List<Object> consumers = (List<Object>) consumersObj;
+                    
+                    // Handle flat list format: [consumerName1, count1, consumerName2, count2, ...]
+                    for (int i = 0; i < consumers.size(); i += 2) {
+                        if (i + 1 < consumers.size()) {
+                            Object consumerNameObj = ValkeyGlideConverters.defaultFromGlideResult(consumers.get(i));
+                            Object countObj = ValkeyGlideConverters.defaultFromGlideResult(consumers.get(i + 1));
+                            
+                            String consumerName = convertResultToString(consumerNameObj);
+                            
+                            Long messageCount = 0L;
+                            if (countObj instanceof Number) {
+                                messageCount = ((Number) countObj).longValue();
+                            } else if (countObj != null) {
+                                try {
+                                    messageCount = Long.parseLong(countObj.toString());
+                                } catch (NumberFormatException e) {
+                                    messageCount = 0L;
+                                }
+                            }
+                            
+                            consumerMessageCount.put(consumerName, messageCount);
                         }
                     }
                 }
@@ -1136,6 +893,7 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
         }
     }
 
+    // This is a LLM-generated code and it's so hellish i cant even think to refactor it. I am ashemed to show it here, but it works.
     private PendingMessages parsePendingMessages(Object result, String groupName) {
         if (result == null) {
             return new PendingMessages(groupName, Collections.emptyList());
@@ -1165,7 +923,6 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                     }
                 }
             }
-
             return new PendingMessages(groupName, pendingMessages);
         } catch (Exception e) {
             throw new ValkeyGlideExceptionConverter().convert(e);
