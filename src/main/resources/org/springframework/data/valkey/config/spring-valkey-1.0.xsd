@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<xsd:schema xmlns="http://www.springframework.org/schema/redis"
+<xsd:schema xmlns="http://www.springframework.org/schema/valkey"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:tool="http://www.springframework.org/schema/tool"
-    targetNamespace="http://www.springframework.org/schema/redis"
+    targetNamespace="http://www.springframework.org/schema/valkey"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
 
@@ -12,19 +12,19 @@
 
   <xsd:annotation>
     <xsd:documentation><![CDATA[
-Defines the configuration elements for the Spring Data Redis support.
-Allows for configuring Redis listener containers in XML 'shortcut' style.
+Defines the configuration elements for the Spring Data Valkey support.
+Allows for configuring Valkey listener containers in XML 'shortcut' style.
     ]]></xsd:documentation>
   </xsd:annotation>
 
   <xsd:element name="listener-container">
     <xsd:annotation>
       <xsd:documentation><![CDATA[
-Container of Redis listeners. All listeners will be hosted by the same container.
+Container of Valkey listeners. All listeners will be hosted by the same container.
       ]]></xsd:documentation>
       <xsd:appinfo>
         <tool:annotation>
-          <tool:exports type="org.springframework.data.redis.listener.RedisMessageListenerContainer"/>
+          <tool:exports type="io.valkey.springframework.data.valkey.listener.ValkeyMessageListenerContainer"/>
         </tool:annotation>
       </xsd:appinfo>
     </xsd:annotation>
@@ -32,15 +32,15 @@ Container of Redis listeners. All listeners will be hosted by the same container
       <xsd:sequence>
         <xsd:element name="listener" type="listenerType" minOccurs="0" maxOccurs="unbounded"/>
       </xsd:sequence>
-      <xsd:attribute name="connection-factory" type="xsd:string" default="redisConnectionFactory">
+      <xsd:attribute name="connection-factory" type="xsd:string" default="valkeyConnectionFactory">
         <xsd:annotation>
           <xsd:documentation><![CDATA[
-A reference to the Redis ConnectionFactory bean.
-Default is "redisConnectionFactory".
+A reference to the Valkey ConnectionFactory bean.
+Default is "valkeyConnectionFactory".
           ]]></xsd:documentation>
           <xsd:appinfo>
             <tool:annotation kind="ref">
-              <tool:expected-type type="org.springframework.data.redis.connection.ConnectionFactory"/>
+              <tool:expected-type type="io.valkey.springframework.data.valkey.connection.ConnectionFactory"/>
             </tool:annotation>
           </xsd:appinfo>
         </xsd:annotation>
@@ -49,7 +49,7 @@ Default is "redisConnectionFactory".
         <xsd:annotation>
           <xsd:documentation><![CDATA[
 A reference to a Spring TaskExecutor (or standard JDK 1.5 Executor) for executing
-Redis listener invokers. Default is a SimpleAsyncTaskExecutor.
+Valkey listener invokers. Default is a SimpleAsyncTaskExecutor.
           ]]></xsd:documentation>
           <xsd:appinfo>
             <tool:annotation kind="ref">
@@ -62,7 +62,7 @@ Redis listener invokers. Default is a SimpleAsyncTaskExecutor.
         <xsd:annotation>
           <xsd:documentation><![CDATA[
 A reference to a Spring TaskExecutor (or standard JDK 1.5 Executor) for listening
-to Redis messages. By default reuses the 'task-executor' value.
+to Valkey messages. By default reuses the 'task-executor' value.
           ]]></xsd:documentation>
           <xsd:appinfo>
             <tool:annotation kind="ref">
@@ -74,12 +74,12 @@ to Redis messages. By default reuses the 'task-executor' value.
       <xsd:attribute name="topic-serializer" type="xsd:string">
         <xsd:annotation>
           <xsd:documentation><![CDATA[
-A reference to the RedisSerializer strategy for converting Redis channels/patterns to
-serialized format. Default is a StringRedisSerializer.
+A reference to the ValkeySerializer strategy for converting Valkey channels/patterns to
+serialized format. Default is a StringValkeySerializer.
           ]]></xsd:documentation>
           <xsd:appinfo>
             <tool:annotation kind="ref">
-              <tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+              <tool:expected-type type="io.valkey.springframework.data.valkey.serializer.ValkeySerializer"/>
             </tool:annotation>
           </xsd:appinfo>
         </xsd:annotation>
@@ -113,7 +113,7 @@ and stop as soon as possible.
     <xsd:attribute name="topic" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation><![CDATA[
-The topics(s) to which the listener is subscribed. Can be (in Redis terminology) a 
+The topics(s) to which the listener is subscribed. Can be (in Valkey terminology) a 
 channel or/and a pattern. Multiple values can be specified by separating them with 
 spaces. Patterns can be specified by using the '*' character. 
         ]]></xsd:documentation>
@@ -131,12 +131,12 @@ interface or provide a method named 'handleMessage'.
     <xsd:attribute name="serializer" type="xsd:string">
       <xsd:annotation>
         <xsd:documentation><![CDATA[
-A reference to the RedisSerializer strategy for converting Redis Messages to
-listener method arguments. Default is a StringRedisSerializer.
+A reference to the ValkeySerializer strategy for converting Valkey Messages to
+listener method arguments. Default is a StringValkeySerializer.
         ]]></xsd:documentation>
         <xsd:appinfo>
           <tool:annotation kind="ref">
-            <tool:expected-type type="org.springframework.data.redis.serializer.RedisSerializer"/>
+            <tool:expected-type type="io.valkey.springframework.data.valkey.serializer.ValkeySerializer"/>
           </tool:annotation>
         </xsd:appinfo>
       </xsd:annotation>
@@ -146,11 +146,11 @@ listener method arguments. Default is a StringRedisSerializer.
   <xsd:element name="collection">
     <xsd:annotation>
       <xsd:documentation><![CDATA[
-Factory creating collections on top of Redis keys.
+Factory creating collections on top of Valkey keys.
       ]]></xsd:documentation>
       <xsd:appinfo>
         <tool:annotation>
-          <tool:exports type="org.springframework.data.redis.support.collections.RedisCollectionFactoryBean"/>
+          <tool:exports type="io.valkey.springframework.data.valkey.support.collections.ValkeyCollectionFactoryBean"/>
         </tool:annotation>
       </xsd:appinfo>
     </xsd:annotation>
@@ -158,24 +158,24 @@ Factory creating collections on top of Redis keys.
 	  <xsd:attribute name="id" type="xsd:ID">
 		<xsd:annotation>
 			<xsd:documentation><![CDATA[
-The name of the Redis collection.]]></xsd:documentation>
+The name of the Valkey collection.]]></xsd:documentation>
 		</xsd:annotation>
 	  </xsd:attribute>
       <xsd:attribute name="key" type="xsd:string" use="optional">
         <xsd:annotation>
           <xsd:documentation><![CDATA[
-Redis key of the created collection. Defaults to bean id.
+Valkey key of the created collection. Defaults to bean id.
           ]]></xsd:documentation>
         </xsd:annotation>
       </xsd:attribute>
-      <xsd:attribute name="template" type="xsd:string" default="redisTemplate">
+      <xsd:attribute name="template" type="xsd:string" default="valkeyTemplate">
         <xsd:annotation>
           <xsd:documentation><![CDATA[
-A reference to a RedisTemplate bean.Default is "redisTemplate".
+A reference to a ValkeyTemplate bean.Default is "valkeyTemplate".
           ]]></xsd:documentation>
           <xsd:appinfo>
             <tool:annotation kind="ref">
-              <tool:expected-type type="org.springframework.data.redis.core.RedisTemplate"/>
+              <tool:expected-type type="io.valkey.springframework.data.valkey.core.ValkeyTemplate"/>
             </tool:annotation>
           </xsd:appinfo>
         </xsd:annotation>

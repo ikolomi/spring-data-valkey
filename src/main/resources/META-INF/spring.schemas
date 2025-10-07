@@ -1,4 +1,4 @@
-http\://www.springframework.org/schema/redis/spring-redis-1.0.xsd=org/springframework/data/redis/config/spring-redis-1.0.xsd
-http\://www.springframework.org/schema/redis/spring-redis.xsd=org/springframework/data/redis/config/spring-redis-1.0.xsd
-https\://www.springframework.org/schema/redis/spring-redis-1.0.xsd=org/springframework/data/redis/config/spring-redis-1.0.xsd
-https\://www.springframework.org/schema/redis/spring-redis.xsd=org/springframework/data/redis/config/spring-redis-1.0.xsd
+http\://www.springframework.org/schema/valkey/spring-valkey-1.0.xsd=org/springframework/data/valkey/config/spring-valkey-1.0.xsd
+http\://www.springframework.org/schema/valkey/spring-valkey.xsd=org/springframework/data/valkey/config/spring-valkey-1.0.xsd
+https\://www.springframework.org/schema/valkey/spring-valkey-1.0.xsd=org/springframework/data/valkey/config/spring-valkey-1.0.xsd
+https\://www.springframework.org/schema/valkey/spring-valkey.xsd=org/springframework/data/valkey/config/spring-valkey-1.0.xsd
