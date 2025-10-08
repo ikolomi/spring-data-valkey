@@ -126,13 +126,13 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-            
+
       # Runtime hints tests still need an engine, but can use a single version
       - name: Install Valkey
         uses: ./.github/workflows/actions/install-engine
         with:
           engine-type: "valkey"
-          engine-tag: "8.0.3"  # Use oldest valkey version for runtime hints tests
+          engine-tag: "8.0.3" # Use oldest valkey version for runtime hints tests
 
       - name: Start Valkey
         run: |
