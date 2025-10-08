@@ -96,7 +96,7 @@ jobs:
             -Dmaven.repo.local=$HOME/.m2/spring-data-redis \
             test -Pnone \
             -DrunLongTests=true \
-            -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
+            -Dvalkey.server.version=${{ matrix.version }} \
             -U -B
 
   ci-runtimehints-tests:
