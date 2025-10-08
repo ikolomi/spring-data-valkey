@@ -645,8 +645,8 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         
         try {
             Object result = connection.execute("ZLEXCOUNT", key, 
-                formatLexRangeBound(range.getLowerBound()), 
-                formatLexRangeBound(range.getUpperBound()));
+                formatLexRangeBound(range.getLowerBound(), true), 
+                formatLexRangeBound(range.getUpperBound(), false));
             
             return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
@@ -687,7 +687,7 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         
         try {
             Object result = connection.execute("ZPOPMIN", key, count);
-            return convertToTupleSet(result);
+            return convertToTupleSetForPop(result, true);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -755,7 +755,7 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         
         try {
             Object result = connection.execute("ZPOPMAX", key, count);
-            return convertToTupleSet(result);
+            return convertToTupleSetForPop(result, false);
         } catch (Exception ex) {
             throw new ValkeyGlideExceptionConverter().convert(ex);
         }
@@ -881,8 +881,8 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         
         try {
             Object result = connection.execute("ZREMRANGEBYLEX", key, 
-                formatLexRangeBound(range.getLowerBound()), 
-                formatLexRangeBound(range.getUpperBound()));
+                formatLexRangeBound(range.getLowerBound(), true), 
+                formatLexRangeBound(range.getUpperBound(), false));
             
             return ((Number) ValkeyGlideConverters.defaultFromGlideResult(result)).longValue();
         } catch (Exception ex) {
@@ -1276,8 +1276,8 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         try {
             List<Object> commandArgs = new ArrayList<>();
             commandArgs.add(key);
-            commandArgs.add(formatLexRangeBound(range.getLowerBound()));
-            commandArgs.add(formatLexRangeBound(range.getUpperBound()));
+            commandArgs.add(formatLexRangeBound(range.getLowerBound(), true));
+            commandArgs.add(formatLexRangeBound(range.getUpperBound(), false));
             
             if (limit.isLimited()) {
                 commandArgs.add("LIMIT");
@@ -1314,8 +1314,8 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         try {
             List<Object> commandArgs = new ArrayList<>();
             commandArgs.add(key);
-            commandArgs.add(formatLexRangeBound(range.getUpperBound()));
-            commandArgs.add(formatLexRangeBound(range.getLowerBound()));
+            commandArgs.add(formatLexRangeBound(range.getUpperBound(), false));
+            commandArgs.add(formatLexRangeBound(range.getLowerBound(), true));
             
             if (limit.isLimited()) {
                 commandArgs.add("LIMIT");
@@ -1354,8 +1354,8 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
             List<Object> commandArgs = new ArrayList<>();
             commandArgs.add(dstKey);
             commandArgs.add(srcKey);
-            commandArgs.add(formatLexRangeBound(range.getLowerBound()));
-            commandArgs.add(formatLexRangeBound(range.getUpperBound()));
+            commandArgs.add(formatLexRangeBound(range.getLowerBound(), true));
+            commandArgs.add(formatLexRangeBound(range.getUpperBound(), false));
             commandArgs.add("BYLEX");
             
             if (limit.isLimited()) {
@@ -1384,8 +1384,8 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
             List<Object> commandArgs = new ArrayList<>();
             commandArgs.add(dstKey);
             commandArgs.add(srcKey);
-            commandArgs.add(formatLexRangeBound(range.getUpperBound()));
-            commandArgs.add(formatLexRangeBound(range.getLowerBound()));
+            commandArgs.add(formatLexRangeBound(range.getUpperBound(), false));
+            commandArgs.add(formatLexRangeBound(range.getLowerBound(), true));
             commandArgs.add("BYLEX");
             commandArgs.add("REV");
             
@@ -1546,6 +1546,7 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
             }
         } else {
             // Standard flat format: [member, score, member, score, ...]
+            // Process in pairs, maintaining the order returned by Redis
             for (int i = 0; i < list.size(); i += 2) {
                 if (i + 1 < list.size()) {
                     Object valueObj = ValkeyGlideConverters.defaultFromGlideResult(list.get(i));
@@ -1561,6 +1562,44 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         return resultSet;
     }
 
+    /**
+     * Unified method to convert pop operation results to tuple sets with configurable sort order.
+     * 
+     * @param result the result from ZPOPMIN/ZPOPMAX operation
+     * @param ascending true for ascending order (lowest first), false for descending order (highest first)
+     * @return set of tuples in the specified order
+     */
+    private Set<Tuple> convertToTupleSetForPop(Object result, boolean ascending) {
+        Object converted = ValkeyGlideConverters.defaultFromGlideResult(result);
+        
+        if (converted == null) {
+            return new LinkedHashSet<>();
+        }
+        
+        List<Tuple> tuples = new ArrayList<>();
+        
+        // Handle HashMap format returned by Valkey-Glide for pop operations
+        Map<?, ?> map = (Map<?, ?>) converted;
+        
+        // Convert map entries to tuples
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            byte[] value = convertToByteArray(entry.getKey());
+            Double score = parseScore(entry.getValue());
+            tuples.add(new DefaultTuple(value, score));
+        }
+        
+        // Sort tuples based on the specified order
+        tuples.sort(ascending ? 
+            (t1, t2) -> Double.compare(t1.getScore(), t2.getScore()) :  // ascending: lowest first
+            (t1, t2) -> Double.compare(t2.getScore(), t1.getScore()));   // descending: highest first
+        
+        // Convert to LinkedHashSet to maintain order
+        Set<Tuple> resultSet = new LinkedHashSet<>();
+        resultSet.addAll(tuples);
+        
+        return resultSet;
+    }
+
     private String formatRangeBound(org.springframework.data.domain.Range.Bound<? extends Number> bound, boolean isLowerBound) {
         if (bound == null || !bound.getValue().isPresent()) {
             return isLowerBound ? "-inf" : "+inf";
@@ -1570,36 +1609,13 @@ public class ValkeyGlideZSetCommands implements ValkeyZSetCommands {
         return bound.isInclusive() ? value : "(" + value;
     }
 
-    private String formatLexRangeBound(org.springframework.data.domain.Range.Bound<byte[]> bound) {
+    private String formatLexRangeBound(org.springframework.data.domain.Range.Bound<byte[]> bound, boolean isLowerBound) {
         if (bound == null || !bound.getValue().isPresent()) {
-            return "-";
+            return isLowerBound ? "-" : "+";
         }
         
         String value = new String(bound.getValue().get());
         return bound.isInclusive() ? "[" + value : "(" + value;
-    }
-
-    private boolean isNumericValue(Object obj) {
-        if (obj instanceof Number) {
-            return true;
-        }
-        if (obj instanceof String) {
-            try {
-                Double.parseDouble((String) obj);
-                return true;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-        if (obj instanceof byte[]) {
-            try {
-                Double.parseDouble(new String((byte[]) obj));
-                return true;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-        return false;
     }
 
     private byte[] convertToByteArray(Object obj) {

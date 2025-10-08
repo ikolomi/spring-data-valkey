@@ -66,7 +66,8 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             "test:zset:pop:key", "test:zset:diff:key1", "test:zset:diff:key2", "test:zset:diff:dest",
             "test:zset:inter:key1", "test:zset:inter:key2", "test:zset:inter:dest", "test:zset:union:key1",
             "test:zset:union:key2", "test:zset:union:dest", "test:zset:rangestore:src", "test:zset:rangestore:dest",
-            "test:zset:rangestore:srclex", "test:zset:remrange:key", "test:zset:scan:key"
+            "test:zset:rangestore:srclex", "test:zset:remrange:key", "test:zset:scan:key", "test:zset:lex:bounds:key",
+            "test:zset:lex:edge:key", "test:zset:lex:complex:key"
         };
     }
 
@@ -404,7 +405,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
                 .collect(java.util.stream.Collectors.toList());
             assertThat(lexResultList).containsExactly("b", "c", "d");
             
-            // Test zRevRangeByLex
+            // Test zRevRangeByLex - should return results in reverse lexicographic order
             Set<byte[]> revLexResult = connection.zSetCommands().zRevRangeByLex(key.getBytes(), 
                 lexRange, Limit.unlimited());
             assertThat(revLexResult).hasSize(3);
@@ -618,6 +619,80 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             // Test zPopMax multiple
             Set<Tuple> maxTuples = connection.zSetCommands().zPopMax(key.getBytes(), 2);
             assertThat(maxTuples).hasSize(1); // Only 1 element remaining after previous operations
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testZPopMinAndZPopMaxOrdering() {
+        String key = "test:zset:pop:ordering:key";
+        
+        try {
+            // Setup test data with specific scores to test ordering
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("low".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("medium".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("high".getBytes(), 3.0));
+            tuples.add(new DefaultTuple("highest".getBytes(), 4.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            
+            // Test zPopMin multiple - should return in ascending order (lowest scores first)
+            Set<Tuple> minTuples = connection.zSetCommands().zPopMin(key.getBytes(), 2);
+            assertThat(minTuples).hasSize(2);
+            
+            // Convert to list to check ordering
+            java.util.List<Tuple> minList = new java.util.ArrayList<>(minTuples);
+            assertThat(minList.get(0).getScore()).isEqualTo(1.0);
+            assertThat(new String(minList.get(0).getValue())).isEqualTo("low");
+            assertThat(minList.get(1).getScore()).isEqualTo(2.0);
+            assertThat(new String(minList.get(1).getValue())).isEqualTo("medium");
+            
+            // Test zPopMax multiple - should return in descending order (highest scores first)
+            Set<Tuple> maxTuples = connection.zSetCommands().zPopMax(key.getBytes(), 2);
+            assertThat(maxTuples).hasSize(2);
+            
+            // Convert to list to check ordering
+            java.util.List<Tuple> maxList = new java.util.ArrayList<>(maxTuples);
+            assertThat(maxList.get(0).getScore()).isEqualTo(4.0);
+            assertThat(new String(maxList.get(0).getValue())).isEqualTo("highest");
+            assertThat(maxList.get(1).getScore()).isEqualTo(3.0);
+            assertThat(new String(maxList.get(1).getValue())).isEqualTo("high");
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testBlockingPopOperations() {
+        String key = "test:zset:blocking:pop:key";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            
+            // Test bZPopMin with short timeout (should return immediately since data exists)
+            Tuple minTuple = connection.zSetCommands().bZPopMin(key.getBytes(), 1, TimeUnit.SECONDS);
+            assertThat(minTuple).isNotNull();
+            assertThat(minTuple.getScore()).isEqualTo(1.0);
+            assertThat(new String(minTuple.getValue())).isEqualTo("member1");
+            
+            // Test bZPopMax with short timeout (should return immediately since data exists)
+            Tuple maxTuple = connection.zSetCommands().bZPopMax(key.getBytes(), 1, TimeUnit.SECONDS);
+            assertThat(maxTuple).isNotNull();
+            assertThat(maxTuple.getScore()).isEqualTo(2.0);
+            assertThat(new String(maxTuple.getValue())).isEqualTo("member2");
+            
+            // Test bZPopMin on empty set with short timeout (should return null after timeout)
+            Tuple emptyResult = connection.zSetCommands().bZPopMin(key.getBytes(), 1, TimeUnit.SECONDS);
+            assertThat(emptyResult).isNull();
         } finally {
             cleanupKey(key);
         }
@@ -891,6 +966,242 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             Range<byte[]> lexRange = Range.closed("b".getBytes(), "d".getBytes());
             Long remByLexResult = connection.zSetCommands().zRemRangeByLex(key.getBytes(), lexRange);
             assertThat(remByLexResult).isEqualTo(3L);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    // ==================== Comprehensive Lexicographic Range Tests ====================
+
+    @Test
+    void testLexicographicRangeEdgeCases() {
+        String key = "test:zset:lex:bounds:key";
+        
+        try {
+            // Setup test data with same score for lexicographical ordering
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("apple".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("banana".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("cherry".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("date".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("elderberry".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("fig".getBytes(), 0.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            
+            // Test inclusive lower and upper bounds [banana, date]
+            Range<byte[]> inclusiveRange = Range.closed("banana".getBytes(), "date".getBytes());
+            Set<byte[]> inclusiveResult = connection.zSetCommands().zRangeByLex(key.getBytes(), 
+                inclusiveRange, Limit.unlimited());
+            assertThat(inclusiveResult).hasSize(3);
+            List<String> inclusiveList = inclusiveResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(inclusiveList).containsExactly("banana", "cherry", "date");
+            
+            // Test exclusive lower bound (banana, elderberry]
+            Range<byte[]> exclusiveLowerRange = Range.from(Range.Bound.exclusive("banana".getBytes()))
+                .to(Range.Bound.inclusive("elderberry".getBytes()));
+            Set<byte[]> exclusiveLowerResult = connection.zSetCommands().zRangeByLex(key.getBytes(), 
+                exclusiveLowerRange, Limit.unlimited());
+            assertThat(exclusiveLowerResult).hasSize(3);
+            List<String> exclusiveLowerList = exclusiveLowerResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(exclusiveLowerList).containsExactly("cherry", "date", "elderberry");
+            
+            // Test exclusive upper bound [cherry, elderberry)
+            Range<byte[]> exclusiveUpperRange = Range.from(Range.Bound.inclusive("cherry".getBytes()))
+                .to(Range.Bound.exclusive("elderberry".getBytes()));
+            Set<byte[]> exclusiveUpperResult = connection.zSetCommands().zRangeByLex(key.getBytes(), 
+                exclusiveUpperRange, Limit.unlimited());
+            assertThat(exclusiveUpperResult).hasSize(2);
+            List<String> exclusiveUpperList = exclusiveUpperResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(exclusiveUpperList).containsExactly("cherry", "date");
+            
+            // Test both bounds exclusive (banana, date)
+            Range<byte[]> bothExclusiveRange = Range.open("banana".getBytes(), "date".getBytes());
+            Set<byte[]> bothExclusiveResult = connection.zSetCommands().zRangeByLex(key.getBytes(), 
+                bothExclusiveRange, Limit.unlimited());
+            assertThat(bothExclusiveResult).hasSize(1);
+            List<String> bothExclusiveList = bothExclusiveResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(bothExclusiveList).containsExactly("cherry");
+            
+            // Test unbounded lower range (-, date]
+            Range<byte[]> unboundedLowerRange = Range.<byte[]>from(Range.Bound.unbounded())
+                .to(Range.Bound.inclusive("date".getBytes()));
+            Set<byte[]> unboundedLowerResult = connection.zSetCommands().zRangeByLex(key.getBytes(), 
+                unboundedLowerRange, Limit.unlimited());
+            assertThat(unboundedLowerResult).hasSize(4);
+            List<String> unboundedLowerList = unboundedLowerResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(unboundedLowerList).containsExactly("apple", "banana", "cherry", "date");
+            
+            // Test unbounded upper range [cherry, +)
+            Range<byte[]> unboundedUpperRange = Range.<byte[]>from(Range.Bound.inclusive("cherry".getBytes()))
+                .to(Range.Bound.unbounded());
+            Set<byte[]> unboundedUpperResult = connection.zSetCommands().zRangeByLex(key.getBytes(), 
+                unboundedUpperRange, Limit.unlimited());
+            assertThat(unboundedUpperResult).hasSize(4);
+            List<String> unboundedUpperList = unboundedUpperResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(unboundedUpperList).containsExactly("cherry", "date", "elderberry", "fig");
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testLexicographicCountWithComplexBounds() {
+        String key = "test:zset:lex:edge:key";
+        
+        try {
+            // Setup test data with special characters and edge cases
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("!special".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("@symbol".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("Apple".getBytes(), 0.0));  // Capital A
+            tuples.add(new DefaultTuple("apple".getBytes(), 0.0));  // Lower case a
+            tuples.add(new DefaultTuple("banana".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("z_last".getBytes(), 0.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            
+            // Test count with inclusive bounds including special characters
+            Range<byte[]> specialRange = Range.closed("!special".getBytes(), "Apple".getBytes());
+            Long specialCount = connection.zSetCommands().zLexCount(key.getBytes(), specialRange);
+            assertThat(specialCount).isEqualTo(3L); // !special, @symbol, Apple
+            
+            // Test count with case-sensitive boundaries
+            Range<byte[]> caseRange = Range.closed("Apple".getBytes(), "apple".getBytes());
+            Long caseCount = connection.zSetCommands().zLexCount(key.getBytes(), caseRange);
+            assertThat(caseCount).isEqualTo(2L); // Apple, apple
+            
+            // Test count with exclusive bounds
+            Range<byte[]> exclusiveRange = Range.open("Apple".getBytes(), "banana".getBytes());
+            Long exclusiveCount = connection.zSetCommands().zLexCount(key.getBytes(), exclusiveRange);
+            assertThat(exclusiveCount).isEqualTo(1L); // apple
+            
+            // Test count with unbounded ranges
+            Range<byte[]> unboundedRange = Range.from(Range.Bound.inclusive("banana".getBytes()))
+                .to(Range.Bound.unbounded());
+            Long unboundedCount = connection.zSetCommands().zLexCount(key.getBytes(), unboundedRange);
+            assertThat(unboundedCount).isEqualTo(2L); // banana, z_last
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testLexicographicRemovalWithEdgeCases() {
+        String key = "test:zset:lex:complex:key";
+        
+        try {
+            // Setup test data with mixed content
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("01_numeric".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("alpha".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("beta".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("gamma".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("omega".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("zulu".getBytes(), 0.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            
+            // Test removal with inclusive bounds
+            Range<byte[]> removalRange = Range.closed("beta".getBytes(), "gamma".getBytes());
+            Long removalCount = connection.zSetCommands().zRemRangeByLex(key.getBytes(), removalRange);
+            assertThat(removalCount).isEqualTo(2L); // beta, gamma
+            
+            // Verify remaining elements
+            Long remainingCount = connection.zSetCommands().zCard(key.getBytes());
+            assertThat(remainingCount).isEqualTo(4L);
+            
+            // Test removal with exclusive bounds
+            Range<byte[]> exclusiveRemovalRange = Range.open("alpha".getBytes(), "omega".getBytes());
+            Long exclusiveRemovalCount = connection.zSetCommands().zRemRangeByLex(key.getBytes(), exclusiveRemovalRange);
+            assertThat(exclusiveRemovalCount).isEqualTo(0L); // No elements between "alpha" and "omega" exclusively
+            
+            // Test removal with unbounded lower bound
+            Range<byte[]> unboundedRemovalRange = Range.<byte[]>from(Range.Bound.unbounded())
+                .to(Range.Bound.inclusive("alpha".getBytes()));
+            Long unboundedRemovalCount = connection.zSetCommands().zRemRangeByLex(key.getBytes(), unboundedRemovalRange);
+            assertThat(unboundedRemovalCount).isEqualTo(2L); // 01_numeric, alpha
+            
+            // Final verification
+            Long finalCount = connection.zSetCommands().zCard(key.getBytes());
+            assertThat(finalCount).isEqualTo(2L); // omega, zulu should remain
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testLexicographicReverseOperationsWithBounds() {
+        String key = "test:zset:lex:reverse:key";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("first".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("middle".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("second".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("third".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("zebra".getBytes(), 0.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            
+            // Test zRevRangeByLex with various bound combinations
+            Range<byte[]> reverseRange = Range.closed("middle".getBytes(), "third".getBytes());
+            Set<byte[]> reverseResult = connection.zSetCommands().zRevRangeByLex(key.getBytes(), 
+                reverseRange, Limit.unlimited());
+            assertThat(reverseResult).hasSize(3);
+            List<String> reverseList = reverseResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(reverseList).containsExactly("third", "second", "middle");
+            
+            // Test with limit
+            Set<byte[]> limitedResult = connection.zSetCommands().zRevRangeByLex(key.getBytes(), 
+                reverseRange, Limit.limit().count(2));
+            assertThat(limitedResult).hasSize(2);
+            List<String> limitedList = limitedResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(limitedList).containsExactly("third", "second");
+            
+            // Test with offset and limit
+            Set<byte[]> offsetResult = connection.zSetCommands().zRevRangeByLex(key.getBytes(), 
+                reverseRange, Limit.limit().offset(1).count(1));
+            assertThat(offsetResult).hasSize(1);
+            List<String> offsetList = offsetResult.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(offsetList).containsExactly("second");
+            
+            // Test zRangeStoreRevByLex
+            String destKey = "test:zset:lex:reverse:dest";
+            Long storeResult = connection.zSetCommands().zRangeStoreRevByLex(destKey.getBytes(), key.getBytes(), 
+                reverseRange, Limit.unlimited());
+            assertThat(storeResult).isEqualTo(3L);
+            
+            Set<byte[]> storedData = connection.zSetCommands().zRange(destKey.getBytes(), 0, -1);
+            List<String> storedList = storedData.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            assertThat(storedList).containsExactly("middle", "second", "third");
+            
+            cleanupKey(destKey);
         } finally {
             cleanupKey(key);
         }
