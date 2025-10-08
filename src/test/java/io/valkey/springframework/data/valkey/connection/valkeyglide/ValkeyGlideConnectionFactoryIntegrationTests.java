@@ -1058,14 +1058,14 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
      * Gets the Valkey host from environment or uses default.
      */
     private String getValkeyHost() {
-        return System.getProperty("redis.host", "localhost");
+        return System.getProperty("valkey.host", "localhost");
     }
 
     /**
      * Gets the Valkey port from environment or uses default.
      */
     private int getValkeyPort() {
-        return Integer.parseInt(System.getProperty("redis.port", "6379"));
+        return Integer.parseInt(System.getProperty("valkey.port", "6379"));
     }
 
     /**

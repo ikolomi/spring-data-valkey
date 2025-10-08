@@ -126,7 +126,7 @@ public abstract class AbstractValkeyGlideIntegrationTests {
      * @return the Valkey host
      */
     protected String getValkeyHost() {
-        return System.getProperty("redis.host", "localhost");
+        return System.getProperty("valkey.host", "localhost");
     }
 
     /**
@@ -135,7 +135,7 @@ public abstract class AbstractValkeyGlideIntegrationTests {
      * @return the Valkey port
      */
     protected int getValkeyPort() {
-        return Integer.parseInt(System.getProperty("redis.port", "6379"));
+        return Integer.parseInt(System.getProperty("valkey.port", "6379"));
     }
 
     /**

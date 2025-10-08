@@ -637,7 +637,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             tuples.add(new DefaultTuple("highest".getBytes(), 4.0));
             
             connection.zSetCommands().zAdd(key.getBytes(), tuples, 
-                RedisZSetCommands.ZAddArgs.empty());
+                ValkeyZSetCommands.ZAddArgs.empty());
             
             // Test zPopMin multiple - should return in ascending order (lowest scores first)
             Set<Tuple> minTuples = connection.zSetCommands().zPopMin(key.getBytes(), 2);
@@ -676,7 +676,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
             
             connection.zSetCommands().zAdd(key.getBytes(), tuples, 
-                RedisZSetCommands.ZAddArgs.empty());
+                ValkeyZSetCommands.ZAddArgs.empty());
             
             // Test bZPopMin with short timeout (should return immediately since data exists)
             Tuple minTuple = connection.zSetCommands().bZPopMin(key.getBytes(), 1, TimeUnit.SECONDS);
@@ -988,7 +988,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             tuples.add(new DefaultTuple("fig".getBytes(), 0.0));
             
             connection.zSetCommands().zAdd(key.getBytes(), tuples, 
-                RedisZSetCommands.ZAddArgs.empty());
+                ValkeyZSetCommands.ZAddArgs.empty());
             
             // Test inclusive lower and upper bounds [banana, date]
             Range<byte[]> inclusiveRange = Range.closed("banana".getBytes(), "date".getBytes());
@@ -1073,7 +1073,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             tuples.add(new DefaultTuple("z_last".getBytes(), 0.0));
             
             connection.zSetCommands().zAdd(key.getBytes(), tuples, 
-                RedisZSetCommands.ZAddArgs.empty());
+                ValkeyZSetCommands.ZAddArgs.empty());
             
             // Test count with inclusive bounds including special characters
             Range<byte[]> specialRange = Range.closed("!special".getBytes(), "Apple".getBytes());
@@ -1115,7 +1115,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             tuples.add(new DefaultTuple("zulu".getBytes(), 0.0));
             
             connection.zSetCommands().zAdd(key.getBytes(), tuples, 
-                RedisZSetCommands.ZAddArgs.empty());
+                ValkeyZSetCommands.ZAddArgs.empty());
             
             // Test removal with inclusive bounds
             Range<byte[]> removalRange = Range.closed("beta".getBytes(), "gamma".getBytes());
@@ -1159,7 +1159,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             tuples.add(new DefaultTuple("zebra".getBytes(), 0.0));
             
             connection.zSetCommands().zAdd(key.getBytes(), tuples, 
-                RedisZSetCommands.ZAddArgs.empty());
+                ValkeyZSetCommands.ZAddArgs.empty());
             
             // Test zRevRangeByLex with various bound combinations
             Range<byte[]> reverseRange = Range.closed("middle".getBytes(), "third".getBytes());
