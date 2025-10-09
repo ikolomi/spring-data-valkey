@@ -26,6 +26,7 @@ import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import io.valkey.springframework.data.valkey.test.condition.EnabledOnCommand;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
@@ -85,6 +86,7 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
     }
 
     @Test
+    @EnabledOnCommand("HEXPIRE")
     void testHashOperations() {
         String key1 = "test:hash:basic";
         String key2 = "test:hash:putall";

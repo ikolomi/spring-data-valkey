@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessException;
 import io.valkey.springframework.data.valkey.connection.ExpirationOptions;
+import io.valkey.springframework.data.valkey.test.condition.EnabledOnCommand;
 import io.valkey.springframework.data.valkey.core.Cursor;
 import io.valkey.springframework.data.valkey.core.ScanOptions;
 
@@ -543,6 +544,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     // ==================== Field Expiration Operations ====================
 
     @Test
+    @EnabledOnCommand("HEXPIRE")
     void testHExpire() {
         String key = "test:hash:expire";
         byte[] keyBytes = key.getBytes();
@@ -605,6 +607,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HPEXPIRE")
     void testHpExpire() {
         String key = "test:hash:expire";
         byte[] keyBytes = key.getBytes();
@@ -667,6 +670,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HEXPIREAT")
     void testHExpireAt() {
         String key = "test:hash:expireat";
         byte[] keyBytes = key.getBytes();
@@ -682,7 +686,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             
             long currentTimestamp = System.currentTimeMillis() / 1000;
             long expirationTimestamp = currentTimestamp + 10; // 10 seconds in the future
-            long expiredTimestamp = currentTimestamp - 10; // 10 seconds in the past
+            long shorterTimestamp = currentTimestamp + 5; // 5 seconds in the future (shorter than 10)
             long nextExpirationTimestampMillis = currentTimestamp + 20; // 20 seconds in the future
 
             // Test hExpireAt (seconds) - Basic happy path test to ensure command executes
@@ -718,7 +722,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             assertThat(expireResults.get(0)).isEqualTo(1);
 
             // Test hExpire (seconds) - Test GT by setting a shorter expiry first
-            expireResults = connection.hashCommands().hExpireAt(keyBytes, expiredTimestamp, 
+            expireResults = connection.hashCommands().hExpireAt(keyBytes, shorterTimestamp,
                 ExpirationOptions.Condition.GT, field1);
             assertThat(expireResults).hasSize(1);
             assertThat(expireResults.get(0)).isEqualTo(0);
@@ -734,6 +738,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HPEXPIREAT")
     void testHpExpireAt() {
         String key = "test:hash:expireat";
         byte[] keyBytes = key.getBytes();
@@ -749,7 +754,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             
             long currentTimestamp = System.currentTimeMillis();
             long expirationTimestamp = currentTimestamp + 10000; // 10 seconds in the future
-            long expiredTimestamp = currentTimestamp - 10000; // 10 seconds in the past
+            long shorterTimestamp = currentTimestamp + 5000; // 5 seconds in the future (shorter than 10)
             long nextExpirationTimestampMillis = currentTimestamp + 20000; // 20 seconds in the future
 
             // Test hExpireAt (seconds) - Basic happy path test to ensure command executes
@@ -785,7 +790,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             assertThat(expireResults.get(0)).isEqualTo(1);
 
             // Test hExpire (seconds) - Test GT by setting a shorter expiry first
-            expireResults = connection.hashCommands().hpExpireAt(keyBytes, expiredTimestamp, 
+            expireResults = connection.hashCommands().hpExpireAt(keyBytes, shorterTimestamp,
                 ExpirationOptions.Condition.GT, field1);
             assertThat(expireResults).hasSize(1);
             assertThat(expireResults.get(0)).isEqualTo(0);
@@ -801,6 +806,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HPERSIST")
     void testHPersist() {
         String key = "test:hash:persist";
         byte[] keyBytes = key.getBytes();
@@ -843,6 +849,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HTTL")
     void testHTtl() {
         String key = "test:hash:ttl";
         byte[] keyBytes = key.getBytes();
@@ -887,6 +894,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HPTTL")
     void testHpTtl() {
         String key = "test:hash:ttl";
         byte[] keyBytes = key.getBytes();
@@ -1227,6 +1235,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HEXPIRE")
     void testHashExpirationCommandsInPipelineMode() {
         String key = "test:hash:pipeline:expire";
         byte[] keyBytes = key.getBytes();
@@ -1512,6 +1521,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
     }
 
     @Test
+    @EnabledOnCommand("HEXPIRE")
     void testHashExpirationCommandsInTransactionMode() {
         String key = "test:hash:transaction:expire";
         byte[] keyBytes = key.getBytes();
