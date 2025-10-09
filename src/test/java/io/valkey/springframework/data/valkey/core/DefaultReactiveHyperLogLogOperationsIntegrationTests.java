@@ -67,7 +67,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void add() {
 
 		K key = keyFactory.instance();
@@ -79,7 +79,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		hyperLogLogOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void union() {
 
 		K mergedKey = keyFactory.instance();
@@ -101,7 +101,7 @@ public class DefaultReactiveHyperLogLogOperationsIntegrationTests<K, V> {
 		}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void delete() {
 
 		K key = keyFactory.instance();

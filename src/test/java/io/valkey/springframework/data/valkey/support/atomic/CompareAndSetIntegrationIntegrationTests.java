@@ -70,7 +70,7 @@ public class CompareAndSetIntegrationIntegrationTests {
 		connection.close();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-843
+	@ParameterizedValkeyTest // DATAREDIS-843
 	void shouldUpdateCounter() {
 
 		long expected = 5;
@@ -84,7 +84,7 @@ public class CompareAndSetIntegrationIntegrationTests {
 		assertThat(valueOps.get(KEY)).isEqualTo(update);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-843
+	@ParameterizedValkeyTest // DATAREDIS-843
 	void expectationNotMet() {
 
 		long expected = 5;
@@ -98,7 +98,7 @@ public class CompareAndSetIntegrationIntegrationTests {
 		assertThat(valueOps.get(KEY)).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-843
+	@ParameterizedValkeyTest // DATAREDIS-843
 	void concurrentUpdate() {
 
 		long expected = 5;

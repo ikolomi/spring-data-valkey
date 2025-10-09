@@ -72,7 +72,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		when(subscriptionMock.unsubscribe()).thenReturn(Mono.empty());
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribeToPattern() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
@@ -84,7 +84,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribeToMultiplePatterns() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
@@ -96,7 +96,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		verify(subscriptionMock).pSubscribe(getByteBuffer("foo*"), getByteBuffer("bar*"));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribeToChannel() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
@@ -107,7 +107,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		verify(subscriptionMock).subscribe(getByteBuffer("foo"));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribeToMultipleChannels() {
 
 		when(subscriptionMock.receive()).thenReturn(Flux.never());
@@ -119,7 +119,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		verify(subscriptionMock).subscribe(getByteBuffer("foo"), getByteBuffer("bar"));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldEmitChannelMessage() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
@@ -138,7 +138,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		}).thenCancel().verify();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldEmitPatternMessage() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
@@ -158,7 +158,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		}).thenCancel().verify();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldRegisterSubscription() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().multicast().onBackpressureBuffer();
@@ -182,7 +182,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		assertThat(container.getActiveSubscriptions()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-612, GH-1622
+	@Test // DATAREDIS-612, GH-1622
 	void shouldRegisterSubscriptionMultipleSubscribers() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().multicast().onBackpressureBuffer();
@@ -209,7 +209,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		assertThat(container.getActiveSubscriptions()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-612, GH-1622
+	@Test // DATAREDIS-612, GH-1622
 	void shouldUnsubscribeOnCancel() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
@@ -227,7 +227,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		verify(subscriptionMock).cancel();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldTerminateSubscriptionsOnShutdown() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();
@@ -247,7 +247,7 @@ class ReactiveValkeyMessageListenerContainerUnitTests {
 		}).verifyError(CancellationException.class);
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldCleanupDownstream() {
 
 		Sinks.Many<Message<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast().onBackpressureBuffer();

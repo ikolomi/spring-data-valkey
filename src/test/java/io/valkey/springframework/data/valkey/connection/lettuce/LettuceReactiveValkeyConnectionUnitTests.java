@@ -67,7 +67,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		when(sharedConnection.reactive()).thenReturn(reactiveCommands);
 	}
 
-	@Test // DATAVALKEY-720
+	@Test // DATAREDIS-720
 	void shouldLazilyInitializeConnection() {
 
 		new LettuceReactiveValkeyConnection(connectionProvider);
@@ -75,7 +75,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verifyNoInteractions(connectionProvider);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldExecuteUsingConnectionProvider() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -85,7 +85,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldExecuteDedicatedUsingConnectionProvider() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -95,7 +95,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAVALKEY-720
+	@Test // DATAREDIS-720
 	void shouldExecuteOnSharedConnection() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(sharedConnection,
@@ -106,7 +106,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verifyNoInteractions(connectionProvider);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldExecuteDedicatedWithSharedConnection() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(sharedConnection,
@@ -117,7 +117,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldOperateOnDedicatedConnection() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -127,7 +127,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verify(connectionProvider).getConnectionAsync(StatefulConnection.class);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldCloseOnlyDedicatedConnection() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(sharedConnection,
@@ -142,7 +142,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verify(connectionProvider, times(1)).releaseAsync(sharedConnection);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldCloseConnectionOnlyOnce() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -155,7 +155,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		verify(connectionProvider, times(1)).releaseAsync(sharedConnection);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	@SuppressWarnings("unchecked")
 	void multipleCallsInProgressShouldConnectOnlyOnce() throws Exception {
 
@@ -184,7 +184,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		assertThat(second).isCompletedWithValue(sharedConnection);
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldPropagateConnectionFailures() {
 
 		reset(connectionProvider);
@@ -196,7 +196,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		connection.getConnection().as(StepVerifier::create).expectError(ValkeyConnectionFailureException.class).verify();
 	}
 
-	@Test // DATAVALKEY-720, DATAVALKEY-721
+	@Test // DATAREDIS-720, DATAREDIS-721
 	void shouldRejectCommandsAfterClose() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -205,7 +205,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		connection.getConnection().as(StepVerifier::create).expectError(IllegalStateException.class).verify();
 	}
 
-	@Test // DATAVALKEY-659, DATAVALKEY-708
+	@Test // DATAREDIS-659, DATAREDIS-708
 	void bgReWriteAofShouldRespondCorrectly() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -215,7 +215,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		connection.serverCommands().bgReWriteAof().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659, DATAVALKEY-667, DATAVALKEY-708
+	@Test // DATAREDIS-659, DATAREDIS-667, DATAREDIS-708
 	void bgSaveShouldRespondCorrectly() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);
@@ -225,7 +225,7 @@ class LettuceReactiveValkeyConnectionUnitTests {
 		connection.serverCommands().bgSave().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1122
+	@Test // DATAREDIS-1122
 	void xaddShouldHonorMaxlen() {
 
 		LettuceReactiveValkeyConnection connection = new LettuceReactiveValkeyConnection(connectionProvider);

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  */
 class LettuceReactiveClusterHyperLogLogCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void pfCountWithMultipleKeysShouldReturnCorrectlyWhenKeysMapToSameSlot() {
 
 		nativeCommands.pfadd(SAME_SLOT_KEY_1, new String[] { VALUE_1, VALUE_2 });
@@ -37,7 +37,7 @@ class LettuceReactiveClusterHyperLogLogCommandsIntegrationTests extends LettuceR
 				.block()).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void pfMergeShouldWorkCorrectlyWhenKeysMapToSameSlot() {
 
 		nativeCommands.pfadd(SAME_SLOT_KEY_1, new String[] { VALUE_1, VALUE_2 });

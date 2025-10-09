@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
  */
 class ValkeyElastiCacheConfigurationUnitTests {
 
-	@Test // DATAVALKEY-762
+	@Test // DATAREDIS-762
 	void shouldCreateSingleHostConfiguration() {
 
 		ValkeyStaticMasterReplicaConfiguration singleHost = new ValkeyStaticMasterReplicaConfiguration("localhost");
@@ -39,7 +39,7 @@ class ValkeyElastiCacheConfigurationUnitTests {
 		assertThat(node.getPort()).isEqualTo(6379);
 	}
 
-	@Test // DATAVALKEY-762
+	@Test // DATAREDIS-762
 	void shouldCreateMultiHostConfiguration() {
 
 		ValkeyStaticMasterReplicaConfiguration multiHost = new ValkeyStaticMasterReplicaConfiguration("localhost");
@@ -58,7 +58,7 @@ class ValkeyElastiCacheConfigurationUnitTests {
 		assertThat(secondNode.getPort()).isEqualTo(6479);
 	}
 
-	@Test // DATAVALKEY-762
+	@Test // DATAREDIS-762
 	void shouldApplyPasswordToNodes() {
 
 		ValkeyStaticMasterReplicaConfiguration multiHost = new ValkeyStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);
@@ -70,7 +70,7 @@ class ValkeyElastiCacheConfigurationUnitTests {
 				ValkeyPassword.of("foobar"), ValkeyPassword.of("foobar"));
 	}
 
-	@Test // DATAVALKEY-762
+	@Test // DATAREDIS-762
 	void shouldApplyDatabaseToNodes() {
 
 		ValkeyStaticMasterReplicaConfiguration multiHost = new ValkeyStaticMasterReplicaConfiguration("localhost").node("other-host", 6479);

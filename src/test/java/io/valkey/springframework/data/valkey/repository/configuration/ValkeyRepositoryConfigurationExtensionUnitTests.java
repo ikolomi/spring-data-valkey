@@ -55,24 +55,24 @@ class ValkeyRepositoryConfigurationExtensionUnitTests {
 
 	private ValkeyRepositoryConfigurationExtension extension = new ValkeyRepositoryConfigurationExtension();
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void isStrictMatchIfDomainTypeIsAnnotatedWithDocument() {
 		assertHasRepo(SampleRepository.class, extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void isStrictMatchIfRepositoryExtendsStoreSpecificBase() {
 		assertHasRepo(StoreRepository.class, extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void isNotStrictMatchIfDomainTypeIsNotAnnotatedWithDocument() {
 
 		assertDoesNotHaveRepo(UnannotatedRepository.class,
 				extension.getRepositoryConfigurations(configurationSource, loader, true));
 	}
 
-	@Test // DATAVALKEY-491
+	@Test // DATAREDIS-491
 	void picksUpEnableKeyspaceEventsOnStartupCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(Config.class, true);
@@ -81,7 +81,7 @@ class ValkeyRepositoryConfigurationExtensionUnitTests {
 		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry)).isEqualTo((Object) EnableKeyspaceEvents.ON_STARTUP);
 	}
 
-	@Test // DATAVALKEY-491
+	@Test // DATAREDIS-491
 	void picksUpEnableKeyspaceEventsDefaultCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsDisabled.class, true);
@@ -90,7 +90,7 @@ class ValkeyRepositoryConfigurationExtensionUnitTests {
 		assertThat(getEnableKeyspaceEvents(beanDefintionRegistry)).isEqualTo((Object) EnableKeyspaceEvents.OFF);
 	}
 
-	@Test // DATAVALKEY-505
+	@Test // DATAREDIS-505
 	void picksUpDefaultKeyspaceNotificationsConfigParameterCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(Config.class, true);
@@ -99,7 +99,7 @@ class ValkeyRepositoryConfigurationExtensionUnitTests {
 		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo((Object) "Ex");
 	}
 
-	@Test // DATAVALKEY-505
+	@Test // DATAREDIS-505
 	void picksUpCustomKeyspaceNotificationsConfigParameterCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithKeyspaceEventsEnabledAndCustomEventConfig.class, true);
@@ -108,7 +108,7 @@ class ValkeyRepositoryConfigurationExtensionUnitTests {
 		assertThat(getKeyspaceNotificationsConfigParameter(beanDefintionRegistry)).isEqualTo((Object) "KEA");
 	}
 
-	@Test // DATAVALKEY-1049
+	@Test // DATAREDIS-1049
 	void explicitlyEmptyKeyspaceNotificationsConfigParameterShouldBeCapturedCorrectly() {
 
 		metadata = new StandardAnnotationMetadata(ConfigWithEmptyConfigParameter.class, true);

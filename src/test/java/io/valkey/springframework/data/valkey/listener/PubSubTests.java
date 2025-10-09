@@ -152,7 +152,7 @@ public class PubSubTests<T> {
 		container.start();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-251, GH-964
+	@ParameterizedValkeyTest // DATAREDIS-251, GH-964
 	void testStartListenersToNoSpecificChannelTest() {
 
 		assumeThat(isClusterAware(template.getConnectionFactory())).isFalse();

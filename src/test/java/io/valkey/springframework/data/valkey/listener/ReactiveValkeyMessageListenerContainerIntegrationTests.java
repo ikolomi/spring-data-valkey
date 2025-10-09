@@ -102,7 +102,7 @@ public class ReactiveValkeyMessageListenerContainerIntegrationTests {
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612, GH-1622
+	@ParameterizedValkeyTest // DATAREDIS-612, GH-1622
 	void shouldReceiveChannelMessages() {
 
 		ReactiveValkeyMessageListenerContainer container = new ReactiveValkeyMessageListenerContainer(connectionFactory);
@@ -169,7 +169,7 @@ public class ReactiveValkeyMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612, GH-1622
+	@ParameterizedValkeyTest // DATAREDIS-612, GH-1622
 	void shouldReceivePatternMessages() {
 
 		ReactiveValkeyMessageListenerContainer container = new ReactiveValkeyMessageListenerContainer(connectionFactory);
@@ -238,7 +238,7 @@ public class ReactiveValkeyMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612, GH-1622
+	@ParameterizedValkeyTest // DATAREDIS-612, GH-1622
 	void shouldPublishAndReceiveMessage() throws Exception {
 
 		ReactiveValkeyMessageListenerContainer container = new ReactiveValkeyMessageListenerContainer(connectionFactory);
@@ -267,7 +267,7 @@ public class ReactiveValkeyMessageListenerContainerIntegrationTests {
 		container.destroy();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612
+	@ParameterizedValkeyTest // DATAREDIS-612
 	void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
 
 		ReactiveValkeyTemplate<String, String> template = new ReactiveValkeyTemplate<>(connectionFactory,
@@ -286,7 +286,7 @@ public class ReactiveValkeyMessageListenerContainerIntegrationTests {
 				.verify();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612
+	@ParameterizedValkeyTest // DATAREDIS-612
 	void listenToPatternShouldReceiveMessagesCorrectly() {
 
 		ReactiveValkeyTemplate<String, String> template = new ReactiveValkeyTemplate<>(connectionFactory,

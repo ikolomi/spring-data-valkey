@@ -57,18 +57,18 @@ class JedisConvertersUnitTests {
 
 	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	void convertingEmptyStringToListOfValkeyClientInfoShouldReturnEmptyList() {
 		assertThat(JedisConverters.toListOfValkeyClientInformation("")).isEqualTo(Collections.<ValkeyClientInfo> emptyList());
 	}
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	void convertingNullToListOfValkeyClientInfoShouldReturnEmptyList() {
 		assertThat(JedisConverters.toListOfValkeyClientInformation(null))
 				.isEqualTo(Collections.<ValkeyClientInfo> emptyList());
 	}
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	void convertingMultipleLiesToListOfValkeyClientInfoReturnsListCorrectly() {
 
 		StringBuilder sb = new StringBuilder();
@@ -79,7 +79,7 @@ class JedisConvertersUnitTests {
 		assertThat(JedisConverters.toListOfValkeyClientInformation(sb.toString()).size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void convertsSingleMapToValkeyServerReturnsCollectionCorrectly() {
 
 		Map<String, String> values = getValkeyServerInfoMap("mymaster", 23697);
@@ -89,7 +89,7 @@ class JedisConvertersUnitTests {
 		verifyValkeyServerInfo(servers.get(0), values);
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void convertsMultipleMapsToValkeyServerReturnsCollectionCorrectly() {
 
 		List<Map<String, String>> vals = Arrays.asList(getValkeyServerInfoMap("mymaster", 23697),
@@ -102,12 +102,12 @@ class JedisConvertersUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void convertsValkeyServersCorrectlyWhenGivenAnEmptyList() {
 		assertThat(JedisConverters.toListOfValkeyServer(Collections.<Map<String, String>> emptyList())).isNotNull();
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void convertsValkeyServersCorrectlyWhenGivenNull() {
 		assertThat(JedisConverters.toListOfValkeyServer(null)).isNotNull();
 	}
@@ -122,7 +122,7 @@ class JedisConvertersUnitTests {
 		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(null, defaultValue)).isEqualTo(defaultValue);
 	}
 
-	@Test // DATAVALKEY-378
+	@Test // DATAREDIS-378
 	void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryValueIsNull() {
 
 		byte[] defaultValue = "tyrion".getBytes();
@@ -131,35 +131,35 @@ class JedisConvertersUnitTests {
 				.isEqualTo(defaultValue);
 	}
 
-	@Test // DATAVALKEY-378
+	@Test // DATAREDIS-378
 	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.inclusive(JedisConverters.toBytes("a")), null))
 				.isEqualTo(JedisConverters.toBytes("[a"));
 	}
 
-	@Test // DATAVALKEY-378
+	@Test // DATAREDIS-378
 	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.exclusive(JedisConverters.toBytes("a")), null))
 				.isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	@Test // DATAVALKEY-378
+	@Test // DATAREDIS-378
 	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsAString() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.exclusive(JedisConverters.toBytes("a")), null))
 				.isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	@Test // DATAVALKEY-378
+	@Test // DATAREDIS-378
 	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.exclusive(JedisConverters.toBytes("1")), null))
 				.isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryIsNull() {
 
 		byte[] defaultValue = "tyrion".getBytes();
@@ -167,7 +167,7 @@ class JedisConvertersUnitTests {
 		assertThat(JedisConverters.boundaryToBytesForZRange(null, defaultValue)).isEqualTo(defaultValue);
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryValueIsNull() {
 
 		byte[] defaultValue = "tyrion".getBytes();
@@ -175,28 +175,28 @@ class JedisConvertersUnitTests {
 		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.unbounded(), defaultValue)).isEqualTo(defaultValue);
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.inclusive(JedisConverters.toBytes("a")), null))
 				.isEqualTo(JedisConverters.toBytes("a"));
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.exclusive(JedisConverters.toBytes("a")), null))
 				.isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsAString() {
 
 		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.exclusive("a"), null))
 				.isEqualTo(JedisConverters.toBytes("(a"));
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
 
 		assertThat(
@@ -204,18 +204,18 @@ class JedisConvertersUnitTests {
 						.isEqualTo(JedisConverters.toBytes("(1"));
 	}
 
-	@Test // DATAVALKEY-352
+	@Test // DATAREDIS-352
 	void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> JedisConverters.boundaryToBytesForZRange(Range.Bound.exclusive(new Date()), null));
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-749
+	@Test // DATAREDIS-316, DATAREDIS-749
 	void toSetCommandExPxOptionShouldReturnEXforSeconds() {
 		assertThat(toString(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)))).isEqualTo("ex 100");
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-749
+	@Test // DATAREDIS-316, DATAREDIS-749
 	void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
 		assertThat(toString(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)))).isEqualTo("px 100");
 	}
@@ -250,17 +250,17 @@ class JedisConvertersUnitTests {
 		verifyNoMoreInteractions(mockSetParams);
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-749
+	@Test // DATAREDIS-316, DATAREDIS-749
 	void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
 		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()))).isEqualTo("nx");
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-749
+	@Test // DATAREDIS-316, DATAREDIS-749
 	void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
 		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()))).isEqualTo("xx");
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-749
+	@Test // DATAREDIS-316, DATAREDIS-749
 	void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
 		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()))).isEqualTo("");
 	}

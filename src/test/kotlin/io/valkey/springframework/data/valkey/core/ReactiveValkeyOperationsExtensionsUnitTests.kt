@@ -43,7 +43,7 @@ import java.time.Instant
  */
 class ReactiveValkeyOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `execute with calllback`() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -77,7 +77,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `execute with script`() {
 
 		val script = ValkeyScript.of<String>("foo")
@@ -99,7 +99,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `execute with script, argsWriter and resultReader`() {
 
 		val script = ValkeyScript.of<String>("foo")
@@ -117,7 +117,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun convertAndSend() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -132,7 +132,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun listenToChannel() {
 
 		val message = ReactiveSubscription.ChannelMessage("a", "b")
@@ -148,7 +148,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun listenToPattern() {
 
 		val message = ReactiveSubscription.ChannelMessage("a", "b")
@@ -164,7 +164,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun listenTo() {
 
 		val topic1 = Topic.channel("foo")
@@ -182,7 +182,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun hasKey() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -197,7 +197,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun type() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -212,7 +212,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun keys() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -227,7 +227,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun scan() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -242,7 +242,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun randomKey() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -257,7 +257,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `randomKey returning an empty Mono`() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -272,7 +272,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rename() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -287,7 +287,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun renameIfAbsent() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -302,7 +302,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -317,7 +317,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unlink() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -332,7 +332,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun expire() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -347,7 +347,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun expireAt() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -362,7 +362,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun persist() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -378,7 +378,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 	}
 
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun move() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()
@@ -393,7 +393,7 @@ class ReactiveValkeyOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun getExpire() {
 
 		val operations = mockk<ReactiveValkeyOperations<String, String>>()

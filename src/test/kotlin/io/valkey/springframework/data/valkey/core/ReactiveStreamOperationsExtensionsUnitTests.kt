@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono
  */
 class ReactiveStreamOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun acknowledge() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -53,7 +53,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun acknowledgeRecordId() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -69,7 +69,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun acknowledgeRecord() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -84,7 +84,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun add() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -101,7 +101,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `add as Flow`() {
 
 		val map = mapOf("a" to "b")
@@ -119,7 +119,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun addRecord() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -136,7 +136,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -152,7 +152,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun deleteRecord() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -168,7 +168,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun deleteRecordIds() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -183,7 +183,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun createGroup() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -198,7 +198,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun createGroupWithOffset() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -213,7 +213,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun deleteConsumer() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -228,7 +228,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun destroyGroup() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -243,7 +243,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun size() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()
@@ -258,7 +258,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun range() {
 
 		val record = MapRecord.create("foo", mapOf("a" to "b"))
@@ -275,7 +275,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun rangeWithType() {
 
 		val record = ObjectRecord.create("a", "b")
@@ -292,7 +292,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with StreamOffset vararg`() {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -310,7 +310,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with options and StreamOffset vararg` () {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -329,7 +329,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with type and StreamOffset vararg`() {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -347,7 +347,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with type, options and StreamOffset vararg` () {
 
 		val offset1 = StreamOffset.create("foo", ReadOffset.lastConsumed())
@@ -366,7 +366,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with consumer and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -385,7 +385,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with consumer, options and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -405,7 +405,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with type, consumer and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -424,7 +424,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `read with type, consumer, options and StreamOffset vararg`() {
 
 		val consumer = Consumer.from("a", "b")
@@ -444,7 +444,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun reverseRange() {
 
 		val record = MapRecord.create("foo", mapOf("a" to "b"))
@@ -461,7 +461,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun reverseRangeWithType() {
 
 		val record = ObjectRecord.create("a", "b")
@@ -478,7 +478,7 @@ class ReactiveStreamOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun trim() {
 
 		val operations = mockk<ReactiveStreamOperations<String, String, String>>()

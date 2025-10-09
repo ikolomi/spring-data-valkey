@@ -33,7 +33,7 @@ class ReadOffsetStrategyUnitTests {
 
 	private static Optional<Consumer> consumer = Optional.of(Consumer.from("foo", "bar"));
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void nextMessageStandaloneShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.from("foo");
@@ -42,7 +42,7 @@ class ReadOffsetStrategyUnitTests {
 		assertThat(ReadOffsetStrategy.NextMessage.getNext(offset, Optional.empty(), "42")).isEqualTo(ReadOffset.from("42"));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void lastConsumedStandaloneShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.lastConsumed();
@@ -52,7 +52,7 @@ class ReadOffsetStrategyUnitTests {
 				.isEqualTo(ReadOffset.from("42"));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void latestStandaloneShouldReturnLatest() {
 
 		ReadOffset offset = ReadOffset.latest();
@@ -61,7 +61,7 @@ class ReadOffsetStrategyUnitTests {
 		assertThat(ReadOffsetStrategy.Latest.getNext(offset, Optional.empty(), "42")).isEqualTo(ReadOffset.latest());
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void nextMessageConsumerGroupShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.from("foo");
@@ -70,7 +70,7 @@ class ReadOffsetStrategyUnitTests {
 		assertThat(ReadOffsetStrategy.NextMessage.getNext(offset, consumer, "42")).isEqualTo(ReadOffset.from("42"));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void lastConsumedConsumerGroupShouldReturnLastSeenMessageId() {
 
 		ReadOffset offset = ReadOffset.lastConsumed();
@@ -79,7 +79,7 @@ class ReadOffsetStrategyUnitTests {
 		assertThat(ReadOffsetStrategy.LastConsumed.getNext(offset, consumer, "42")).isEqualTo(ReadOffset.lastConsumed());
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void latestConsumerGroupShouldReturnLatest() {
 
 		ReadOffset offset = ReadOffset.latest();
@@ -88,7 +88,7 @@ class ReadOffsetStrategyUnitTests {
 		assertThat(ReadOffsetStrategy.Latest.getNext(offset, consumer, "42")).isEqualTo(ReadOffset.latest());
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void getStrategyShouldReturnAppropriateStrategy() {
 
 		assertThat(ReadOffsetStrategy.getStrategy(ReadOffset.from("foo"))).isEqualTo(ReadOffsetStrategy.NextMessage);

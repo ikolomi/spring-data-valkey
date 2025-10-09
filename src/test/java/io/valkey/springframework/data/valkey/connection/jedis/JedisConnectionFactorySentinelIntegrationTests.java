@@ -87,7 +87,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-574, DATAVALKEY-765
+	@Test // DATAREDIS-574, DATAREDIS-765
 	void shouldInitializeWithSentinelConfiguration() {
 
 		JedisClientConfiguration clientConfiguration = JedisClientConfiguration.builder() //
@@ -105,7 +105,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-324
+	@Test // DATAREDIS-324
 	void shouldSendCommandCorrectlyViaConnectionFactoryUsingSentinel() {
 
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
@@ -117,7 +117,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-552
+	@Test // DATAREDIS-552
 	void getClientNameShouldEqualWithFactorySetting() {
 
 		factory = new JedisConnectionFactory(SENTINEL_CONFIG);
@@ -130,7 +130,7 @@ class JedisConnectionFactorySentinelIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1127
+	@Test // DATAREDIS-1127
 	void shouldNotFailOnFirstSentinelDown() throws IOException {
 
 		ValkeySentinelConfiguration oneDownSentinelConfig = new ValkeySentinelConfiguration().master("mymaster")

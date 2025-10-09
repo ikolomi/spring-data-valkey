@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  */
 class LettuceReactiveClusterZSetCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void zUnionStoreShouldWorkWhenAllKeysMapToSameSlot() {
 
 		nativeCommands.zadd(SAME_SLOT_KEY_1, 1D, VALUE_1);
@@ -41,7 +41,7 @@ class LettuceReactiveClusterZSetCommandsIntegrationTests extends LettuceReactive
 
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void zInterStoreShouldWorkCorrectlyWhenKeysMapToSameSlot() {
 
 		nativeCommands.zadd(SAME_SLOT_KEY_1, 1D, VALUE_1);

@@ -37,7 +37,7 @@ class DefaultCacheStatisticsCollectorUnitTests {
 		collector = new DefaultCacheStatisticsCollector();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void collectsStatsPerCache() {
 
 		collector.incGets(CACHE_1);
@@ -50,7 +50,7 @@ class DefaultCacheStatisticsCollectorUnitTests {
 		assertThat(collector.getCacheStatistics(CACHE_2).getPuts()).isOne();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void returnsEmptyStatsForCacheWithoutStatsSet() {
 
 		assertThat(collector.getCacheStatistics(CACHE_1).getGets()).isZero();
@@ -58,7 +58,7 @@ class DefaultCacheStatisticsCollectorUnitTests {
 		assertThat(collector.getCacheStatistics(CACHE_1).getDeletes()).isZero();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void returnsSnapshotOnGet() {
 
 		collector.incGets(CACHE_1);
@@ -72,7 +72,7 @@ class DefaultCacheStatisticsCollectorUnitTests {
 		assertThat(collector.getCacheStatistics(CACHE_1).getGets()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void resetClearsData() {
 
 		collector.incGets(CACHE_1);

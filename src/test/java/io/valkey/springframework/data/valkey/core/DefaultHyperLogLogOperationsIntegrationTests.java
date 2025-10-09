@@ -58,7 +58,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-308
+	@ParameterizedValkeyTest // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void addShouldAddDistinctValuesCorrectly() {
 
@@ -70,7 +70,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v1, v2, v3)).isEqualTo(1L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-308
+	@ParameterizedValkeyTest // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void addShouldNotAddExistingValuesCorrectly() {
 
@@ -83,7 +83,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.add(key, v2)).isEqualTo(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-308
+	@ParameterizedValkeyTest // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void sizeShouldCountValuesCorrectly() {
 
@@ -96,7 +96,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.size(key)).isEqualTo(3L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-308
+	@ParameterizedValkeyTest // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void sizeShouldCountValuesOfMultipleKeysCorrectly() {
 
@@ -114,7 +114,7 @@ public class DefaultHyperLogLogOperationsIntegrationTests<K, V> {
 		assertThat(hyperLogLogOps.size(key, key2)).isGreaterThan(3L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-308
+	@ParameterizedValkeyTest // DATAREDIS-308
 	@SuppressWarnings("unchecked")
 	void unionShouldMergeValuesOfMultipleKeysCorrectly() throws InterruptedException {
 

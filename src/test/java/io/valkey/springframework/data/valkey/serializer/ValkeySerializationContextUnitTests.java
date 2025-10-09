@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
  */
 class ValkeySerializationContextUnitTests {
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldRejectBuildIfKeySerializerIsNotSet() {
 
 		assertThatIllegalArgumentException()
@@ -43,7 +43,7 @@ class ValkeySerializationContextUnitTests {
 						.build());
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldRejectBuildIfValueSerializerIsNotSet() {
 
 		assertThatIllegalArgumentException()
@@ -54,7 +54,7 @@ class ValkeySerializationContextUnitTests {
 						.build());
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldRejectBuildIfHashKeySerializerIsNotSet() {
 
 		assertThatIllegalArgumentException()
@@ -65,7 +65,7 @@ class ValkeySerializationContextUnitTests {
 						.build());
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldRejectBuildIfHashValueSerializerIsNotSet() {
 
 		assertThatIllegalArgumentException()
@@ -76,7 +76,7 @@ class ValkeySerializationContextUnitTests {
 						.build());
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	void shouldUseDefaultIfSet() {
 
@@ -85,7 +85,7 @@ class ValkeySerializationContextUnitTests {
 				.build();
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldBuildSerializationContext() {
 
 		ValkeySerializationContext<String, Long> serializationContext = createSerializationContext();
@@ -97,7 +97,7 @@ class ValkeySerializationContextUnitTests {
 		assertThat(serializationContext.getStringSerializationPair()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldEncodeAndDecodeKey() {
 
 		ValkeySerializationContext<String, Long> serializationContext = createSerializationContext();
@@ -108,7 +108,7 @@ class ValkeySerializationContextUnitTests {
 		assertThat(deserialized).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldEncodeAndDecodeValue() {
 
 		ValkeySerializationContext<String, Long> serializationContext = createSerializationContext();
@@ -119,7 +119,7 @@ class ValkeySerializationContextUnitTests {
 		assertThat(deserialized).isEqualTo(42);
 	}
 
-	@Test // DATAVALKEY-1000
+	@Test // DATAREDIS-1000
 	void shouldEncodeAndDecodeRawByteBufferValue() {
 
 		ValkeySerializationContext<ByteBuffer, ByteBuffer> serializationContext = ValkeySerializationContext.byteBuffer();
@@ -131,7 +131,7 @@ class ValkeySerializationContextUnitTests {
 		assertThat(deserialized).isEqualTo(ByteBuffer.wrap("hello".getBytes()));
 	}
 
-	@Test // DATAVALKEY-1000
+	@Test // DATAREDIS-1000
 	void shouldEncodeAndDecodeByteArrayValue() {
 
 		ValkeySerializationContext<byte[], byte[]> serializationContext = ValkeySerializationContext.byteArray();

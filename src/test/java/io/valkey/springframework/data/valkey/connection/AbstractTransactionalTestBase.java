@@ -115,7 +115,7 @@ public abstract class AbstractTransactionalTestBase {
 	}
 
 	@Rollback(true)
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	public void valueOperationSetShouldBeRolledBackCorrectly() {
 
 		for (String key : KEYS) {
@@ -124,7 +124,7 @@ public abstract class AbstractTransactionalTestBase {
 	}
 
 	@Rollback(false)
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	public void valueOperationSetShouldBeCommittedCorrectly() {
 
 		this.valuesShouldHaveBeenPersisted = true;
@@ -145,7 +145,7 @@ public abstract class AbstractTransactionalTestBase {
 		assertThat(template.hasKey("foo")).isFalse();
 	}
 
-	@Test // DATAVALKEY-548
+	@Test // DATAREDIS-548
 	@Transactional(readOnly = true)
 	public void valueOperationShouldWorkWithReadOnlyTransactions() {
 
@@ -156,7 +156,7 @@ public abstract class AbstractTransactionalTestBase {
 	}
 
 	@Rollback
-	@Test // DATAVALKEY-73, DATAVALKEY-1063
+	@Test // DATAREDIS-73, DATAREDIS-1063
 	public void listOperationLPushShoudBeRolledBackCorrectly() {
 
 		for (String key : KEYS) {
@@ -165,7 +165,7 @@ public abstract class AbstractTransactionalTestBase {
 	}
 
 	@Rollback(false)
-	@Test // DATAVALKEY-73, DATAVALKEY-1063
+	@Test // DATAREDIS-73, DATAREDIS-1063
 	public void listOperationLPushShouldBeCommittedCorrectly() {
 
 		this.valuesShouldHaveBeenPersisted = true;

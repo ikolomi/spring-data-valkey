@@ -52,7 +52,7 @@ class ValkeyQueryCreatorUnitTests {
 
 	private @Mock RepositoryMetadata metadataMock;
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void findBySingleSimpleProperty() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -64,7 +64,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void findByMultipleSimpleProperties() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -78,7 +78,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("age", 43));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void findByMultipleSimplePropertiesUsingOr() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -92,7 +92,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getOrSismember()).contains(new PathAndValue("firstname", "eddard"));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void findWithinCircle() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -106,7 +106,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void findNearWithPointAndDistance() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -120,7 +120,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void findNearWithPointAndNumericValueDefaultsToKilometers() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -134,7 +134,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getNear().getDistance()).isEqualTo(new Distance(200, Metrics.KILOMETERS));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void findNearWithInvalidShapeParameter() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -145,7 +145,7 @@ class ValkeyQueryCreatorUnitTests {
 				.withMessageContaining("Expected to find a Circle or Point/Distance");
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void findNearWithInvalidDistanceParameter() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -156,7 +156,7 @@ class ValkeyQueryCreatorUnitTests {
 				.withMessageContaining("Expected to find Distance or Numeric value");
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void findNearWithMissingDistanceParameter() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -166,7 +166,7 @@ class ValkeyQueryCreatorUnitTests {
 				.withMessageContaining("Are you missing a parameter");
 	}
 
-	@Test // DATAVALKEY-771
+	@Test // DATAREDIS-771
 	void findByBooleanIsTrue() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(
@@ -178,7 +178,7 @@ class ValkeyQueryCreatorUnitTests {
 		assertThat(query.getCriteria().getSismember()).contains(new PathAndValue("alive", true));
 	}
 
-	@Test // DATAVALKEY-771
+	@Test // DATAREDIS-771
 	void findByBooleanIsFalse() throws SecurityException, NoSuchMethodException {
 
 		ValkeyQueryCreator creator = createQueryCreatorForMethodWithArgs(

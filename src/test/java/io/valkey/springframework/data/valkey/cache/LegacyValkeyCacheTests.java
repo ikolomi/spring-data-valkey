@@ -221,7 +221,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(monitorStateException.get()).isFalse();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-243
+	@ParameterizedValkeyTest // DATAREDIS-243
 	void testCacheGetShouldReturnCachedInstance() {
 
 		Object key = getKey();
@@ -231,7 +231,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(value).isEqualTo(cache.get(key, Object.class));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-243
+	@ParameterizedValkeyTest // DATAREDIS-243
 	void testCacheGetShouldRetunInstanceOfCorrectType() {
 
 		Object key = getKey();
@@ -241,7 +241,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(cache.get(key, value.getClass())).isInstanceOf(value.getClass());
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-243
+	@ParameterizedValkeyTest // DATAREDIS-243
 	void testCacheGetShouldThrowExceptionOnInvalidType() {
 
 		Object key = getKey();
@@ -251,7 +251,7 @@ public class LegacyValkeyCacheTests {
 		assertThatIllegalStateException().isThrownBy(() -> cache.get(key, Cache.class));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-243
+	@ParameterizedValkeyTest // DATAREDIS-243
 	void testCacheGetShouldReturnNullIfNoCachedValueFound() {
 
 		Object key = getKey();
@@ -262,7 +262,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(cache.get(invalidKey, value.getClass())).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-344, DATAVALKEY-416
+	@ParameterizedValkeyTest // DATAREDIS-344, DATAREDIS-416
 	void putIfAbsentShouldSetValueOnlyIfNotPresent() {
 
 		Object key = getKey();
@@ -280,7 +280,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(wrapper.get()).isEqualTo(value);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-510, DATAVALKEY-606
+	@ParameterizedValkeyTest // DATAREDIS-510, DATAREDIS-606
 	void cachePutWithNullShouldNotAddStuffToValkey() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
@@ -290,7 +290,7 @@ public class LegacyValkeyCacheTests {
 		assertThatIllegalArgumentException().isThrownBy(() -> cache.put(key, null));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-510, DATAVALKEY-606
+	@ParameterizedValkeyTest // DATAREDIS-510, DATAREDIS-606
 	void cachePutWithNullShouldErrorAndLeaveExistingKeyUntouched() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
@@ -310,13 +310,13 @@ public class LegacyValkeyCacheTests {
 		assertThat(cache.get(key).get()).isEqualTo(value);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-443, DATAVALKEY-452
+	@ParameterizedValkeyTest // DATAREDIS-443, DATAREDIS-452
 	@Disabled("junit.framework.AssertionFailedError: expected:<2> but was:<1>")
 	void testCacheGetSynchronized() throws Throwable {
 		runOnce(new CacheGetWithValueLoaderIsThreadSafe(cache));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-553
+	@ParameterizedValkeyTest // DATAREDIS-553
 	void cachePutWithNullShouldAddStuffToValkeyWhenCachingNullIsEnabled() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
@@ -329,7 +329,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(cache.get(key, String.class)).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-553
+	@ParameterizedValkeyTest // DATAREDIS-553
 	void testCacheGetSynchronizedNullAllowingNull() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values.").isTrue();
@@ -341,7 +341,7 @@ public class LegacyValkeyCacheTests {
 		assertThat(cache.get(key).get()).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-553, DATAVALKEY-606
+	@ParameterizedValkeyTest // DATAREDIS-553, DATAREDIS-606
 	void testCacheGetSynchronizedNullNotAllowingNull() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does NOT allow null values.").isFalse();
@@ -362,7 +362,7 @@ public class LegacyValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-553
+	@ParameterizedValkeyTest // DATAREDIS-553
 	void testCacheGetSynchronizedNullWithStoredNull() {
 
 		assumeThat(allowCacheNullValues).as("Only suitable when cache does allow null values").isTrue();

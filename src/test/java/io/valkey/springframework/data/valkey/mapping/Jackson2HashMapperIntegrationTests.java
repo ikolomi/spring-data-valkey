@@ -75,7 +75,7 @@ public class Jackson2HashMapperIntegrationTests {
 		this.mapper = new Jackson2HashMapper(true);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-423
+	@ParameterizedValkeyTest // DATAREDIS-423
 	public void shouldWriteReadHashCorrectly() {
 
 		Person jon = new Person("jon", "snow", 19);

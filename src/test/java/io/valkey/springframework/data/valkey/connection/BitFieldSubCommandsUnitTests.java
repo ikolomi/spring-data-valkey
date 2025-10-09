@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  */
 class BitFieldSubCommandsUnitTests {
 
-	@Test // DATAVALKEY-971
+	@Test // DATAREDIS-971
 	void shouldCreateSignedBitFieldType() {
 
 		BitFieldType type = BitFieldType.signed(10);
@@ -37,7 +37,7 @@ class BitFieldSubCommandsUnitTests {
 		assertThat(type.getBits()).isEqualTo(10);
 	}
 
-	@Test // DATAVALKEY-971
+	@Test // DATAREDIS-971
 	void shouldCreateUnsignedBitFieldType() {
 
 		BitFieldType type = BitFieldType.unsigned(10);

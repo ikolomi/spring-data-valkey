@@ -49,7 +49,7 @@ public class ExampleQueryMapperUnitTests {
 	private ValkeyMappingContext mappingContext = new ValkeyMappingContext();
 	private ExampleQueryMapper mapper = new ExampleQueryMapper(mappingContext, new PathIndexResolver(mappingContext));
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldRejectCaseInsensitiveMatching() {
 
 		assertThatThrownBy(() -> {
@@ -57,7 +57,7 @@ public class ExampleQueryMapperUnitTests {
 		}).isInstanceOf(InvalidDataAccessApiUsageException.class);
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldRejectUnsupportedStringMatchers() {
 
 		List<StringMatcher> unsupported = Arrays.asList(StringMatcher.STARTING, StringMatcher.REGEX,
@@ -75,7 +75,7 @@ public class ExampleQueryMapperUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldMapSimpleExample() {
 
 		Person person = new Person();
@@ -90,7 +90,7 @@ public class ExampleQueryMapperUnitTests {
 				new PathAndValue("gender", Gender.MALE), new PathAndValue("age", 50));
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldIgnoreFieldsWithoutIndexWithAllMatch() {
 
 		Person person = new Person();
@@ -102,7 +102,7 @@ public class ExampleQueryMapperUnitTests {
 		assertThat(operationChain.getSismember()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldIncludeFieldsWithoutIndexWithAnyMatch() {
 
 		Person person = new Person();
@@ -114,7 +114,7 @@ public class ExampleQueryMapperUnitTests {
 		assertThat(operationChain.getSismember()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldIgnorePaths() {
 
 		Person person = new Person();
@@ -129,7 +129,7 @@ public class ExampleQueryMapperUnitTests {
 		assertThat(operationChain.getSismember()).containsOnly(new PathAndValue("firstname", "Walter"));
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldMapNestedExample() {
 
 		Person person = new Person();
@@ -146,7 +146,7 @@ public class ExampleQueryMapperUnitTests {
 				.containsOnly(new PathAndValue("species.name", "Homo Coquus Caeruleus Methiticus"));
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldIgnoreMapsAndCollections() {
 
 		Person person = new Person();
@@ -159,7 +159,7 @@ public class ExampleQueryMapperUnitTests {
 		assertThat(operationChain.getSismember()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldMapMatchingAny() {
 
 		Person person = new Person();
@@ -174,7 +174,7 @@ public class ExampleQueryMapperUnitTests {
 				new PathAndValue("gender", Gender.MALE), new PathAndValue("age", 50));
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldApplyPropertyTransformation() {
 
 		Person person = new Person();

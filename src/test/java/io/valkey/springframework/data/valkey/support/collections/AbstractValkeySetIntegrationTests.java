@@ -306,7 +306,7 @@ public abstract class AbstractValkeySetIntegrationTests<T> extends AbstractValke
 		assertThat(result.size()).isEqualTo(0);
 	}
 
-	// DATAVALKEY-314
+	// DATAREDIS-314
 	@SuppressWarnings("unchecked")
 	@ParameterizedValkeyTest
 	void testScanWorksCorrectly() throws IOException {

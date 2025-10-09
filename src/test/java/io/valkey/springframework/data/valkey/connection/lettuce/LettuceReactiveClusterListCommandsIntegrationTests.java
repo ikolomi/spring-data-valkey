@@ -31,7 +31,7 @@ import io.valkey.springframework.data.valkey.connection.ReactiveListCommands;
  */
 class LettuceReactiveClusterListCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void bRPopLPushShouldWorkCorrectlyWhenAllKeysMapToSameSlot() {
 
 		nativeCommands.rpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -45,7 +45,7 @@ class LettuceReactiveClusterListCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.lindex(SAME_SLOT_KEY_2, 0)).isEqualTo(VALUE_3);
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void blPopShouldReturnFirstAvailableWhenAllKeysMapToTheSameSlot() {
 
 		nativeCommands.rpush(SAME_SLOT_KEY_1, VALUE_1, VALUE_2, VALUE_3);

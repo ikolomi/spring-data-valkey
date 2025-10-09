@@ -64,12 +64,12 @@ class PathIndexResolverUnitTests {
 				new ValkeyMappingContext(new MappingConfiguration(indexConfig, new KeyspaceConfiguration())));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldThrowExceptionOnNullMappingContext() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new PathIndexResolver(null));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldResolveAnnotatedIndexOnRootWhenValueIsNotNull() {
 
 		Address address = new Address();
@@ -81,7 +81,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(Address.class.getName(), "country", "andor"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldNotResolveAnnotatedIndexOnRootWhenValueIsNull() {
 
 		Address address = new Address();
@@ -92,7 +92,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).isEmpty();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldResolveAnnotatedIndexOnNestedObjectWhenValueIsNotNull() {
 
 		Person person = new Person();
@@ -105,7 +105,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "address.country", "andor"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldResolveMultipleAnnotatedIndexesInLists() {
 
 		TheWheelOfTime twot = new TheWheelOfTime();
@@ -130,7 +130,7 @@ class PathIndexResolverUnitTests {
 				new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "mainCharacters.address.country", "saldaea"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldResolveAnnotatedIndexesInMap() {
 
 		TheWheelOfTime twot = new TheWheelOfTime();
@@ -151,7 +151,7 @@ class PathIndexResolverUnitTests {
 				.contains(new SimpleIndexedPropertyValue(KEYSPACE_TWOT, "places.stone-of-tear.address.country", "illian"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldResolveConfiguredIndexesInMapOfSimpleTypes() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
@@ -167,7 +167,7 @@ class PathIndexResolverUnitTests {
 				.contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "physicalAttributes.eye-color", "grey"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldResolveConfiguredIndexesInMapOfComplexTypes() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "relatives.father.firstname"));
@@ -187,7 +187,7 @@ class PathIndexResolverUnitTests {
 				.contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "relatives.father.firstname", "janduin"));
 	}
 
-	@Test // DATAVALKEY-425, DATAVALKEY-471
+	@Test // DATAREDIS-425, DATAREDIS-471
 	void shouldIgnoreConfiguredIndexesInMapWhenValueIsNull() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "physicalAttributes.eye-color"));
@@ -202,7 +202,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes.iterator().next()).isInstanceOf(RemoveIndexedData.class);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldNotResolveIndexOnReferencedEntity() {
 
 		PersonWithAddressReference rand = new PersonWithAddressReference();
@@ -216,14 +216,14 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).isEmpty();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldReturnNullWhenNoIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
 		assertThat(resolve("foo", "rand")).isNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldReturnDataWhenIndexConfigured() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(false);
@@ -232,7 +232,7 @@ class PathIndexResolverUnitTests {
 		assertThat(resolve("foo", "rand")).isNotNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldReturnDataWhenNoIndexConfiguredButPropertyAnnotated() {
 
 		when(propertyMock.isAnnotationPresent(eq(Indexed.class))).thenReturn(true);
@@ -241,7 +241,7 @@ class PathIndexResolverUnitTests {
 		assertThat(resolve("foo", "rand")).isNotNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldRemovePositionIndicatorForValuesInLists() {
 
 		when(propertyMock.isCollectionLike()).thenReturn(true);
@@ -253,7 +253,7 @@ class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName()).isEqualTo("list.name");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldRemoveKeyIndicatorForValuesInMap() {
 
 		when(propertyMock.isMap()).thenReturn(true);
@@ -265,7 +265,7 @@ class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName()).isEqualTo("map.foo.name");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldKeepNumericalKeyForValuesInMap() {
 
 		when(propertyMock.isMap()).thenReturn(true);
@@ -277,7 +277,7 @@ class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName()).isEqualTo("map.0.name");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldInspectObjectTypeProperties() {
 
 		Item hat = new Item();
@@ -292,7 +292,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "feature.type", "hat"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldInspectObjectTypePropertiesButIgnoreNullValues() {
 
 		Item hat = new Item();
@@ -306,7 +306,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).isEmpty();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldInspectObjectTypeValuesInMapProperties() {
 
 		Item hat = new Item();
@@ -324,7 +324,7 @@ class PathIndexResolverUnitTests {
 				.contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "characteristics.clothing.type", "hat"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexShouldInspectObjectTypeValuesInListProperties() {
 
 		Item hat = new Item();
@@ -341,7 +341,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "items.type", "hat"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexAllowCustomIndexName() {
 
 		indexConfig.addIndexDefinition(new SimpleIndexDefinition(KEYSPACE_PERSON, "items.type", "itemsType"));
@@ -360,7 +360,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(KEYSPACE_PERSON, "itemsType", "hat"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexForTypeThatHasNoIndexDefined() {
 
 		Size size = new Size();
@@ -372,7 +372,7 @@ class PathIndexResolverUnitTests {
 		assertThat(indexes).isEmpty();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexOnMapField() {
 
 		IndexedOnMapField source = new IndexedOnMapField();
@@ -390,7 +390,7 @@ class PathIndexResolverUnitTests {
 				new SimpleIndexedPropertyValue(IndexedOnMapField.class.getName(), "values.arya", "stark"));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveIndexOnListField() {
 
 		IndexedOnListField source = new IndexedOnListField();
@@ -407,7 +407,7 @@ class PathIndexResolverUnitTests {
 				new SimpleIndexedPropertyValue(IndexedOnListField.class.getName(), "values", "arya"));
 	}
 
-	@Test // DATAVALKEY-509
+	@Test // DATAREDIS-509
 	void resolveIndexOnPrimitiveArrayField() {
 
 		IndexedOnPrimitiveArrayField source = new IndexedOnPrimitiveArrayField();
@@ -423,7 +423,7 @@ class PathIndexResolverUnitTests {
 				new SimpleIndexedPropertyValue(IndexedOnPrimitiveArrayField.class.getName(), "values", 3));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void resolveGeoIndexShouldMapNameCorrectly() {
 
 		when(propertyMock.isMap()).thenReturn(true);
@@ -435,7 +435,7 @@ class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName()).isEqualTo("location");
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void resolveGeoIndexShouldMapNameForNestedPropertyCorrectly() {
 
 		when(propertyMock.isMap()).thenReturn(true);
@@ -447,7 +447,7 @@ class PathIndexResolverUnitTests {
 		assertThat(index.getIndexName()).isEqualTo("property:location");
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void resolveGeoIndexOnPointField() {
 
 		GeoIndexedOnPoint source = new GeoIndexedOnPoint();
@@ -461,7 +461,7 @@ class PathIndexResolverUnitTests {
 				.contains(new GeoIndexedPropertyValue(GeoIndexedOnPoint.class.getName(), "location", source.location));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void resolveGeoIndexOnArrayFieldThrowsError() {
 
 		GeoIndexedOnArray source = new GeoIndexedOnArray();

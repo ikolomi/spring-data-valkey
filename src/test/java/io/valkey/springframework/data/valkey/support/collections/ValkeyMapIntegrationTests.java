@@ -60,7 +60,7 @@ public class ValkeyMapIntegrationTests extends AbstractValkeyMapIntegrationTests
 		return new DefaultValkeyMap<Object, Object>(valkeyName, template);
 	}
 
-	// DATAVALKEY-241
+	// DATAREDIS-241
 	@SuppressWarnings("rawtypes")
 	public static Collection<Object[]> testParams() {
 

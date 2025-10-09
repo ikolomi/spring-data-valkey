@@ -33,37 +33,37 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 class ValkeyCommandUnitTests {
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldIdentifyAliasCorrectly() {
 		assertThat(ValkeyCommand.CONFIG_SET.isRepresentedBy("setconfig")).isTrue();
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCase() {
 		assertThat(ValkeyCommand.CONFIG_SET.isRepresentedBy("SetConfig")).isTrue();
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldNotThrowExceptionWhenUsingNullKeyForRepresentationCheck() {
 		assertThat(ValkeyCommand.CONFIG_SET.isRepresentedBy(null)).isFalse();
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldIdentifyAliasCorrectlyViaLookup() {
 		assertThat(ValkeyCommand.failsafeCommandLookup("setconfig")).isEqualTo(ValkeyCommand.CONFIG_SET);
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldIdentifyAliasCorrectlyWhenNamePassedInMixedCaseViaLookup() {
 		assertThat(ValkeyCommand.failsafeCommandLookup("SetConfig")).isEqualTo(ValkeyCommand.CONFIG_SET);
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldReturnUnknownCommandForUnknownCommandString() {
 		assertThat(ValkeyCommand.failsafeCommandLookup("strangecommand")).isEqualTo(ValkeyCommand.UNKNOWN);
 	}
 
-	@Test // DATAVALKEY-73, DATAVALKEY-972, DATAVALKEY-1013
+	@Test // DATAREDIS-73, DATAREDIS-972, DATAREDIS-1013
 	void shouldNotThrowExceptionOnValidArgumentCount() {
 
 		ValkeyCommand.AUTH.validateArgumentCount(1);
@@ -74,7 +74,7 @@ class ValkeyCommandUnitTests {
 		ValkeyCommand.SELECT.validateArgumentCount(1);
 	}
 
-	@Test // DATAVALKEY-822
+	@Test // DATAREDIS-822
 	void shouldConsiderMinMaxArguments() {
 
 		ValkeyCommand.BITPOS.validateArgumentCount(2);
@@ -82,25 +82,25 @@ class ValkeyCommandUnitTests {
 		ValkeyCommand.BITPOS.validateArgumentCount(4);
 	}
 
-	@Test // DATAVALKEY-822
+	@Test // DATAREDIS-822
 	void shouldReportArgumentMismatchIfMaxArgumentsExceeded() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeyCommand.SELECT.validateArgumentCount(0))
 				.withMessageContaining("SELECT command requires 1 argument");
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldThrowExceptionOnInvalidArgumentCountWhenExpectedExactMatch() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeyCommand.AUTH.validateArgumentCount(2))
 				.withMessageContaining("AUTH command requires 1 argument");
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void shouldThrowExceptionOnInvalidArgumentCountForDelWhenExpectedMinimalMatch() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeyCommand.DEL.validateArgumentCount(0))
 				.withMessageContaining("DEL command requires at least 1 argument");
 	}
 
-	@Test // DATAVALKEY-972
+	@Test // DATAREDIS-972
 	void shouldThrowExceptionOnInvalidArgumentCountForZaddWhenExpectedMinimalMatch() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeyCommand.ZADD.validateArgumentCount(2))
 				.withMessageContaining("ZADD command requires at least 3 arguments");

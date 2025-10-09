@@ -60,7 +60,7 @@ class DefaultValueOperationsUnitTests<K, V> {
 		this.valueOps = template.opsForValue();
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitfieldShouldBeDelegatedCorrectly() {
 
 		BitFieldSubCommands command = BitFieldSubCommands.create().get(BitFieldType.INT_8).valueAt(0L);

@@ -83,7 +83,7 @@ public class ValkeyRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		@Test // DATAVALKEY-425
+		@Test // DATAREDIS-425
 		public void shouldPickUpReferenceResolver() {
 
 			ValkeyKeyValueAdapter adapter = (ValkeyKeyValueAdapter) ctx.getBean("valkeyKeyValueAdapter");
@@ -112,13 +112,13 @@ public class ValkeyRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		@Test // DATAVALKEY-425
+		@Test // DATAREDIS-425
 		public void shouldInitWithDefaults() {
 			assertThat(ctx.getBean(ContextSampleRepository.class)).isNotNull();
 
 		}
 
-		@Test // DATAVALKEY-425
+		@Test // DATAREDIS-425
 		public void shouldRegisterDefaultBeans() {
 
 			assertThat(ctx.getBean(ContextSampleRepository.class)).isNotNull();
@@ -151,7 +151,7 @@ public class ValkeyRepositoryConfigurationUnitTests {
 
 		@Autowired ApplicationContext ctx;
 
-		@Test // DATAVALKEY-425
+		@Test // DATAREDIS-425
 		public void shouldConfigureMessageListenerContainer() {
 
 			ValkeyKeyValueAdapter adapter = ctx.getBean("valkeyKeyValueAdapter", ValkeyKeyValueAdapter.class);

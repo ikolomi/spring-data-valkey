@@ -34,17 +34,17 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		super(fixture);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void pingShouldRespondCorrectly() {
 		connection.ping().as(StepVerifier::create).expectNext("PONG").verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void lastSaveShouldRespondCorrectly() {
 		connection.serverCommands().lastSave().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659, DATAVALKEY-667
+	@ParameterizedValkeyTest // DATAREDIS-659, DATAREDIS-667
 	void saveShouldRespondCorrectly() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -52,12 +52,12 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().save().as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void dbSizeShouldRespondCorrectly() {
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void flushDbShouldRespondCorrectly() {
 
 		connection.serverCommands().flushDb() //
@@ -106,7 +106,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void flushAllShouldRespondCorrectly() {
 
 		connection.serverCommands().flushAll() //
@@ -151,7 +151,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize().as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void infoShouldRespondCorrectly() {
 
 		if (connection instanceof LettuceReactiveValkeyClusterConnection) {
@@ -172,7 +172,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void standaloneInfoWithSectionShouldRespondCorrectly() {
 
 		if (connection instanceof LettuceReactiveValkeyClusterConnection) {
@@ -194,7 +194,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void getConfigShouldRespondCorrectly() {
 
 		if (connection instanceof LettuceReactiveValkeyClusterConnection) {
@@ -231,7 +231,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void setConfigShouldApplyConfiguration() {
 
 		final String slowLogKey = "slowlog-max-len";
@@ -266,17 +266,17 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void configResetstatShouldRespondCorrectly() {
 		connection.serverCommands().resetConfigStats().as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void timeShouldRespondCorrectly() {
 		connection.serverCommands().time().as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void setClientNameShouldSetName() {
 
 		// see lettuce-io/lettuce-core#563
@@ -286,7 +286,7 @@ public class LettuceReactiveServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().getClientName().as(StepVerifier::create).expectNext("foo").verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-659
+	@ParameterizedValkeyTest // DATAREDIS-659
 	void getClientListShouldReportClient() {
 		connection.serverCommands().getClientList().as(StepVerifier::create).expectNextCount(1).thenCancel().verify();
 	}

@@ -40,7 +40,7 @@ import io.valkey.springframework.data.valkey.test.extension.LettuceTestClientRes
  */
 class LettucePoolingClientConfigurationUnitTests {
 
-	@Test // DATAVALKEY-667, DATAVALKEY-918, GH-2945
+	@Test // DATAREDIS-667, DATAREDIS-918, GH-2945
 	void shouldCreateEmptyConfiguration() {
 
 		LettucePoolingClientConfiguration configuration = LettucePoolingClientConfiguration.defaultConfiguration();
@@ -61,7 +61,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
-	@Test // DATAVALKEY-667
+	@Test // DATAREDIS-667
 	void shouldConfigureAllProperties() {
 
 		ClientOptions clientOptions = ClientOptions.create();
@@ -92,7 +92,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMinutes(5));
 	}
 
-	@Test // DATAVALKEY-956
+	@Test // DATAREDIS-956
 	void shouldConfigureReadFrom() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
@@ -106,7 +106,7 @@ class LettucePoolingClientConfigurationUnitTests {
 		assertThat(configuration.getReadFrom().orElse(ReadFrom.MASTER)).isEqualTo(ReadFrom.MASTER_PREFERRED);
 	}
 
-	@Test // DATAVALKEY-956
+	@Test // DATAREDIS-956
 	void shouldConfigureClientName() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();

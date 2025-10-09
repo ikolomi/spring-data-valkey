@@ -42,7 +42,7 @@ class ValkeyClusterConfigurationUnitTests {
 	private static final String HOST_AND_PORT_4 = "[fe80::a00:27ff:fe4b:ee48]:6379";
 	private static final String HOST_AND_PORT_5 = "[fe80:1234:1a2b:0:27ff:fe4b:0:ee48]:6380";
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldCreateValkeyClusterConfigurationCorrectly() {
 
 		ValkeyClusterConfiguration config = new ValkeyClusterConfiguration(Collections.singleton(HOST_AND_PORT_1));
@@ -63,7 +63,7 @@ class ValkeyClusterConfigurationUnitTests {
 		assertThat(config.getMaxRedirects()).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldCreateValkeyClusterConfigurationCorrectlyGivenMultipleHostAndPortStrings() {
 
 		ValkeyClusterConfiguration config = new ValkeyClusterConfiguration(
@@ -74,12 +74,12 @@ class ValkeyClusterConfigurationUnitTests {
 				new ValkeyNode("localhost", 789));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new ValkeyClusterConfiguration(Collections.singleton(null)));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
 		ValkeyClusterConfiguration config = new ValkeyClusterConfiguration(Collections.emptySet());
@@ -87,12 +87,12 @@ class ValkeyClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes().size()).isEqualTo(0);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldThrowExceptionGivenNullPropertySource() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeyClusterConfiguration.of((PropertySource<?>) null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
 
 		ValkeyClusterConfiguration config = ValkeyClusterConfiguration.of(new MockPropertySource());
@@ -101,7 +101,7 @@ class ValkeyClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes().size()).isEqualTo(0);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
@@ -114,7 +114,7 @@ class ValkeyClusterConfigurationUnitTests {
 		assertThat(config.getClusterNodes()).contains(new ValkeyNode("127.0.0.1", 123));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();

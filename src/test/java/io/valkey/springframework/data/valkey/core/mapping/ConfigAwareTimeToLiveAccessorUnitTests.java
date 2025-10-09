@@ -45,17 +45,17 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		accessor = new ConfigAwareTimeToLiveAccessor(config, new ValkeyMappingContext());
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldThrowExceptionWhenSourceObjectIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> accessor.getTimeToLive(null));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnNullIfNothingConfiguredOrAnnotated() {
 		assertThat(accessor.getTimeToLive(new SimpleType())).isNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnConfiguredValueForSimpleType() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleType.class, null);
@@ -65,12 +65,12 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleType())).isEqualTo(10L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnValueWhenTypeIsAnnotated() {
 		assertThat(accessor.getTimeToLive(new TypeWithValkeyHashAnnotation())).isEqualTo(5L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveConsidersAnnotationOverConfig() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithValkeyHashAnnotation.class, null);
@@ -80,22 +80,22 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new TypeWithValkeyHashAnnotation())).isEqualTo(5L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnValueWhenPropertyIsAnnotatedAndHasValue() {
 		assertThat(accessor.getTimeToLive(new TypeWithValkeyHashAnnotationAndTTLProperty(20L))).isEqualTo(20L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnValueFromTypeAnnotationWhenPropertyIsAnnotatedAndHasNullValue() {
 		assertThat(accessor.getTimeToLive(new TypeWithValkeyHashAnnotationAndTTLProperty())).isEqualTo(10L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnNullWhenPropertyIsAnnotatedAndHasNullValue() {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty())).isNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnConfiguredValueWhenPropertyIsAnnotatedAndHasNullValue() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleTypeWithTTLProperty.class, null);
@@ -105,7 +105,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty())).isEqualTo(10L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldFavorAnnotatedNotNullPropertyValueOverConfiguredOne() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(SimpleTypeWithTTLProperty.class, null);
@@ -115,12 +115,12 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new SimpleTypeWithTTLProperty(25L))).isEqualTo(25L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnMethodLevelTimeToLiveIfPresent() {
 		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(10L))).isEqualTo(10L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnConfiguredValueWhenMethodLevelTimeToLiveIfPresentButHasNullValue() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
@@ -130,7 +130,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(null))).isEqualTo(10L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getTimeToLiveShouldReturnValueWhenMethodLevelTimeToLiveIfPresentAlthoughConfiguredValuePresent() {
 
 		KeyspaceSettings setting = new KeyspaceSettings(TypeWithTtlOnMethod.class, null);
@@ -140,12 +140,12 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(accessor.getTimeToLive(new TypeWithTtlOnMethod(100L))).isEqualTo(100L);
 	}
 
-	@Test // DATAVALKEY-538
+	@Test // DATAREDIS-538
 	void getTimeToLiveShouldReturnMethodLevelTimeToLiveOfNonPublicTypeIfPresent() {
 		assertThat(accessor.getTimeToLive(new PrivateTypeWithTtlOnMethod(10L))).isEqualTo(10L);
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void getTimeToLiveShouldReturnDefaultValue() {
 
 		Long ttl = accessor
@@ -154,7 +154,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(ttl).isEqualTo(5L);
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void getTimeToLiveShouldReturnValueWhenUpdateModifiesTtlProperty() {
 
 		Long ttl = accessor
@@ -164,7 +164,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(ttl).isEqualTo(100L);
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void getTimeToLiveShouldReturnPropertyValueWhenUpdateModifiesTtlProperty() {
 
 		Long ttl = accessor.getTimeToLive(
@@ -174,7 +174,7 @@ class ConfigAwareTimeToLiveAccessorUnitTests {
 		assertThat(ttl).isEqualTo(100L);
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void getTimeToLiveShouldReturnDefaultValueWhenUpdateDoesNotModifyTtlProperty() {
 
 		Long ttl = accessor

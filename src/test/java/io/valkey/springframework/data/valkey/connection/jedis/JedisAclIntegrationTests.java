@@ -53,7 +53,7 @@ class JedisAclIntegrationTests {
 				.verifyAndClose();
 	}
 
-	@Test // DATAVALKEY-1046
+	@Test // DATAREDIS-1046
 	void shouldConnectStandaloneWithAclAuthentication() {
 
 		ValkeyStandaloneConfiguration standaloneConfiguration = new ValkeyStandaloneConfiguration("localhost", 6382);
@@ -67,7 +67,7 @@ class JedisAclIntegrationTests {
 				.verifyAndClose();
 	}
 
-	@Test // DATAVALKEY-1145
+	@Test // DATAREDIS-1145
 	@EnabledOnValkeySentinelAvailable(26382)
 	void shouldConnectSentinelWithAclAuthentication() throws IOException {
 
@@ -88,7 +88,7 @@ class JedisAclIntegrationTests {
 		connectionFactory.destroy();
 	}
 
-	@Test // DATAVALKEY-1046
+	@Test // DATAREDIS-1046
 	void shouldConnectStandaloneWithAclAuthenticationAndPooling() {
 
 		ValkeyStandaloneConfiguration standaloneConfiguration = new ValkeyStandaloneConfiguration("localhost", 6382);

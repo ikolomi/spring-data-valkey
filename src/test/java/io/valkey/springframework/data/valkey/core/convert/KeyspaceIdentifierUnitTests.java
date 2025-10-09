@@ -28,7 +28,7 @@ import io.valkey.springframework.data.valkey.core.convert.MappingValkeyConverter
  */
 class KeyspaceIdentifierUnitTests {
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnIfKeyIsValid() {
 
 		assertThat(KeyspaceIdentifier.isValid(null)).isFalse();
@@ -39,7 +39,7 @@ class KeyspaceIdentifierUnitTests {
 		assertThat(KeyspaceIdentifier.isValid("foo:bar:baz:phantom")).isTrue();
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnKeyspace() {
 
 		assertThat(KeyspaceIdentifier.of("foo:bar").getKeyspace()).isEqualTo("foo");
@@ -47,7 +47,7 @@ class KeyspaceIdentifierUnitTests {
 		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").getKeyspace()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnId() {
 
 		assertThat(KeyspaceIdentifier.of("foo:bar").getId()).isEqualTo("bar");
@@ -55,7 +55,7 @@ class KeyspaceIdentifierUnitTests {
 		assertThat(KeyspaceIdentifier.of("foo:bar:baz:phantom").getId()).isEqualTo("bar:baz");
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnPhantomKey() {
 
 		assertThat(KeyspaceIdentifier.of("foo:bar").isPhantomKey()).isFalse();

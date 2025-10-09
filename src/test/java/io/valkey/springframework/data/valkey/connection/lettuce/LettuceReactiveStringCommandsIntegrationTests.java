@@ -93,7 +93,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.exists(KEY_1)).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getSetShouldReturnPreviousValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -105,7 +105,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525, DATAVALKEY-645
+	@ParameterizedValkeyTest // DATAREDIS-525, DATAREDIS-645
 	void getSetShouldNotEmitPreviousValueCorrectlyWhenNotExists() {
 
 		connection.stringCommands().getSet(KEY_1_BBUFFER, VALUE_2_BBUFFER).as(StepVerifier::create).verifyComplete();
@@ -113,7 +113,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setShouldAddValueCorrectly() {
 
 		connection.stringCommands().set(KEY_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create) //
@@ -123,7 +123,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setShouldAddValuesCorrectly() {
 
 		List<SetCommand> setCommands = Arrays.asList(SetCommand.set(KEY_1_BBUFFER).value(VALUE_1_BBUFFER),
@@ -137,7 +137,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getShouldRetrieveValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -146,12 +146,12 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525, DATAVALKEY-645
+	@ParameterizedValkeyTest // DATAREDIS-525, DATAREDIS-645
 	void getShouldNotEmitValueValueIfAbsent() {
 		connection.stringCommands().get(KEY_1_BBUFFER).as(StepVerifier::create).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getShouldRetrieveValuesCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -165,7 +165,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getShouldRetrieveValuesWithNullCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -181,7 +181,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void mGetShouldRetrieveValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -193,7 +193,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void mGetShouldRetrieveNullValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -205,7 +205,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(result.block()).containsExactly(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void mGetShouldRetrieveValuesCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -225,7 +225,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setNXshouldOnlySetValueWhenNotPresent() {
 
 		connection.stringCommands().setNX(KEY_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create) //
@@ -233,7 +233,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setNXshouldNotSetValueWhenAlreadyPresent() {
 
 		nativeCommands.setnx(KEY_1, VALUE_1);
@@ -243,7 +243,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setEXshouldSetKeyAndExpirationTime() {
 
 		connection.stringCommands().setEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.seconds(3)).as(StepVerifier::create) //
@@ -253,7 +253,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.ttl(KEY_1) > 1).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void pSetEXshouldSetKeyAndExpirationTime() {
 
 		connection.stringCommands().pSetEX(KEY_1_BBUFFER, VALUE_1_BBUFFER, Expiration.milliseconds(600))
@@ -264,7 +264,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.pttl(KEY_1) > 1).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void mSetShouldAddMultipleKeyValuePairs() {
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
@@ -277,7 +277,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void mSetNXShouldAddMultipleKeyValuePairs() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -292,7 +292,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void mSetNXShouldNotAddMultipleKeyValuePairsWhenAlreadyExit() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -309,7 +309,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void appendShouldDoItsThing() {
 
 		connection.stringCommands().append(KEY_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create) //
@@ -321,7 +321,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getRangeShouldReturnSubstringCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -331,7 +331,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getRangeShouldReturnSubstringCorrectlyWithMinUnbound() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -344,7 +344,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getRangeShouldReturnSubstringCorrectlyWithMaxUnbound() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -357,7 +357,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setRangeShouldReturnNewStringLengthCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -367,7 +367,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void getBitShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -381,7 +381,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void setBitShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -393,7 +393,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.getbit(KEY_1, 1)).isEqualTo(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void bitCountShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -403,7 +403,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void bitCountShouldCountInRangeCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -413,7 +413,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-562
+	@ParameterizedValkeyTest // DATAREDIS-562
 	void bitFieldSetShouldWorkCorrectly() {
 
 		connection.stringCommands().bitField(KEY_1_BBUFFER, create().set(INT_8).valueAt(offset(0L)).to(10L))
@@ -425,7 +425,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.expectNext(Collections.singletonList(10L)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-562
+	@ParameterizedValkeyTest // DATAREDIS-562
 	void bitFieldGetShouldWorkCorrectly() {
 
 		connection.stringCommands().bitField(KEY_1_BBUFFER, create().get(INT_8).valueAt(offset(0L)))
@@ -433,7 +433,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.expectNext(Collections.singletonList(0L)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-562
+	@ParameterizedValkeyTest // DATAREDIS-562
 	void bitFieldIncrByShouldWorkCorrectly() {
 
 		connection.stringCommands().bitField(KEY_1_BBUFFER, create().incr(INT_8).valueAt(offset(100L)).by(1L))
@@ -441,7 +441,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.expectNext(Collections.singletonList(1L)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-562
+	@ParameterizedValkeyTest // DATAREDIS-562
 	void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
 		connection.stringCommands()
@@ -462,7 +462,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.expectNext(Collections.singletonList(null)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-562
+	@ParameterizedValkeyTest // DATAREDIS-562
 	void bitfieldShouldAllowMultipleSubcommands() {
 
 		connection.stringCommands()
@@ -471,7 +471,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.expectNext(Arrays.asList(1L, 0L)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void bitOpAndShouldWorkAsExpected() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -487,7 +487,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_3)).isEqualTo("value-0");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void bitOpOrShouldWorkAsExpected() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -503,7 +503,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(KEY_3)).isEqualTo(VALUE_3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void bitNotShouldThrowExceptionWhenMoreThanOnSourceKey() {
 
 		assumeTrue(connectionProvider instanceof StandaloneConnectionProvider);
@@ -514,7 +514,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verify();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void strLenShouldReturnValueCorrectly() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -524,7 +524,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-697
+	@ParameterizedValkeyTest // DATAREDIS-697
 	void bitPosShouldReturnPositionCorrectly() {
 
 		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff000")));
@@ -532,7 +532,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 		connection.stringCommands().bitPos(KEY_1_BBUFFER, false).as(StepVerifier::create).expectNext(12L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-697
+	@ParameterizedValkeyTest // DATAREDIS-697
 	void bitPosShouldReturnPositionInRangeCorrectly() {
 
 		nativeBinaryCommands.set(KEY_1_BBUFFER, ByteBuffer.wrap(HexStringUtils.hexToBytes("fff0f0")));
@@ -542,7 +542,7 @@ public class LettuceReactiveStringCommandsIntegrationTests extends LettuceReacti
 				.expectNext(16L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1103
+	@ParameterizedValkeyTest // DATAREDIS-1103
 	void setKeepTTL() {
 
 		long expireSeconds = 10;

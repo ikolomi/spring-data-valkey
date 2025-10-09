@@ -77,7 +77,7 @@ class ConvertersUnitTests {
 
 	private static final String CLUSTER_NODE_WITH_SINGLE_IPV4_HOSTNAME = "3765733728631672640db35fd2f04743c03119c6 10.180.0.33:11003@16379,hostname1 master - 0 1708041426947 2 connected 0-5460";
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void toSetOfValkey30ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
 		Iterator<ValkeyClusterNode> nodes = Converters.toSetOfValkeyClusterNodes(VALKEY_3_0_CLUSTER_NODES_RESPONSE).iterator();
@@ -127,7 +127,7 @@ class ConvertersUnitTests {
 		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void toSetOfValkey32ClusterNodesShouldConvertSingleStringNodesResponseCorrectly() {
 
 		Iterator<ValkeyClusterNode> nodes = Converters.toSetOfValkeyClusterNodes(VALKEY_3_2_CLUSTER_NODES_RESPONSE).iterator();
@@ -177,7 +177,7 @@ class ConvertersUnitTests {
 		assertThat(node.getLinkState()).isEqualTo(LinkState.CONNECTED);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void toSetOfValkeyClusterNodesShouldConvertNodesWithSingleSlotCorrectly() {
 
 		Iterator<ValkeyClusterNode> nodes = Converters.toSetOfValkeyClusterNodes(CLUSTER_NODE_WITH_SINGLE_SLOT_RESPONSE)
@@ -191,7 +191,7 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().contains(3456)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void toSetOfValkeyClusterNodesShouldParseLinkStateAndDisconnectedCorrectly() {
 
 		Iterator<ValkeyClusterNode> nodes = Converters
@@ -207,7 +207,7 @@ class ConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots().size()).isEqualTo(0);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void toSetOfValkeyClusterNodesShouldIgnoreImportingSlot() {
 
 		Iterator<ValkeyClusterNode> nodes = Converters.toSetOfValkeyClusterNodes(CLUSTER_NODE_IMPORTING_SLOT).iterator();

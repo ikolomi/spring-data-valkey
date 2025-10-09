@@ -39,7 +39,7 @@ import reactor.core.publisher.Mono
  */
 class ReactiveGeoOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun addPoint() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -54,7 +54,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun addGeoLocation() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -69,7 +69,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun addLocationMap() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -84,7 +84,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun addGeoLocationList() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -99,7 +99,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun addGeoLocationFlow() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -115,7 +115,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun distance() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -130,7 +130,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `distance returning an empty Mono`() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -145,7 +145,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun distanceWithMetric() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -160,7 +160,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `distance with Metric returning an empty Mono`() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -175,7 +175,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun hash() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -190,7 +190,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `hash returning an empty Mono`() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -205,7 +205,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun hashVararg() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -221,7 +221,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 	}
 
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun position() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -236,7 +236,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `position returning an empty Mono`() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -251,7 +251,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun positionVararg() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -266,7 +266,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun radiusAsFlowCircle() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -283,7 +283,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun radiusAsFlowCircleAndArgs() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -301,7 +301,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun radiusAsFlowMemberAndRadius() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -318,7 +318,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun radiusAsFlowDistance() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -336,7 +336,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun radiusAsFlowDistanceAndArgs() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -355,7 +355,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun remove() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()
@@ -370,7 +370,7 @@ class ReactiveGeoOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveGeoOperations<String, String>>()

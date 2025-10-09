@@ -70,7 +70,7 @@ public class LettuceReactiveValkeyClusterConnectionUnitTests {
 		when(nodeConnection.reactive()).thenReturn(reactiveNodeCommands);
 	}
 
-	@Test // DATAVALKEY-659, DATAVALKEY-708
+	@Test // DATAREDIS-659, DATAREDIS-708
 	public void bgReWriteAofShouldRespondCorrectly() {
 
 		LettuceReactiveValkeyClusterConnection connection = new LettuceReactiveValkeyClusterConnection(connectionProvider,
@@ -81,7 +81,7 @@ public class LettuceReactiveValkeyClusterConnectionUnitTests {
 		connection.serverCommands().bgReWriteAof(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659, DATAVALKEY-708
+	@Test // DATAREDIS-659, DATAREDIS-708
 	public void bgSaveShouldRespondCorrectly() {
 
 		LettuceReactiveValkeyClusterConnection connection = new LettuceReactiveValkeyClusterConnection(connectionProvider,

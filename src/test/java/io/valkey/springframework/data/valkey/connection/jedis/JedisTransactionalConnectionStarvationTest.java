@@ -51,25 +51,25 @@ public class JedisTransactionalConnectionStarvationTest extends AbstractTransact
 		}
 	}
 
-	@Test // DATAVALKEY-332
+	@Test // DATAREDIS-332
 	@Rollback
 	void testNumberOfOperationsIsOne() {
 		tryOperations(1);
 	}
 
-	@Test // DATAVALKEY-332
+	@Test // DATAREDIS-332
 	@Rollback
 	void testNumberOfOperationsEqualToNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS);
 	}
 
-	@Test // DATAVALKEY-332
+	@Test // DATAREDIS-332
 	@Rollback
 	void testNumberOfOperationsGreaterThanNumberOfConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);
 	}
 
-	@Test // DATAVALKEY-548
+	@Test // DATAREDIS-548
 	@Transactional(readOnly = true)
 	public void readonlyTransactionSyncShouldNotExcceedMaxConnections() {
 		tryOperations(MAX_CONNECTIONS + 1);

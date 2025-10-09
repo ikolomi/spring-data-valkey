@@ -55,19 +55,19 @@ class LettuceConvertersUnitTests {
 
 	private static final String MASTER_NAME = "mymaster";
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	void convertingEmptyStringToListOfValkeyClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfValkeyClientInformation(""))
 				.isEqualTo(Collections.<ValkeyClientInfo> emptyList());
 	}
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	void convertingNullToListOfValkeyClientInfoShouldReturnEmptyList() {
 		assertThat(LettuceConverters.toListOfValkeyClientInformation(null))
 				.isEqualTo(Collections.<ValkeyClientInfo> emptyList());
 	}
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	void convertingMultipleLiesToListOfValkeyClientInfoReturnsListCorrectly() {
 
 		StringBuilder sb = new StringBuilder();
@@ -78,12 +78,12 @@ class LettuceConvertersUnitTests {
 		assertThat(LettuceConverters.toListOfValkeyClientInformation(sb.toString()).size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void partitionsToClusterNodesShouldReturnEmptyCollectionWhenPartitionsDoesNotContainElements() {
 		assertThat(LettuceConverters.partitionsToClusterNodes(new Partitions())).isNotNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void partitionsToClusterNodesShouldConvertPartitionCorrectly() {
 
 		Partitions partitions = new Partitions();
@@ -109,7 +109,7 @@ class LettuceConvertersUnitTests {
 		assertThat(node.getSlotRange().getSlots()).contains(1, 2, 3, 4, 5);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldReturnEmptyArgsForNullValues() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, null);
@@ -120,7 +120,7 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldNotSetExOrPxForPersistent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.persistent(), null);
@@ -131,7 +131,7 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldSetExForSeconds() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.seconds(10), null);
@@ -156,7 +156,7 @@ class LettuceConvertersUnitTests {
 				.isEqualTo(SetArgs.Builder.exAt(60));
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldSetPxForMilliseconds() {
 
 		SetArgs args = LettuceConverters.toSetArgs(Expiration.milliseconds(100), null);
@@ -167,7 +167,7 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldSetNxForAbsent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifAbsent());
@@ -178,7 +178,7 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldSetXxForPresent() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.ifPresent());
@@ -189,7 +189,7 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.TRUE);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void toSetArgsShouldNotSetNxOrXxForUpsert() {
 
 		SetArgs args = LettuceConverters.toSetArgs(null, SetOption.upsert());
@@ -200,7 +200,7 @@ class LettuceConvertersUnitTests {
 		assertThat((Boolean) getField(args, "xx")).isEqualTo(Boolean.FALSE);
 	}
 
-	@Test // DATAVALKEY-981
+	@Test // DATAREDIS-981
 	void toLimit() {
 
 		Limit limit = LettuceConverters.toLimit(io.valkey.springframework.data.valkey.connection.Limit.unlimited());

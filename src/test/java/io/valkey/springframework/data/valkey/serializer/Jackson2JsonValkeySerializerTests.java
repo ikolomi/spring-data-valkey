@@ -38,14 +38,14 @@ class Jackson2JsonValkeySerializerTests {
 
 	private Jackson2JsonValkeySerializer<Person> serializer = new Jackson2JsonValkeySerializer<>(Person.class);
 
-	@Test // DATAVALKEY-241
+	@Test // DATAREDIS-241
 	void testJackson2JsonSerializer() throws Exception {
 
 		Person person = new PersonObjectFactory().instance();
 		assertThat(serializer.deserialize(serializer.serialize(person))).isEqualTo(person);
 	}
 
-	@Test // DATAVALKEY-241
+	@Test // DATAREDIS-241
 	void testJackson2JsonSerializerShouldReturnEmptyByteArrayWhenSerializingNull() {
 		assertThat(serializer.serialize(null)).isEqualTo(new byte[0]);
 	}

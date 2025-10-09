@@ -29,27 +29,27 @@ public class LettuceReactiveNumberCommandsIntegrationTests extends LettuceReacti
 		super(fixture);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void incrByDoubleShouldIncreaseValueCorrectly() {
 		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 1.5D).block()).isCloseTo(1.5D, offset(0D));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void incrByIntegerShouldIncreaseValueCorrectly() {
 		assertThat(connection.numberCommands().incrBy(KEY_1_BBUFFER, 3).block()).isEqualTo(3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void decrByDoubleShouldDecreaseValueCorrectly() {
 		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 1.5D).block()).isCloseTo(-1.5D, offset(0D));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void decrByIntegerShouldDecreaseValueCorrectly() {
 		assertThat(connection.numberCommands().decrBy(KEY_1_BBUFFER, 3).block()).isEqualTo(-3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hIncrByDoubleShouldIncreaseValueCorrectly() {
 
 		nativeCommands.hset(KEY_1, KEY_1, "2");
@@ -58,7 +58,7 @@ public class LettuceReactiveNumberCommandsIntegrationTests extends LettuceReacti
 				offset(0D));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hIncrByIntegerShouldIncreaseValueCorrectly() {
 
 		nativeCommands.hset(KEY_1, KEY_1, "2");

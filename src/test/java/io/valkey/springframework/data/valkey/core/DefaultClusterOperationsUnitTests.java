@@ -79,7 +79,7 @@ class DefaultClusterOperationsUnitTests {
 		this.clusterOps = new DefaultClusterOperations<>(template);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void keysShouldDelegateToConnectionCorrectly() {
 
 		Set<byte[]> keys = new HashSet<>(Arrays.asList(serializer.serialize("key-1"), serializer.serialize("key-2")));
@@ -88,12 +88,12 @@ class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.keys(NODE_1, "*")).contains("key-1", "key-2");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void keysShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.keys(null, "*"));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void keysShouldReturnEmptySetWhenNoKeysAvailable() {
 
 		when(connection.keys(any(ValkeyClusterNode.class), any(byte[].class))).thenReturn(null);
@@ -101,7 +101,7 @@ class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.keys(NODE_1, "*")).isNotNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void randomKeyShouldDelegateToConnection() {
 
 		when(connection.randomKey(any(ValkeyClusterNode.class))).thenReturn(serializer.serialize("key-1"));
@@ -109,12 +109,12 @@ class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.randomKey(NODE_1)).isEqualTo("key-1");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void randomKeyShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.randomKey(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void randomKeyShouldReturnNullWhenNoKeyAvailable() {
 
 		when(connection.randomKey(any(ValkeyClusterNode.class))).thenReturn(null);
@@ -122,7 +122,7 @@ class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.randomKey(NODE_1)).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void pingShouldDelegateToConnection() {
 
 		when(connection.ping(any(ValkeyClusterNode.class))).thenReturn("PONG");
@@ -130,12 +130,12 @@ class DefaultClusterOperationsUnitTests {
 		assertThat(clusterOps.ping(NODE_1)).isEqualTo("PONG");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void pingShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.ping(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void addSlotsShouldDelegateToConnection() {
 
 		clusterOps.addSlots(NODE_1, 1, 2, 3);
@@ -143,12 +143,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), any(int[].class));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void addSlotsShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.addSlots(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void addSlotsWithRangeShouldDelegateToConnection() {
 
 		clusterOps.addSlots(NODE_1, new SlotRange(1, 3));
@@ -156,12 +156,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterAddSlots(eq(NODE_1), any(int[].class));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void addSlotsWithRangeShouldThrowExceptionWhenRangeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.addSlots(NODE_1, (SlotRange) null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void bgSaveShouldDelegateToConnection() {
 
 		clusterOps.bgSave(NODE_1);
@@ -169,12 +169,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).bgSave(eq(NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void bgSaveShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.bgSave(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void meetShouldDelegateToConnection() {
 
 		clusterOps.meet(NODE_1);
@@ -182,12 +182,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterMeet(eq(NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void meetShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.meet(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void forgetShouldDelegateToConnection() {
 
 		clusterOps.forget(NODE_1);
@@ -195,12 +195,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterForget(eq(NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void forgetShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.forget(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void flushDbShouldDelegateToConnection() {
 
 		clusterOps.flushDb(NODE_1);
@@ -224,12 +224,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).flushDb(eq(NODE_1), eq(FlushOption.ASYNC));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void flushDbShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.flushDb(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void getReplicasShouldDelegateToConnection() {
 
 		clusterOps.getReplicas(NODE_1);
@@ -237,12 +237,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).clusterGetReplicas(eq(NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void getReplicasShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.getReplicas(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void saveShouldDelegateToConnection() {
 
 		clusterOps.save(NODE_1);
@@ -250,12 +250,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).save(eq(NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void saveShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.save(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shutdownShouldDelegateToConnection() {
 
 		clusterOps.shutdown(NODE_1);
@@ -263,12 +263,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).shutdown(eq(NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shutdownShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.shutdown(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeShouldDelegateToConnection() {
 
 		final byte[] key = serializer.serialize("foo");
@@ -277,12 +277,12 @@ class DefaultClusterOperationsUnitTests {
 		verify(connection, times(1)).get(eq(key));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeShouldThrowExceptionWhenCallbackIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> clusterOps.execute(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void reshardShouldExecuteCommandsCorrectly() {
 
 		byte[] key = "foo".getBytes();

@@ -228,7 +228,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testGetBit();
 	}
 
-	@Test // DATAVALKEY-661
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
 
 		Properties results = new Properties();
@@ -1010,7 +1010,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testTtl();
 	}
 
-	// DATAVALKEY-526
+	// DATAREDIS-526
 	@Override
 	@Test
 	public void testTtlWithTimeUnit() {
@@ -1365,21 +1365,21 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testZUnionStore();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddBytes() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.testGeoAddBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAdd() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.testGeoAddBytes();
 	}
 
-	// DATAVALKEY-438
+	// DATAREDIS-438
 	@Override
 	@Test
 	public void testGeoAddWithGeoLocationBytes() {
@@ -1388,7 +1388,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testGeoAddWithGeoLocationBytes();
 	}
 
-	// DATAVALKEY-438
+	// DATAREDIS-438
 	@Override
 	@Test
 	public void testGeoAddWithGeoLocation() {
@@ -1397,21 +1397,21 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testGeoAddWithGeoLocation();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddCoordinateMapBytes() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.testGeoAddCoordinateMapBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddCoordinateMap() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.testGeoAddCoordinateMap();
 	}
 
-	// DATAVALKEY-438
+	// DATAREDIS-438
 	@Override
 	@Test
 	public void testGeoAddWithIterableOfGeoLocationBytes() {
@@ -1420,7 +1420,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testGeoAddWithIterableOfGeoLocationBytes();
 	}
 
-	// DATAVALKEY-438
+	// DATAREDIS-438
 	@Override
 	@Test
 	public void testGeoAddWithIterableOfGeoLocation() {
@@ -1429,7 +1429,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testGeoAddWithIterableOfGeoLocation();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoDistBytes() {
 
 		doReturn(Collections.singletonList(new Distance(102121.12d, DistanceUnit.METERS))).when(nativeConnection)
@@ -1437,7 +1437,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testGeoDistBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoDist() {
 		doReturn(Collections.singletonList(new Distance(102121.12d, DistanceUnit.METERS))).when(nativeConnection)
 				.closePipeline();
@@ -1445,112 +1445,112 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoHashBytes() {
 
 		doReturn(Collections.singletonList(Collections.singletonList(bar))).when(nativeConnection).closePipeline();
 		super.testGeoHashBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoHash() {
 
 		doReturn(Collections.singletonList(Collections.singletonList(bar))).when(nativeConnection).closePipeline();
 		super.testGeoHash();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoPosBytes() {
 
 		doReturn(Collections.singletonList(points)).when(nativeConnection).closePipeline();
 		super.testGeoPosBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoPos() {
 
 		doReturn(Collections.singletonList(points)).when(nativeConnection).closePipeline();
 		super.testGeoPos();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithoutParamBytes() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusWithoutParamBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithoutParam() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusWithoutParam();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithDistBytes() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusWithDistBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithDist() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusWithDist();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithCoordAndDescBytes() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusWithCoordAndDescBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithCoordAndDesc() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusWithCoordAndDesc();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithoutParamBytes() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusByMemberWithoutParamBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithoutParam() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusByMemberWithoutParam();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithDistAndAscBytes() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusByMemberWithDistAndAscBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithDistAndAsc() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusByMemberWithDistAndAsc();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithCoordAndCountBytes() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
 		super.testGeoRadiusByMemberWithCoordAndCountBytes();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithCoordAndCount() {
 
 		doReturn(Collections.singletonList(geoResults)).when(nativeConnection).closePipeline();
@@ -1680,7 +1680,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		verifyResults(Arrays.asList(barBytes, 3L));
 	}
 
-	@Test // DATAVALKEY-206
+	@Test // DATAREDIS-206
 	@Override
 	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
 
@@ -1688,56 +1688,56 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.testTimeIsDelegatedCorrectlyToNativeConnection();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xAckShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.xAckShouldDelegateAndConvertCorrectly();
 	}
 
-	@Override // DATAVALKEY-864
+	@Override // DATAREDIS-864
 	public void xAddShouldAppendRecordCorrectly() {
 
 		doReturn(Collections.singletonList(RecordId.of("1-1"))).when(nativeConnection).closePipeline();
 		super.xAddShouldAppendRecordCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xDelShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.xAckShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xGroupCreateShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList("OK")).when(nativeConnection).closePipeline();
 		super.xGroupCreateShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xGroupDelConsumerShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(Boolean.TRUE)).when(nativeConnection).closePipeline();
 		super.xGroupDelConsumerShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xLenShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();
 		super.xLenShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xGroupDestroyShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(Boolean.TRUE)).when(nativeConnection).closePipeline();
 		super.xGroupDestroyShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xRangeShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(
@@ -1746,7 +1746,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.xRangeShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xReadShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(
@@ -1755,7 +1755,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.xReadShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xReadGroupShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(
@@ -1764,7 +1764,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.xReadGroupShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xRevRangeShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(
@@ -1773,7 +1773,7 @@ public class DefaultStringValkeyConnectionPipelineTests extends DefaultStringVal
 		super.xRevRangeShouldDelegateAndConvertCorrectly();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xTrimShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(1L)).when(nativeConnection).closePipeline();

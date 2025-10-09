@@ -327,7 +327,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(true));
 	}
 
-	@Test // DATAVALKEY-661
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
 
 		Properties results = new Properties();
@@ -986,7 +986,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(true));
 	}
 
-	@Test // DATAVALKEY-271
+	@Test // DATAREDIS-271
 	void testPSetExShouldDelegateCallToNativeConnection() {
 
 		connection.pSetEx(fooBytes, 10L, barBytes);
@@ -1245,7 +1245,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(5L));
 	}
 
-	@Test // DATAVALKEY-526
+	@Test // DATAREDIS-526
 	public void testTtlWithTimeUnit() {
 
 		doReturn(5L).when(nativeConnection).ttl(fooBytes, TimeUnit.SECONDS);
@@ -1780,7 +1780,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList("foo"));
 	}
 
-	@Test // DATAVALKEY-206
+	@Test // DATAREDIS-206
 	public void testTimeIsDelegatedCorrectlyToNativeConnection() {
 
 		doReturn(1L).when(nativeConnection).time();
@@ -1788,21 +1788,21 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-184
+	@Test // DATAREDIS-184
 	void testShutdownInDelegatedCorrectlyToNativeConnection() {
 
 		connection.shutdown(ShutdownOption.NOSAVE);
 		verify(nativeConnection, times(1)).shutdown(eq(ShutdownOption.NOSAVE));
 	}
 
-	@Test // DATAVALKEY-269
+	@Test // DATAREDIS-269
 	void settingClientNameShouldDelegateToNativeConnection() {
 
 		connection.setClientName("foo");
 		verify(nativeConnection, times(1)).setClientName(eq("foo".getBytes()));
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfAddShouldDelegateToNativeConnectionCorrectly() {
 
 		connection.pfAdd("hll", "spring", "data", "valkey");
@@ -1810,14 +1810,14 @@ public class DefaultStringValkeyConnectionTests {
 				"valkey".getBytes());
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfCountShouldDelegateToNativeConnectionCorrectly() {
 
 		connection.pfCount("hll", "hyperLogLog");
 		verify(nativeConnection, times(1)).pfCount("hll".getBytes(), "hyperLogLog".getBytes());
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfMergeShouldDelegateToNativeConnectionCorrectly() {
 
 		connection.pfMerge("merged", "spring", "data", "valkey");
@@ -1825,14 +1825,14 @@ public class DefaultStringValkeyConnectionTests {
 				"valkey".getBytes());
 	}
 
-	@Test // DATAVALKEY-270
+	@Test // DATAREDIS-270
 	void testGetClientNameIsDelegatedCorrectlyToNativeConnection() {
 
 		actual.add(connection.getClientName());
 		verify(nativeConnection, times(1)).getClientName();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddBytes() {
 
 		doReturn(1L).when(nativeConnection).geoAdd(fooBytes, new Point(1.23232, 34.2342434), barBytes);
@@ -1841,7 +1841,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAdd() {
 
 		doReturn(1L).when(nativeConnection).geoAdd(fooBytes, new Point(1.23232, 34.2342434), barBytes);
@@ -1850,7 +1850,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddWithGeoLocationBytes() {
 
 		doReturn(1L).when(nativeConnection).geoAdd(fooBytes, new GeoLocation<>(barBytes, new Point(1.23232, 34.2342434)));
@@ -1859,7 +1859,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddWithGeoLocation() {
 
 		doReturn(1L).when(nativeConnection).geoAdd(fooBytes, new Point(1.23232, 34.2342434), barBytes);
@@ -1868,7 +1868,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddCoordinateMapBytes() {
 
 		Map<byte[], Point> memberGeoCoordinateMap = Collections.singletonMap(barBytes, new Point(1.23232, 34.2342434));
@@ -1878,7 +1878,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddCoordinateMap() {
 
 		doReturn(1L).when(nativeConnection).geoAdd(any(byte[].class), anyMap());
@@ -1887,7 +1887,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddWithIterableOfGeoLocationBytes() {
 
 		List<GeoLocation<byte[]>> values = Collections.singletonList(new GeoLocation<>(barBytes, new Point(1, 2)));
@@ -1897,7 +1897,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoAddWithIterableOfGeoLocation() {
 
 		doReturn(1L).when(nativeConnection).geoAdd(eq(fooBytes), anyMap());
@@ -1906,7 +1906,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(1L));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoDistBytes() {
 
 		doReturn(new Distance(102121.12d, DistanceUnit.METERS)).when(nativeConnection).geoDist(fooBytes, barBytes,
@@ -1916,7 +1916,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(new Distance(102121.12d, DistanceUnit.METERS)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoDist() {
 
 		doReturn(new Distance(102121.12d, DistanceUnit.METERS)).when(nativeConnection).geoDist(fooBytes, barBytes,
@@ -1926,7 +1926,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(new Distance(102121.12d, DistanceUnit.METERS)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoHashBytes() {
 
 		doReturn(stringList).when(nativeConnection).geoHash(fooBytes, barBytes);
@@ -1935,7 +1935,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(Collections.singletonList(bar)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoHash() {
 
 		doReturn(stringList).when(nativeConnection).geoHash(fooBytes, barBytes);
@@ -1944,7 +1944,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(Collections.singletonList(bar)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoPosBytes() {
 
 		doReturn(points).when(nativeConnection).geoPos(fooBytes, barBytes);
@@ -1953,7 +1953,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(points));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoPos() {
 
 		doReturn(points).when(nativeConnection).geoPos(fooBytes, barBytes);
@@ -1961,7 +1961,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(points));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithoutParamBytes() {
 
 		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any());
@@ -1970,7 +1970,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(geoResults));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithoutParam() {
 
 		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any(Circle.class));
@@ -1981,7 +1981,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithDistBytes() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance();
@@ -1992,7 +1992,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(geoResults));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithDist() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance();
@@ -2004,7 +2004,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithCoordAndDescBytes() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().sortDescending();
@@ -2015,7 +2015,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(geoResults));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusWithCoordAndDesc() {
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().sortDescending();
 		doReturn(geoResults).when(nativeConnection).geoRadius(eq(fooBytes), any(Circle.class), eq(geoRadiusParam));
@@ -2026,7 +2026,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithoutParamBytes() {
 
 		doReturn(geoResults).when(nativeConnection).geoRadiusByMember(fooBytes, barBytes,
@@ -2036,7 +2036,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(geoResults));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithoutParam() {
 
 		doReturn(geoResults).when(nativeConnection).geoRadiusByMember(fooBytes, barBytes,
@@ -2047,7 +2047,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithDistAndAscBytes() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance().sortAscending();
@@ -2059,7 +2059,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(geoResults));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithDistAndAsc() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance().sortAscending();
@@ -2071,7 +2071,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithCoordAndCountBytes() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance().limit(23);
@@ -2083,7 +2083,7 @@ public class DefaultStringValkeyConnectionTests {
 		verifyResults(Collections.singletonList(geoResults));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void testGeoRadiusByMemberWithCoordAndCount() {
 
 		GeoRadiusCommandArgs geoRadiusParam = GeoRadiusCommandArgs.newGeoRadiusArgs().includeDistance().limit(23);
@@ -2095,7 +2095,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(Converters.deserializingGeoResultsConverter(serializer).convert(geoResults)));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xAckShouldDelegateAndConvertCorrectly() {
 
 		doReturn(1L).when(nativeConnection).xAck(any(byte[].class), any(String.class), eq(RecordId.of("1-1")));
@@ -2104,7 +2104,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(1L);
 	}
 
-	@Test // DATAVALKEY-864, DATAVALKEY-1122
+	@Test // DATAREDIS-864, DATAREDIS-1122
 	public void xAddShouldAppendRecordCorrectly() {
 
 		doReturn(RecordId.of("1-1")).when(nativeConnection).xAdd(any(), eq(XAddOptions.none()));
@@ -2114,7 +2114,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(RecordId.of("1-1"));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xDelShouldDelegateAndConvertCorrectly() {
 
 		doReturn(1L).when(nativeConnection).xDel(any(byte[].class), eq(RecordId.of("1-1")));
@@ -2123,7 +2123,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(1L);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xGroupCreateShouldDelegateAndConvertCorrectly() {
 
 		doReturn("OK").when(nativeConnection).xGroupCreate(any(), any(), any());
@@ -2132,7 +2132,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly("OK");
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xGroupDelConsumerShouldDelegateAndConvertCorrectly() {
 
 		Consumer consumer = Consumer.from("consumer-group", "one");
@@ -2143,7 +2143,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(Boolean.TRUE);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xGroupDestroyShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Boolean.TRUE).when(nativeConnection).xGroupDestroy(any(), any());
@@ -2152,7 +2152,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(Boolean.TRUE);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xLenShouldDelegateAndConvertCorrectly() {
 
 		doReturn(1L).when(nativeConnection).xLen(any());
@@ -2161,7 +2161,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(1L);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xRangeShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
@@ -2173,7 +2173,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xReadShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
@@ -2185,7 +2185,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xReadGroupShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
@@ -2197,7 +2197,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xRevRangeShouldDelegateAndConvertCorrectly() {
 
 		doReturn(Collections.singletonList(StreamRecords.newRecord().in(bar2Bytes).withId("stream-1").ofBytes(bytesMap)))
@@ -2209,7 +2209,7 @@ public class DefaultStringValkeyConnectionTests {
 				Collections.singletonList(StreamRecords.newRecord().in(bar2).withId("stream-1").ofStrings(stringMap)));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	public void xTrimShouldDelegateAndConvertCorrectly() {
 
 		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong(), eq(false));
@@ -2218,7 +2218,7 @@ public class DefaultStringValkeyConnectionTests {
 		assertThat(getResults()).containsExactly(1L);
 	}
 
-	@Test // DATAVALKEY-1085
+	@Test // DATAREDIS-1085
 	public void xTrimApproximateShouldDelegateAndConvertCorrectly() {
 
 		doReturn(1L).when(nativeConnection).xTrim(any(), anyLong(), anyBoolean());

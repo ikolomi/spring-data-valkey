@@ -147,7 +147,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.members(key)).isEmpty();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-668
+	@ParameterizedValkeyTest // DATAREDIS-668
 	void testPopWithCount() {
 
 		K key = keyFactory.instance();
@@ -200,7 +200,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.members(key)).containsOnly(v3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-304
+	@ParameterizedValkeyTest // DATAREDIS-304
 	@SuppressWarnings("unchecked")
 	void testSSCanReadsValuesFully() throws IOException {
 
@@ -221,7 +221,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(count).isEqualTo(setOps.size(key));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-873
+	@ParameterizedValkeyTest // DATAREDIS-873
 	void diffShouldReturnDifference() {
 
 		K sourceKey1 = keyFactory.instance();
@@ -238,7 +238,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.difference(Arrays.asList(sourceKey1, sourceKey2))).contains(v1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-873
+	@ParameterizedValkeyTest // DATAREDIS-873
 	void diffAndStoreShouldReturnDifferenceShouldReturnNumberOfElementsInDestination() {
 
 		K sourceKey1 = keyFactory.instance();
@@ -256,7 +256,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.differenceAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey)).isEqualTo(1L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-873
+	@ParameterizedValkeyTest // DATAREDIS-873
 	void unionShouldConcatSets() {
 
 		K sourceKey1 = keyFactory.instance();
@@ -273,7 +273,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.union(Arrays.asList(sourceKey1, sourceKey2))).contains(v1, v2, v3, v4);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-873
+	@ParameterizedValkeyTest // DATAREDIS-873
 	void unionAndStoreShouldReturnDifferenceShouldReturnNumberOfElementsInDestination() {
 
 		K sourceKey1 = keyFactory.instance();
@@ -291,7 +291,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.unionAndStore(Arrays.asList(sourceKey1, sourceKey2), destinationKey)).isEqualTo(4L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-873
+	@ParameterizedValkeyTest // DATAREDIS-873
 	void intersectShouldReturnElements() {
 
 		K sourceKey1 = keyFactory.instance();
@@ -308,7 +308,7 @@ public class DefaultSetOperationsIntegrationTests<K, V> {
 		assertThat(setOps.intersect(Arrays.asList(sourceKey1, sourceKey2))).hasSize(2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-448, DATAVALKEY-873
+	@ParameterizedValkeyTest // DATAREDIS-448, DATAREDIS-873
 	void intersectAndStoreShouldReturnNumberOfElementsInDestination() {
 
 		K sourceKey1 = keyFactory.instance();

@@ -88,7 +88,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoAdd() {
 
 		K key = keyFactory.instance();
@@ -98,7 +98,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoAddLocation() {
 
 		K key = keyFactory.instance();
@@ -111,7 +111,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoAddMapOfLocations() {
 
 		K key = keyFactory.instance();
@@ -126,7 +126,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoAddIterableOfLocations() {
 
 		K key = keyFactory.instance();
@@ -140,7 +140,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoAddPublisherOfLocations() {
 
 		K key = keyFactory.instance();
@@ -158,7 +158,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoDistShouldReturnDistanceInMetersByDefault() {
 
 		K key = keyFactory.instance();
@@ -178,7 +178,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoDistShouldReturnDistanceInKilometersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -198,7 +198,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoHash() {
 
 		K key = keyFactory.instance();
@@ -212,7 +212,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoHashShouldReturnMultipleElements() {
 
 		K key = keyFactory.instance();
@@ -229,7 +229,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoPos() {
 
 		K key = keyFactory.instance();
@@ -247,7 +247,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoPosShouldReturnMultipleElements() {
 
 		K key = keyFactory.instance();
@@ -271,7 +271,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadius() {
 
 		K key = keyFactory.instance();
@@ -286,7 +286,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoRadiusShouldReturnLocationsWithDistance() {
 
 		K key = keyFactory.instance();
@@ -313,7 +313,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -328,7 +328,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoRadiusByMemberWithin100_000MetersShouldReturnLocations() {
 
 		K key = keyFactory.instance();
@@ -350,7 +350,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoRadiusByMemberWithin100KMShouldReturnLocations() {
 
 		K key = keyFactory.instance();
@@ -372,7 +372,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoRadiusByMemberShouldReturnLocationsWithDistance() {
 
 		K key = keyFactory.instance();
@@ -400,7 +400,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void geoRemove() {
 
 		K key = keyFactory.instance();
@@ -419,7 +419,7 @@ public class DefaultReactiveGeoOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-602, DATAREDIS-614
 	void delete() {
 
 		K key = keyFactory.instance();

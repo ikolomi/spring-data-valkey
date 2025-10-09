@@ -143,6 +143,8 @@ jobs:
       #   run: |
       #     valkey-server --daemonize yes
 
+      # Runtime hints tests still need an engine, but can use a single version
+      # Use oldest valkey version for runtime hints tests
       - name: Start Valkey
         run: |
           make start PROJECT=valkey VERSION=8.0.3 GH_ORG=valkey-io

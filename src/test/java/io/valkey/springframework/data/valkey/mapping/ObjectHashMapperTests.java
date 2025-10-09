@@ -43,12 +43,12 @@ class ObjectHashMapperTests extends AbstractHashMapperTests {
 		return new ObjectHashMapper();
 	}
 
-	@Test // DATAVALKEY-503
+	@Test // DATAREDIS-503
 	void testSimpleType() {
 		assertBackAndForwardMapping(100);
 	}
 
-	@Test // DATAVALKEY-503
+	@Test // DATAREDIS-503
 	void fromHashShouldCastToType() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
@@ -59,7 +59,7 @@ class ObjectHashMapperTests extends AbstractHashMapperTests {
 		assertThat(result).isEqualTo(100);
 	}
 
-	@Test // DATAVALKEY-503
+	@Test // DATAREDIS-503
 	void fromHashShouldFailIfTypeDoesNotMatch() {
 
 		ObjectHashMapper objectHashMapper = new ObjectHashMapper();
@@ -68,7 +68,7 @@ class ObjectHashMapperTests extends AbstractHashMapperTests {
 		assertThatExceptionOfType(ClassCastException.class).isThrownBy(() -> objectHashMapper.fromHash(hash, String.class));
 	}
 
-	@Test // DATAVALKEY-1179
+	@Test // DATAREDIS-1179
 	void hashMapperAllowsReuseOfValkeyConverter/*and thus the MappingContext holding eg. TypeAlias information*/() {
 
 		WithTypeAlias source = new WithTypeAlias();

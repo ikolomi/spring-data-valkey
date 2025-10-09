@@ -63,7 +63,7 @@ class JedisConnectionUnitTests {
 			connection = new JedisConnection(jedisSpy);
 		}
 
-		@Test // DATAVALKEY-184, GH-2153
+		@Test // DATAREDIS-184, GH-2153
 		void shutdownWithNullShouldDelegateCommandCorrectly() {
 
 			try {
@@ -74,7 +74,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy).shutdown();
 		}
 
-		@Test // DATAVALKEY-184, GH-2153
+		@Test // DATAREDIS-184, GH-2153
 		void shutdownNosaveShouldBeSentCorrectly() {
 
 			assertThatExceptionOfType(JedisException.class).isThrownBy(() -> connection.shutdown(ShutdownOption.NOSAVE));
@@ -82,7 +82,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy).shutdown(SaveMode.NOSAVE);
 		}
 
-		@Test // DATAVALKEY-184, GH-2153
+		@Test // DATAREDIS-184, GH-2153
 		void shutdownSaveShouldBeSentCorrectly() {
 
 			assertThatExceptionOfType(JedisException.class).isThrownBy(() -> connection.shutdown(ShutdownOption.SAVE));
@@ -90,76 +90,76 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy).shutdown(SaveMode.SAVE);
 		}
 
-		@Test // DATAVALKEY-267
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 
 			connection.killClient("127.0.0.1", 1001);
 			verify(jedisSpy).clientKill(eq("127.0.0.1:1001"));
 		}
 
-		@Test // DATAVALKEY-270
+		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
 			verify(jedisSpy).clientGetname();
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		void replicaOfShouldThrowExectpionWhenCalledForNullHost() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.replicaOf(null, 0));
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		public void replicaOfShouldBeSentCorrectly() {
 
 			connection.replicaOf("127.0.0.1", 1001);
 			verify(jedisSpy).replicaof(eq("127.0.0.1"), eq(1001));
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 
 			connection.replicaOfNoOne();
 			verify(jedisSpy).replicaofNoOne();
 		}
 
-		@Test // DATAVALKEY-330
+		@Test // DATAREDIS-330
 		void shouldThrowExceptionWhenAccessingValkeySentinelsCommandsWhenNoSentinelsConfigured() {
 			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test // DATAVALKEY-472
+		@Test // DATAREDIS-472
 		void restoreShouldThrowExceptionWhenTtlInMillisExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> connection.restore("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
-		@Test // DATAVALKEY-472
+		@Test // DATAREDIS-472
 		void setExShouldThrowExceptionWhenTimeExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> connection.setEx("foo".getBytes(), (long) Integer.MAX_VALUE + 1L, "bar".getBytes()));
 		}
 
-		@Test // DATAVALKEY-472
+		@Test // DATAREDIS-472
 		void sRandMemberShouldThrowExceptionWhenCountExceedsIntegerRange() {
 			assertThatIllegalArgumentException()
 					.isThrownBy(() -> connection.sRandMember("foo".getBytes(), (long) Integer.MAX_VALUE + 1L));
 		}
 
-		@Test // DATAVALKEY-472
+		@Test // DATAREDIS-472
 		void zRangeByScoreShouldThrowExceptionWhenOffsetExceedsIntegerRange() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
 					(long) Integer.MAX_VALUE + 1L, Integer.MAX_VALUE));
 		}
 
-		@Test // DATAVALKEY-472
+		@Test // DATAREDIS-472
 		void zRangeByScoreShouldThrowExceptionWhenCountExceedsIntegerRange() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.zRangeByScore("foo".getBytes(), "foo", "bar",
 					Integer.MAX_VALUE, (long) Integer.MAX_VALUE + 1L));
 		}
 
-		@Test // DATAVALKEY-531, GH-2006
+		@Test // DATAREDIS-531, GH-2006
 		public void scanShouldKeepTheConnectionOpen() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(any(byte[].class),
@@ -170,7 +170,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, never()).disconnect();
 		}
 
-		@Test // DATAVALKEY-531, GH-2006
+		@Test // DATAREDIS-531, GH-2006
 		public void scanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).scan(any(byte[].class),
@@ -199,7 +199,7 @@ class JedisConnectionUnitTests {
 			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void sScanShouldKeepTheConnectionOpen() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
@@ -210,7 +210,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, never()).disconnect();
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).sscan(any(byte[].class),
@@ -239,7 +239,7 @@ class JedisConnectionUnitTests {
 			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void zScanShouldKeepTheConnectionOpen() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
@@ -250,7 +250,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, never()).disconnect();
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).zscan(any(byte[].class),
@@ -279,7 +279,7 @@ class JedisConnectionUnitTests {
 			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void hScanShouldKeepTheConnectionOpen() {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
@@ -290,7 +290,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, never()).disconnect();
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() throws IOException {
 
 			doReturn(new ScanResult<>("0", Collections.<String> emptyList())).when(jedisSpy).hscan(any(byte[].class),
@@ -319,7 +319,7 @@ class JedisConnectionUnitTests {
 			assertThat(captor.getAllValues()).map(String::new).containsExactly("0", cursorId);
 		}
 
-		@Test // DATAVALKEY-714
+		@Test // DATAREDIS-714
 		void doesNotSelectDbWhenCurrentDbMatchesDesiredOne() {
 
 			Jedis jedisSpy = spy(new Jedis(getNativeValkeyConnectionMock()));
@@ -328,7 +328,7 @@ class JedisConnectionUnitTests {
 			verify(jedisSpy, never()).select(anyInt());
 		}
 
-		@Test // DATAVALKEY-714
+		@Test // DATAREDIS-714
 		void doesNotSelectDbWhenCurrentDbDoesNotMatchDesiredOne() {
 
 			Jedis jedisSpy = spy(new Jedis(getNativeValkeyConnectionMock()));
@@ -364,7 +364,7 @@ class JedisConnectionUnitTests {
 		@Override
 		void shutdownSaveShouldBeSentCorrectly() {}
 
-		@Test // DATAVALKEY-267
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.killClientShouldDelegateCallCorrectly());
@@ -372,7 +372,7 @@ class JedisConnectionUnitTests {
 
 		@Test
 		@Override
-		// DATAVALKEY-270
+		// DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.getClientNameShouldSendRequestCorrectly());
@@ -380,61 +380,61 @@ class JedisConnectionUnitTests {
 
 		@Test
 		@Override
-		// DATAVALKEY-277
+		// DATAREDIS-277
 		public void replicaOfShouldBeSentCorrectly() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.replicaOfShouldBeSentCorrectly());
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.replicaOfNoOneShouldBeSentCorrectly());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void scanShouldKeepTheConnectionOpen() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.scanShouldKeepTheConnectionOpen());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void scanShouldCloseTheConnectionWhenCursorIsClosed() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.scanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void sScanShouldKeepTheConnectionOpen() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.sScanShouldKeepTheConnectionOpen());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void sScanShouldCloseTheConnectionWhenCursorIsClosed() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.sScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void zScanShouldKeepTheConnectionOpen() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.zScanShouldKeepTheConnectionOpen());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void zScanShouldCloseTheConnectionWhenCursorIsClosed() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.zScanShouldCloseTheConnectionWhenCursorIsClosed());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void hScanShouldKeepTheConnectionOpen() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.hScanShouldKeepTheConnectionOpen());
 		}
 
-		@Test // DATAVALKEY-531
+		@Test // DATAREDIS-531
 		public void hScanShouldCloseTheConnectionWhenCursorIsClosed() {
 			assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 					.isThrownBy(() -> super.hScanShouldCloseTheConnectionWhenCursorIsClosed());

@@ -28,21 +28,21 @@ import io.valkey.springframework.data.valkey.connection.zset.Weights;
  */
 class WeightsUnitTests {
 
-	@Test // DATAVALKEY-746
+	@Test // DATAREDIS-746
 	void shouldCreateWeights() {
 
 		assertThat(Weights.of(1, 2, 3).toArray()).contains(1, 2, 3);
 		assertThat(Weights.of(1, 2d, 3).toArray()).contains(1d, 2d, 3d);
 	}
 
-	@Test // DATAVALKEY-746
+	@Test // DATAREDIS-746
 	void shouldRejectCreationWithNull() {
 
 		assertThatThrownBy(() -> Weights.of((int[]) null)).isInstanceOf(IllegalArgumentException.class);
 		assertThatThrownBy(() -> Weights.of((double[]) null)).isInstanceOf(IllegalArgumentException.class);
 	}
 
-	@Test // DATAVALKEY-746
+	@Test // DATAREDIS-746
 	void shouldCreateEqualWeights() {
 
 		Weights weights = Weights.fromSetCount(3);
@@ -51,14 +51,14 @@ class WeightsUnitTests {
 		assertThat(weights.getWeight(2)).isOne();
 	}
 
-	@Test // DATAVALKEY-746
+	@Test // DATAREDIS-746
 	void getShouldThrowIndexOutOfBoundsException() {
 
 		assertThatThrownBy(() -> Weights.fromSetCount(1).getWeight(1)).isInstanceOf(IndexOutOfBoundsException.class);
 		assertThatThrownBy(() -> Weights.fromSetCount(1).getWeight(-1)).isInstanceOf(IndexOutOfBoundsException.class);
 	}
 
-	@Test // DATAVALKEY-746
+	@Test // DATAREDIS-746
 	void shouldMultiplyDouble() {
 
 		Weights weights = Weights.of(1, 2, 3).multiply(2.5);
@@ -66,7 +66,7 @@ class WeightsUnitTests {
 		assertThat(weights.getWeight(2)).isEqualTo(7.5);
 	}
 
-	@Test // DATAVALKEY-746
+	@Test // DATAREDIS-746
 	void shouldMultiplyInt() {
 
 		Weights weights = Weights.of(1, 2, 3).multiply(2);

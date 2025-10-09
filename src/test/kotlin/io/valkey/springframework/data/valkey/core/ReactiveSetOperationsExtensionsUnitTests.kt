@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono
  */
 class ReactiveSetOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun add() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -49,7 +49,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun remove() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -64,7 +64,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun pop() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -79,7 +79,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `pop as Flow`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -94,7 +94,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `pop returning an empty Mono`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -109,7 +109,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun move() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -124,7 +124,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun size() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -139,7 +139,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun isMember() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -154,7 +154,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun intersect() {
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.intersect("foo", "bar") } returns Flux.just("baz")
@@ -168,7 +168,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `intersect with key and collection`() {
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.intersect("foo", listOf("bar")) } returns Flux.just("baz")
@@ -182,7 +182,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `intersect with collection`() {
 		val operations = mockk<ReactiveSetOperations<String, String>>()
 		every { operations.intersect(listOf("bar")) } returns Flux.just("baz")
@@ -196,7 +196,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun intersectAndStore() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -211,7 +211,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun intersectAndStoreCollection() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -226,7 +226,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun union() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -241,7 +241,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `union with key and collection`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -256,7 +256,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `union with collection`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -271,7 +271,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unionAndStore() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -286,7 +286,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unionAndStoreCollection() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -301,7 +301,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun difference() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -316,7 +316,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `difference with key and collection`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -331,7 +331,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun `difference with collection`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -346,7 +346,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun differenceAndStore() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -361,7 +361,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun differenceAndStoreCollection() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -376,7 +376,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun members() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -391,7 +391,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun scan() {
 
 		val operations =  mockk<ReactiveSetOperations<String, String>>()
@@ -406,7 +406,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun randomMember() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -421,7 +421,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `randomMember returning an empty Mono`() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -436,7 +436,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun distinctRandomMembers() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -451,7 +451,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun randomMembers() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()
@@ -466,7 +466,7 @@ class ReactiveSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveSetOperations<String, String>>()

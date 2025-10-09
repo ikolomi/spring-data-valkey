@@ -127,7 +127,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		}
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void appendShouldAddValueCorrectly() {
 
 		clusterConnection.append(KEY_1_BYTES, VALUE_1_BYTES);
@@ -136,7 +136,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1.concat(VALUE_2));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void bRPopLPushShouldWork() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -145,7 +145,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void bRPopLPushShouldWorkOnSameSlotKeys() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -154,7 +154,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void bitCountShouldWorkCorrectly() {
 
 		nativeConnection.setbit(KEY_1, 0, true);
@@ -163,7 +163,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bitCount(KEY_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void bitCountWithRangeShouldWorkCorrectly() {
 
 		nativeConnection.setbit(KEY_1, 0, true);
@@ -175,13 +175,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bitCount(KEY_1_BYTES, 0, 3)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void bitOpShouldThrowExceptionWhenKeysDoNotMapToSameSlot() {
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.bitOp(BitOperation.AND, KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void bitOpShouldWorkCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, "foo");
@@ -192,7 +192,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_3)).isEqualTo("bab");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void blPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -201,7 +201,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bLPop(100, KEY_1_BYTES, KEY_2_BYTES).size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void blPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -210,7 +210,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bLPop(100, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES).size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void brPopShouldPopElementCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -219,7 +219,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bRPop(100, KEY_1_BYTES, KEY_2_BYTES).size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void brPopShouldPopElementCorrectlyWhenKeyOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -228,12 +228,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.bRPop(100, SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES).size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void clientListShouldGetInfosForAllClients() {
 		assertThat(clusterConnection.getClientList().isEmpty()).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void clusterGetMasterReplicaMapShouldListMastersAndReplicasCorrectly() {
 
 		Map<ValkeyClusterNode, Collection<ValkeyClusterNode>> masterReplicaMap = clusterConnection
@@ -247,7 +247,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(masterReplicaMap.get(new ValkeyClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT)).isEmpty()).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void clusterGetReplicasShouldReturnReplicaCorrectly() {
 
 		Set<ValkeyClusterNode> replicas = clusterConnection
@@ -257,7 +257,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(replicas).contains(new ValkeyClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void countKeysShouldReturnNumberOfKeysInSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -267,7 +267,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void dbSizeForSpecificNodeShouldGetNodeDbSize() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -278,7 +278,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.dbSize(new ValkeyClusterNode("127.0.0.1", 7381, SlotRange.empty()))).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void dbSizeShouldReturnCummulatedDbSize() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -287,7 +287,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.dbSize()).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void decrByShouldDecreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "5");
@@ -295,7 +295,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.decrBy(KEY_1_BYTES, 4)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void decrShouldDecreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "5");
@@ -303,7 +303,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.decr(KEY_1_BYTES)).isEqualTo(4L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void delShouldRemoveMultipleKeysCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -315,7 +315,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void delShouldRemoveMultipleKeysOnSameSlotCorrectly() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -327,7 +327,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2)).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void delShouldRemoveSingleKeyCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -337,12 +337,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void discardShouldThrowException() {
 		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::discard);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void dumpAndRestoreShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -353,7 +353,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-696
+	@Test // DATAREDIS-696
 	public void dumpAndRestoreWithReplaceOptionShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -367,18 +367,18 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void echoShouldReturnInputCorrectly() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> clusterConnection.echo(VALUE_1_BYTES));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void execShouldThrowException() {
 		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::exec);
 	}
 
-	@Test // DATAVALKEY-689
+	@Test // DATAREDIS-689
 	void executeWithArgs() {
 
 		assertThat(clusterConnection.execute("SET", KEY_1_BYTES, VALUE_1_BYTES)).isEqualTo("OK".getBytes());
@@ -386,7 +386,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-689
+	@Test // DATAREDIS-689
 	void executeWithKeyAndArgs() {
 
 		Object result = clusterConnection.execute("SET", KEY_1_BYTES, Collections.singletonList(VALUE_1_BYTES));
@@ -395,13 +395,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-689
+	@Test // DATAREDIS-689
 	void executeWithNoKeyAndArgsThrowsException() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> clusterConnection.execute("KEYS", (byte[]) null, Collections.singletonList("*".getBytes())));
 	}
 
-	@Test // DATAVALKEY-529
+	@Test // DATAREDIS-529
 	public void existsShouldCountSameKeyMultipleTimes() {
 
 		nativeConnection.set(KEY_1, "true");
@@ -409,13 +409,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().exists(KEY_1_BYTES, KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-529
+	@Test // DATAREDIS-529
 	public void existsWithMultipleKeysShouldConsiderAbsentKeys() {
 
 		assertThat(clusterConnection.keyCommands().exists("no-exist-1".getBytes(), "no-exist-2".getBytes())).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-529
+	@Test // DATAREDIS-529
 	public void existsWithMultipleKeysShouldReturnResultCorrectly() {
 
 		nativeConnection.set(KEY_1, "true");
@@ -426,7 +426,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void expireAtShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -452,7 +452,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void expireShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -475,7 +475,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void flushDbOnSingleNodeShouldFlushOnlyGivenNodesDb() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -511,7 +511,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void flushDbShouldFlushAllClusterNodes() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -619,17 +619,17 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isNull();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoAddMultipleGeoLocations() {
 		assertThat(clusterConnection.geoAdd(KEY_1_BYTES, Arrays.asList(PALERMO, ARIGENTO, CATANIA, PALERMO))).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoAddSingleGeoLocation() {
 		assertThat(clusterConnection.geoAdd(KEY_1_BYTES, PALERMO)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoDist() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -641,7 +641,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(distance.getUnit()).isEqualTo("m");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoDistWithMetric() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -654,7 +654,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoHash() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -664,7 +664,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).containsExactly("sqc8b49rny0", "sqdtr74hyu0");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoHashNonExisting() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -675,7 +675,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).containsExactly("sqc8b49rny0", (String) null, "sqdtr74hyu0");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoPosition() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -690,7 +690,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(positions.get(1).getY()).isCloseTo(POINT_CATANIA.getY(), offset(0.005));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoPositionNonExisting() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -708,7 +708,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(positions.get(2).getY()).isCloseTo(POINT_CATANIA.getY(), offset(0.005));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldApplyLimit() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -721,7 +721,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getContent()).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldReturnDistanceCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -736,7 +736,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getContent().get(0).getDistance().getUnit()).isEqualTo("km");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -750,7 +750,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(ARIGENTO.getName());
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldApplyLimit() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -763,7 +763,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getContent()).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldReturnDistanceCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -778,7 +778,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getContent().get(0).getDistance().getUnit()).isEqualTo("km");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRadiusShouldReturnMembersCorrectly() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -790,7 +790,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getContent()).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	public void geoRemoveDeletesMembers() {
 
 		nativeConnection.geoadd(KEY_1_BYTES, PALERMO.getPoint().getX(), PALERMO.getPoint().getY(), PALERMO.getName());
@@ -800,7 +800,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.geoRemove(KEY_1_BYTES, ARIGENTO.getName())).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void getBitShouldWorkCorrectly() {
 
 		nativeConnection.setbit(KEY_1, 0, true);
@@ -810,13 +810,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.getBit(KEY_1_BYTES, 1)).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void getClusterNodeForKeyShouldReturnNodeCorrectly() {
 		assertThat((ValkeyNode) clusterConnection.clusterGetNodeForKey(KEY_1_BYTES))
 				.isEqualTo(new ValkeyNode("127.0.0.1", 7380));
 	}
 
-	@Test // DATAVALKEY-315, DATAVALKEY-661
+	@Test // DATAREDIS-315, DATAREDIS-661
 	public void getConfigShouldLoadConfigurationOfSpecificNode() {
 
 		Properties result = clusterConnection.getConfig(new ValkeyClusterNode(CLUSTER_HOST, REPLICAOF_NODE_1_PORT), "*");
@@ -824,7 +824,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result.getProperty("slaveof")).endsWith("7379");
 	}
 
-	@Test // DATAVALKEY-315, DATAVALKEY-661
+	@Test // DATAREDIS-315, DATAREDIS-661
 	public void getConfigShouldLoadCumulatedConfiguration() {
 
 		Properties result = clusterConnection.getConfig("*max-*-entries*");
@@ -840,7 +840,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		}
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void getRangeShouldReturnValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -868,7 +868,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.exists(KEY_1_BYTES)).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void getSetShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -879,7 +879,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void getShouldReturnValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -887,7 +887,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hDelShouldRemoveFieldsCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -899,7 +899,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hexists(KEY_1_BYTES, KEY_3_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hExistsShouldReturnPresenceOfFieldCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -909,7 +909,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hExists(JedisConverters.toBytes("foo"), KEY_2_BYTES)).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hGetAllShouldRetrieveEntriesCorrectly() {
 
 		Map<byte[], byte[]> hashes = new HashMap<>();
@@ -924,7 +924,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(hGetAll.containsKey(KEY_3_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hGetShouldRetrieveValueCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -932,7 +932,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hGet(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hIncrByFloatShouldIncreaseFieldCorretly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, JedisConverters.toBytes(1L));
@@ -943,7 +943,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(JedisConverters.toBytes(5.5D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hIncrByShouldIncreaseFieldCorretly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, JedisConverters.toBytes(1L));
@@ -954,7 +954,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(JedisConverters.toBytes(5L));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hKeysShouldRetrieveKeysCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -963,7 +963,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hKeys(KEY_1_BYTES)).contains(KEY_2_BYTES, KEY_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hLenShouldRetrieveSizeCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -972,7 +972,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hLen(KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hMGetShouldRetrieveValueCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -981,7 +981,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hMGet(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hMSetShouldAddValuesCorrectly() {
 
 		Map<byte[], byte[]> hashes = new HashMap<>();
@@ -993,7 +993,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hmget(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-479
+	@Test // DATAREDIS-479
 	public void hScanShouldReadEntireValueRange() {
 
 		int nrOfValues = 321;
@@ -1014,7 +1014,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(i).isEqualTo(nrOfValues);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hSetNXShouldNotSetValueWhenAlreadyExists() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -1024,7 +1024,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hSetNXShouldSetValueCorrectly() {
 
 		clusterConnection.hSetNX(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -1032,7 +1032,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hSetShouldSetValueCorrectly() {
 
 		clusterConnection.hSet(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -1040,7 +1040,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.hget(KEY_1_BYTES, KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-698
+	@Test // DATAREDIS-698
 	public void hStrLenReturnsFieldLength() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
@@ -1049,7 +1049,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isEqualTo(Long.valueOf(VALUE_3.length()));
 	}
 
-	@Test // DATAVALKEY-698
+	@Test // DATAREDIS-698
 	public void hStrLenReturnsZeroWhenFieldDoesNotExist() {
 
 		nativeConnection.hset(KEY_1, KEY_2, VALUE_3);
@@ -1057,7 +1057,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_3_BYTES)).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-698
+	@Test // DATAREDIS-698
 	public void hStrLenReturnsZeroWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.hashCommands().hStrLen(KEY_1_BYTES, KEY_1_BYTES)).isEqualTo(0L);
 	}
@@ -1239,7 +1239,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hashCommands().hTtl(KEY_3_BYTES, KEY_2_BYTES)).contains(-2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void hValsShouldRetrieveValuesCorrectly() {
 
 		nativeConnection.hset(KEY_1_BYTES, KEY_2_BYTES, VALUE_1_BYTES);
@@ -1248,7 +1248,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.hVals(KEY_1_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void incrByFloatShouldIncreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "1");
@@ -1256,7 +1256,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.incrBy(KEY_1_BYTES, 5.5D)).isEqualTo(6.5D);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void incrByShouldIncreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "1");
@@ -1264,7 +1264,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.incrBy(KEY_1_BYTES, 5)).isEqualTo(6L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void incrShouldIncreaseValueCorrectly() {
 
 		nativeConnection.set(KEY_1, "1");
@@ -1272,7 +1272,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.incr(KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void infoShouldCollectInfoForSpecificNode() {
 
 		Properties properties = clusterConnection.info(new ValkeyClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT));
@@ -1280,7 +1280,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(properties.getProperty("tcp_port")).isEqualTo(Integer.toString(MASTER_NODE_2_PORT));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void infoShouldCollectInfoForSpecificNodeAndSection() {
 
 		Properties properties = clusterConnection.info(new ValkeyClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT), "server");
@@ -1289,7 +1289,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(properties.getProperty("used_memory")).isNull();
 	}
 
-	@Test // DATAVALKEY-315, DATAVALKEY-685
+	@Test // DATAREDIS-315, DATAREDIS-685
 	public void infoShouldCollectionInfoFromAllClusterNodes() {
 
 		Properties singleNodeInfo = clusterConnection.serverCommands().info(new ValkeyClusterNode("127.0.0.1", 7380));
@@ -1297,7 +1297,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				offset(12d));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void keysShouldReturnAllKeys() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1306,7 +1306,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keys(JedisConverters.toBytes("*"))).contains(KEY_1_BYTES, KEY_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void keysShouldReturnAllKeysForSpecificNode() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1318,7 +1318,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(keysOnNode).contains(KEY_2_BYTES).doesNotContain(KEY_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-635
+	@Test // DATAREDIS-635
 	public void scanShouldReturnAllKeys() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1328,7 +1328,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isThrownBy(() -> clusterConnection.scan(ScanOptions.NONE));
 	}
 
-	@Override // DATAVALKEY-635
+	@Override // DATAREDIS-635
 	public void scanShouldReturnAllKeysForSpecificNode() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1342,7 +1342,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(keysOnNode).contains(KEY_2_BYTES).doesNotContain(KEY_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lIndexShouldGetElementAtIndexCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -1350,7 +1350,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lIndex(KEY_1_BYTES, 1)).isEqualTo(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lInsertShouldAddElementAtPositionCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -1393,7 +1393,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(SAME_SLOT_KEY_2, 0, -1)).containsExactly(VALUE_2, VALUE_3);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lLenShouldCountValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -1401,7 +1401,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lLen(KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lPopShouldReturnElementCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -1409,7 +1409,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lPop(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lPushNXShouldNotAddValuesWhenKeyDoesNotExist() {
 
 		clusterConnection.lPushX(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1417,7 +1417,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_1)).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lPushShouldAddValuesCorrectly() {
 
 		clusterConnection.lPush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1425,7 +1425,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1)).contains(VALUE_1, VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lRangeShouldGetValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2);
@@ -1433,7 +1433,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.lRange(KEY_1_BYTES, 0L, -1L)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lRemShouldRemoveElementAtPositionCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -1443,7 +1443,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.llen(KEY_1)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lSetShouldSetElementAtPositionCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -1453,7 +1453,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1).get(1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void lTrimShouldTrimListCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_1, VALUE_2, "foo", "bar");
@@ -1463,7 +1463,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1)).contains(VALUE_1, VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mGetShouldReturnCorrectlyWhenKeysDoNotMapToSameSlot() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1472,7 +1472,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.mGet(KEY_1_BYTES, KEY_2_BYTES)).containsExactly(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-756
+	@Test // DATAREDIS-756
 	public void mGetShouldReturnMultipleSameKeysWhenKeysDoNotMapToSameSlot() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1483,7 +1483,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).containsExactly(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES, VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mGetShouldReturnCorrectlyWhenKeysMapToSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
@@ -1493,7 +1493,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-756
+	@Test // DATAREDIS-756
 	public void mGetShouldReturnMultipleSameKeysWhenKeysMapToSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
@@ -1503,7 +1503,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).containsExactly(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mSetNXShouldReturnFalseIfNotAllKeysSet() {
 
 		nativeConnection.set(KEY_2_BYTES, VALUE_3_BYTES);
@@ -1517,7 +1517,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_3);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mSetNXShouldReturnTrueIfAllKeysSet() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<>();
@@ -1530,7 +1530,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mSetNXShouldWorkForOnSameSlotKeys() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<>();
@@ -1543,7 +1543,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysDoNotMapToSameSlot() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<>();
@@ -1556,7 +1556,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void mSetShouldWorkWhenKeysMapToSameSlot() {
 
 		Map<byte[], byte[]> map = new LinkedHashMap<>();
@@ -1569,18 +1569,18 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void moveShouldNotBeSupported() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(() -> clusterConnection.move(KEY_1_BYTES, 3));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void multiShouldThrowException() {
 		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::multi);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pExpireAtShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1609,7 +1609,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pExpireShouldBeSetCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1632,7 +1632,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(JedisConverters.toString(KEY_1_BYTES))).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pSetExShouldSetValueCorrectly() {
 
 		clusterConnection.pSetEx(KEY_1_BYTES, 5000, VALUE_1_BYTES);
@@ -1641,7 +1641,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pTtlShouldReturValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1650,7 +1650,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES)).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pTtlShouldReturnMinusOneWhenKeyDoesNotHaveExpirationSet() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1658,17 +1658,17 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES)).isEqualTo(-1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pTtlShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES)).isEqualTo(-2L);
 	}
 
-	@Test // DATAVALKEY-526
+	@Test // DATAREDIS-526
 	public void pTtlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.pTtl(KEY_1_BYTES, TimeUnit.HOURS)).isEqualTo(-2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void persistShouldRemoveTTL() {
 
 		nativeConnection.setex(KEY_1_BYTES, 10, VALUE_1_BYTES);
@@ -1677,7 +1677,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1_BYTES)).isEqualTo(-1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pfAddShouldAddValuesCorrectly() {
 
 		clusterConnection.pfAdd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
@@ -1685,7 +1685,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.pfcount(KEY_1_BYTES)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pfCountShouldAllowCountingOnSameSlotKeys() {
 
 		nativeConnection.pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1694,7 +1694,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pfCount(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pfCountShouldAllowCountingOnSingleKey() {
 
 		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -1702,7 +1702,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.pfCount(KEY_1_BYTES)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pfCountShouldThrowErrorCountingOnDifferentSlotKeys() {
 
 		nativeConnection.pfadd(KEY_1, VALUE_1, VALUE_2);
@@ -1712,13 +1712,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isThrownBy(() -> clusterConnection.pfCount(KEY_1_BYTES, KEY_2_BYTES));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pfMergeShouldThrowErrorOnDifferentSlotKeys() {
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.pfMerge(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pfMergeShouldWorkWhenAllKeysMapToSameSlot() {
 
 		nativeConnection.pfadd(SAME_SLOT_KEY_1, VALUE_1, VALUE_2);
@@ -1729,23 +1729,23 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.pfcount(SAME_SLOT_KEY_3)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pingShouldRetrunPong() {
 		assertThat(clusterConnection.ping()).isEqualTo("PONG");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pingShouldRetrunPongForExistingNode() {
 		assertThat(clusterConnection.ping(new ValkeyClusterNode("127.0.0.1", 7379, SlotRange.empty()))).isEqualTo("PONG");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void pingShouldThrowExceptionWhenNodeNotKnownToCluster() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> clusterConnection.ping(new ValkeyClusterNode("127.0.0.1", 1234, null)));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void rPopLPushShouldWorkWhenDoNotMapToSameSlot() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1754,7 +1754,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void rPopLPushShouldWorkWhenKeysOnSameSlot() {
 
 		nativeConnection.lpush(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1763,7 +1763,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(SAME_SLOT_KEY_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void rPopShouldReturnElementCorrectly() {
 
 		nativeConnection.rpush(KEY_1, VALUE_1, VALUE_2);
@@ -1771,7 +1771,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.rPop(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void rPushNXShouldNotAddValuesWhenKeyDoesNotExist() {
 
 		clusterConnection.rPushX(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1779,7 +1779,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_1)).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void rPushShouldAddValuesCorrectly() {
 
 		clusterConnection.rPush(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1787,7 +1787,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.lrange(KEY_1, 0, -1)).contains(VALUE_1, VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnCorrectlyWhenKeysAvailable() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -1796,12 +1796,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.randomKey()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void randomKeyShouldReturnNullWhenNoKeysAvailable() {
 		assertThat(clusterConnection.randomKey()).isNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void rename() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1812,7 +1812,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-1190
+	@Test // DATAREDIS-1190
 	public void renameShouldOverwriteTargetKey() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1824,7 +1824,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void renameNXWhenOnSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
@@ -1835,7 +1835,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void renameNXWhenTargetKeyDoesExist() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1847,7 +1847,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void renameNXWhenTargetKeyDoesNotExist() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -1858,7 +1858,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void renameSameKeysOnSameSlot() {
 
 		nativeConnection.set(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES);
@@ -1869,7 +1869,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(SAME_SLOT_KEY_2_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sAddShouldAddValueToSetCorrectly() {
 
 		clusterConnection.sAdd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1877,7 +1877,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_1)).contains(VALUE_1, VALUE_2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sCardShouldCountValuesInSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1885,7 +1885,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sCard(KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sDiffShouldWorkWhenKeysMapToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1894,7 +1894,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sDiff(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315, DATAVALKEY-647
+	@Test // DATAREDIS-315, DATAREDIS-647
 	public void sDiffShouldWorkWhenKeysNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1905,7 +1905,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sDiff(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES)).isEmpty();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sDiffStoreShouldWorkWhenKeysMapToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1916,7 +1916,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(SAME_SLOT_KEY_3_BYTES)).contains(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sDiffStoreShouldWorkWhenKeysNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1927,7 +1927,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_3_BYTES)).contains(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sInterShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1936,7 +1936,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sInter(SAME_SLOT_KEY_1_BYTES, SAME_SLOT_KEY_2_BYTES)).contains(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sInterShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1945,7 +1945,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sInter(KEY_1_BYTES, KEY_2_BYTES)).contains(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sInterStoreShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1956,7 +1956,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(SAME_SLOT_KEY_3_BYTES)).contains(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sInterStoreShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -1967,7 +1967,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_3_BYTES)).contains(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sIsMemberShouldReturnFalseIfValueIsMemberOfSet() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1975,7 +1975,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sIsMember(KEY_1_BYTES, JedisConverters.toBytes("foo"))).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sIsMemberShouldReturnTrueIfValueIsMemberOfSet() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -1993,7 +1993,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.containsExactly(true, true, false);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sMembersShouldReturnValuesContainedInSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -2001,7 +2001,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sMembers(KEY_1_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sMoveShouldWorkWhenKeysDoNotMapToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -2013,7 +2013,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.sismember(KEY_2_BYTES, VALUE_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sMoveShouldWorkWhenKeysMapToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -2025,7 +2025,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.sismember(SAME_SLOT_KEY_2_BYTES, VALUE_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sPopShouldPopValueFromSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -2033,7 +2033,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sPop(KEY_1_BYTES)).isNotNull();
 	}
 
-	@Test // DATAVALKEY-668
+	@Test // DATAREDIS-668
 	void sPopWithCountShouldPopValueFromSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -2042,7 +2042,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.scard(KEY_1)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sRandMamberShouldReturnValueCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -2050,7 +2050,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sRandMember(KEY_1_BYTES)).isNotNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sRandMamberWithCountShouldReturnValueCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -2058,7 +2058,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.sRandMember(KEY_1_BYTES, 3)).isNotNull();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sRemShouldRemoveValueFromSetCorrectly() {
 
 		nativeConnection.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -2068,7 +2068,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_1)).contains(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sUnionShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -2078,7 +2078,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				VALUE_2_BYTES, VALUE_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sUnionShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -2088,7 +2088,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				VALUE_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sUnionStoreShouldWorkForKeysMappingToSameSlot() {
 
 		nativeConnection.sadd(SAME_SLOT_KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -2099,7 +2099,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(SAME_SLOT_KEY_3_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sUnionStoreShouldWorkForKeysNotMappingToSameSlot() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES, VALUE_2_BYTES);
@@ -2110,17 +2110,17 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.smembers(KEY_3_BYTES)).contains(VALUE_1_BYTES, VALUE_2_BYTES, VALUE_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void selectShouldAllowSelectionOfDBIndexZero() {
 		clusterConnection.select(0);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void selectShouldThrowExceptionWhenSelectingNonZeroDbIndex() {
 		assertThatExceptionOfType(DataAccessException.class).isThrownBy(() -> clusterConnection.select(1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void setBitShouldWorkCorrectly() {
 
 		clusterConnection.setBit(KEY_1_BYTES, 0, true);
@@ -2130,7 +2130,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.getbit(KEY_1, 1)).isFalse();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void setExShouldSetValueCorrectly() {
 
 		clusterConnection.setEx(KEY_1_BYTES, 5, VALUE_1_BYTES);
@@ -2139,7 +2139,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1)).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void setNxShouldNotSetValueWhenAlreadyExistsInDBCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2149,7 +2149,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void setNxShouldSetValueCorrectly() {
 
 		clusterConnection.setNX(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2157,7 +2157,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void setRangeShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2167,7 +2167,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo("valUE1");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void setShouldSetValueCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2175,7 +2175,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1)).isEqualTo(VALUE_1);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfAbsentShouldNotBeAppliedWhenKeyExists() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2187,7 +2187,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfAbsentShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifAbsent());
@@ -2196,7 +2196,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfPresentShouldNotBeAppliedWhenKeyDoesNotExists() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.ifPresent());
@@ -2204,7 +2204,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_1_BYTES)).isFalse();
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithExpirationAndIfPresentShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2216,7 +2216,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithExpirationInMillisecondsShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.milliseconds(500), SetOption.upsert());
@@ -2225,7 +2225,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.pttl(KEY_1)).isCloseTo(500L, offset(499L));
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithExpirationInSecondsShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.seconds(1), SetOption.upsert());
@@ -2234,7 +2234,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	public void setWithOptionIfAbsentShouldWorkCorrectly() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES, Expiration.persistent(), SetOption.ifAbsent());
@@ -2243,7 +2243,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1_BYTES)).isEqualTo(-1L);
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-588
+	@Test // DATAREDIS-316, DATAREDIS-588
 	public void setWithOptionIfPresentShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2254,14 +2254,14 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.ttl(KEY_1_BYTES)).isEqualTo(-1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void shouldAllowSettingAndGettingValues() {
 
 		clusterConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
 		assertThat(clusterConnection.get(KEY_1_BYTES)).isEqualTo(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sortAndStoreShouldAddSortedValuesValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
@@ -2270,7 +2270,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.exists(KEY_2_BYTES)).isTrue();
 	}
 
-	@Test // DATAVALKEY-315, GH-2341
+	@Test // DATAREDIS-315, GH-2341
 	public void sortAndStoreShouldReplaceDestinationList() {
 
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
@@ -2280,7 +2280,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.llen(KEY_2_BYTES)).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sortShouldReturnValuesCorrectly() {
 
 		nativeConnection.lpush(KEY_1, VALUE_2, VALUE_1);
@@ -2289,7 +2289,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void sscanShouldRetrieveAllValuesInSetCorrectly() {
 
 		for (int i = 0; i < 30; i++) {
@@ -2306,7 +2306,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(count).isEqualTo(30);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void strLenShouldWorkCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2314,7 +2314,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.strLen(KEY_1_BYTES)).isEqualTo(6L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void ttlShouldReturnMinusOneWhenKeyDoesNotHaveExpirationSet() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2322,12 +2322,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isEqualTo(-1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void ttlShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isEqualTo(-2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void ttlShouldReturnValueCorrectly() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2336,12 +2336,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES)).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-526
+	@Test // DATAREDIS-526
 	public void ttlWithTimeUnitShouldReturnMinusTwoWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.ttl(KEY_1_BYTES, TimeUnit.HOURS)).isEqualTo(-2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void typeShouldReadKeyTypeCorrectly() {
 
 		nativeConnection.sadd(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2353,17 +2353,17 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.type(KEY_3_BYTES)).isEqualTo(DataType.HASH);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void unwatchShouldThrowException() {
 		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::unwatch);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void watchShouldThrowException() {
 		assertThatExceptionOfType(DataAccessException.class).isThrownBy(clusterConnection::watch);
 	}
 
-	@Test // DATAVALKEY-674
+	@Test // DATAREDIS-674
 	void zAddShouldAddMultipleValuesWithScoreCorrectly() {
 
 		Set<Tuple> tuples = new HashSet<>();
@@ -2375,7 +2375,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zcard(KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zAddShouldAddValueWithScoreCorrectly() {
 
 		clusterConnection.zAdd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2384,7 +2384,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zcard(KEY_1_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zCardShouldReturnTotalNumberOfValues() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2394,7 +2394,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zCard(KEY_1_BYTES)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zCountShouldCountValuesInRange() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2404,7 +2404,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zCount(KEY_1_BYTES, 10, 20)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zIncrByShouldIncScoreForValueCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2484,7 +2484,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.isThrownBy(() -> clusterConnection.zInterStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zInterStoreShouldWorkForSameSlotKeys() {
 
 		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2575,7 +2575,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRandMemberWithScore(KEY_1_BYTES, 2)).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeByLexShouldReturnResultCorrectly() {
 
 		nativeConnection.zadd(KEY_1, 0, "a");
@@ -2644,7 +2644,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				JedisConverters.toBytes("e"), JedisConverters.toBytes("f"), JedisConverters.toBytes("g"));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeByScoreShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2654,7 +2654,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRangeByScore(KEY_1_BYTES, 10, 20)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeByScoreShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2664,7 +2664,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRangeByScore(KEY_1_BYTES, 10D, 20D, 0L, 1L)).contains(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeByScoreWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2675,7 +2675,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.contains((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D), (Tuple) new DefaultTuple(VALUE_2_BYTES, 20D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeByScoreWithScoresShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2686,7 +2686,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.contains((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2696,7 +2696,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRange(KEY_1_BYTES, 1, 2)).contains(VALUE_1_BYTES, VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRangeWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2707,7 +2707,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.contains((Tuple) new DefaultTuple(VALUE_1_BYTES, 10D), (Tuple) new DefaultTuple(VALUE_2_BYTES, 20D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRankShouldReturnPositionForValueCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2716,7 +2716,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRank(KEY_1_BYTES, VALUE_2_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRankShouldReturnReversePositionForValueCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2725,7 +2725,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRank(KEY_1_BYTES, VALUE_2_BYTES)).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRemRangeByScoreShouldRemoveValues() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2738,7 +2738,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(KEY_1_BYTES, 0, -1)).contains(VALUE_1_BYTES, VALUE_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRemRangeShouldRemoveValues() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2751,7 +2751,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zrange(KEY_1_BYTES, 0, -1)).contains(VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRemShouldRemoveValueWithScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2762,7 +2762,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(nativeConnection.zcard(KEY_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2772,7 +2772,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRangeByScore(KEY_1_BYTES, 10D, 20D)).contains(VALUE_2_BYTES, VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2782,7 +2782,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRangeByScore(KEY_1_BYTES, 10D, 20D, 0L, 1L)).contains(VALUE_2_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2793,7 +2793,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.contains((Tuple) new DefaultTuple(VALUE_2_BYTES, 20D), (Tuple) new DefaultTuple(VALUE_1_BYTES, 10D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRevRangeByScoreWithScoresShouldReturnValuesCorrectlyWhenGivenOffsetAndScore() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2804,7 +2804,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.contains((Tuple) new DefaultTuple(VALUE_2_BYTES, 20D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRevRangeShouldReturnValuesCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2814,7 +2814,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.zRevRange(KEY_1_BYTES, 1, 2)).contains(VALUE_3_BYTES, VALUE_1_BYTES);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zRevRangeWithScoresShouldReturnValuesAndScoreCorrectly() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2825,7 +2825,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.contains((Tuple) new DefaultTuple(VALUE_3_BYTES, 5D), (Tuple) new DefaultTuple(VALUE_1_BYTES, 10D));
 	}
 
-	@Test // DATAVALKEY-479
+	@Test // DATAREDIS-479
 	public void zScanShouldReadEntireValueRange() {
 
 		int nrOfValues = 321;
@@ -2845,7 +2845,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(count).isEqualTo(nrOfValues);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zScoreShouldRetrieveScoreForValue() {
 
 		nativeConnection.zadd(KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2887,13 +2887,13 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				new DefaultTuple(VALUE_3_BYTES, 30D));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zUnionStoreShouldThrowExceptionWhenKeysDoNotMapToSameSlots() {
 		assertThatExceptionOfType(DataAccessException.class)
 				.isThrownBy(() -> clusterConnection.zUnionStore(KEY_3_BYTES, KEY_1_BYTES, KEY_2_BYTES));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	public void zUnionStoreShouldWorkForSameSlotKeys() {
 
 		nativeConnection.zadd(SAME_SLOT_KEY_1_BYTES, 10D, VALUE_1_BYTES);
@@ -2906,7 +2906,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				VALUE_3_BYTES);
 	}
 
-	@Test // DATAVALKEY-694
+	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2915,12 +2915,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-694
+	@Test // DATAREDIS-694
 	void touchReturnsZeroIfNoKeysTouched() {
 		assertThat(clusterConnection.keyCommands().touch(KEY_1_BYTES)).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-693
+	@Test // DATAREDIS-693
 	void unlinkReturnsNrOfKeysTouched() {
 
 		nativeConnection.set(KEY_1, VALUE_1);
@@ -2929,12 +2929,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES, KEY_2_BYTES, KEY_3_BYTES)).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-693
+	@Test // DATAREDIS-693
 	void unlinkReturnsZeroIfNoKeysTouched() {
 		assertThat(clusterConnection.keyCommands().unlink(KEY_1_BYTES)).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-697
+	@Test // DATAREDIS-697
 	void bitPosShouldReturnPositionCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff000"));
@@ -2942,7 +2942,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.stringCommands().bitPos(KEY_1_BYTES, false)).isEqualTo(12L);
 	}
 
-	@Test // DATAVALKEY-697
+	@Test // DATAREDIS-697
 	void bitPosShouldReturnPositionInRangeCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, HexStringUtils.hexToBytes("fff0f0"));
@@ -2951,7 +2951,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				org.springframework.data.domain.Range.of(Bound.inclusive(2L), Bound.unbounded()))).isEqualTo(16L);
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void encodingReturnsCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, "1000".getBytes());
@@ -2959,12 +2959,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().encodingOf(KEY_1_BYTES)).isEqualTo(ValkeyValueEncoding.INT);
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void encodingReturnsVacantWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.keyCommands().encodingOf(KEY_2_BYTES)).isEqualTo(ValkeyValueEncoding.VACANT);
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void idletimeReturnsCorrectly() {
 
 		nativeConnection.set(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2973,12 +2973,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().idletime(KEY_1_BYTES)).isLessThan(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void idldetimeReturnsNullWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.keyCommands().idletime(KEY_3_BYTES)).isNull();
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void refcountReturnsCorrectly() {
 
 		nativeConnection.lpush(KEY_1_BYTES, VALUE_1_BYTES);
@@ -2986,12 +2986,12 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(clusterConnection.keyCommands().refcount(KEY_1_BYTES)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void refcountReturnsNullWhenKeyDoesNotExist() {
 		assertThat(clusterConnection.keyCommands().refcount(KEY_3_BYTES)).isNull();
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldSetShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -3000,21 +3000,21 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(20L))).containsExactly(10L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldGetShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)))).containsExactly(0L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldIncrByShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
 				create().incr(INT_8).valueAt(BitFieldSubCommands.Offset.offset(100L)).by(1L))).containsExactly(1L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -3032,7 +3032,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.get(0)).isNull();
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitfieldShouldAllowMultipleSubcommands() {
 
 		assertThat(clusterConnection.stringCommands().bitField(JedisConverters.toBytes(KEY_1),
@@ -3040,7 +3040,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.containsExactly(1L, 0L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
 		assertThat(
@@ -3056,7 +3056,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 				.containsExactly(100L, -56L);
 	}
 
-	@Test // DATAVALKEY-1005
+	@Test // DATAREDIS-1005
 	void evalShouldRunScript() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
@@ -3068,7 +3068,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-1005
+	@Test // DATAREDIS-1005
 	void scriptLoadShouldLoadScript() {
 
 		String luaScript = "return redis.call(\"INCR\", KEYS[1])";
@@ -3080,7 +3080,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		assertThat(result).isEqualTo(digest);
 	}
 
-	@Test // DATAVALKEY-1005
+	@Test // DATAREDIS-1005
 	void scriptFlushShouldRemoveScripts() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");
@@ -3098,7 +3098,7 @@ public class JedisClusterConnectionTests implements ClusterConnectionTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1005
+	@Test // DATAREDIS-1005
 	void evelShaShouldRunScript() {
 
 		byte[] keyAndArgs = JedisConverters.toBytes("FOO");

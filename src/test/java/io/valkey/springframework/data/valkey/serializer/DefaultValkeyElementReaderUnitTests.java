@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
  */
 class DefaultValkeyElementReaderUnitTests {
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldDecodeByteBufferCorrectly() {
 
 		String input = "123ü?™";
@@ -43,7 +43,7 @@ class DefaultValkeyElementReaderUnitTests {
 		assertThat(result).isEqualTo(input);
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldPassThroughByteBufferForAbsentSerializer() {
 
 		ByteBuffer input = ByteBuffer.allocate(1);

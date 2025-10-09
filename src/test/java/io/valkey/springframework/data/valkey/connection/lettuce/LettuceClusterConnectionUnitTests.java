@@ -133,12 +133,12 @@ class LettuceClusterConnectionUnitTests {
 		};
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void thowsExceptionWhenClusterCommandExecturorIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new LettuceClusterConnection(clusterMock, null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterMeetShouldSendCommandsToExistingNodesCorrectly() {
 
 		connection.clusterMeet(UNKNOWN_CLUSTER_NODE);
@@ -151,12 +151,12 @@ class LettuceClusterConnectionUnitTests {
 				UNKNOWN_CLUSTER_NODE.getPort());
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterMeetShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterMeet(null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterForgetShouldSendCommandsToRemainingNodesCorrectly() {
 
 		connection.clusterForget(CLUSTER_NODE_2);
@@ -166,7 +166,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, times(1)).clusterForget(CLUSTER_NODE_2.getId());
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterReplicateShouldSendCommandsCorrectly() {
 
 		connection.clusterReplicate(CLUSTER_NODE_1, CLUSTER_NODE_2);
@@ -175,7 +175,7 @@ class LettuceClusterConnectionUnitTests {
 		verifyNoInteractions(clusterConnection1Mock);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void closeShouldNotCloseUnderlyingClusterPool() throws IOException {
 
 		connection.close();
@@ -183,7 +183,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterMock, never()).shutdown();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void isClosedShouldReturnConnectionStateCorrectly() {
 
 		assertThat(connection.isClosed()).isFalse();
@@ -193,7 +193,7 @@ class LettuceClusterConnectionUnitTests {
 		assertThat(connection.isClosed()).isTrue();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void keysShouldOnlyBeRunOnDedicatedNodeWhenPinned() {
 
 		when(clusterConnection2Mock.keys(any(byte[].class))).thenReturn(Collections.<byte[]> emptyList());
@@ -207,7 +207,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, never()).keys(pattern);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterSetSlotImportingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.IMPORTING);
@@ -215,7 +215,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterSetSlotMigratingShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.MIGRATING);
@@ -223,7 +223,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotMigrating(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterSetSlotStableShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.STABLE);
@@ -231,7 +231,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotStable(eq(100));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterSetSlotNodeShouldBeExecutedCorrectly() {
 
 		connection.clusterSetSlot(CLUSTER_NODE_1, 100, AddSlots.NODE);
@@ -239,7 +239,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, times(1)).clusterSetSlotNode(eq(100), eq(CLUSTER_NODE_1.getId()));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterSetSlotShouldBeExecutedOnTargetNodeWhenNodeIdNotSet() {
 
 		connection.clusterSetSlot(new ValkeyClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT), 100, AddSlots.IMPORTING);
@@ -247,12 +247,12 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection2Mock, times(1)).clusterSetSlotImporting(eq(100), eq(CLUSTER_NODE_2.getId()));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterSetSlotShouldThrowExceptionWhenModeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterSetSlot(CLUSTER_NODE_1, 100, null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterDeleteSlotsShouldBeExecutedCorrectly() {
 
 		int[] slots = new int[] { 9000, 10000 };
@@ -261,12 +261,12 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection2Mock, times(1)).clusterDelSlots(any(int[].class));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void clusterDeleteSlotShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.clusterDeleteSlots(null, new int[] { 1 }));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void timeShouldBeExecutedOnArbitraryNode() {
 
 		List<byte[]> values = Arrays.asList("1449655759".getBytes(), "92217".getBytes());
@@ -277,7 +277,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(dedicatedConnectionMock).time();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void timeShouldBeExecutedOnSingleNode() {
 
 		when(clusterConnection2Mock.time()).thenReturn(Arrays.asList("1449655759".getBytes(), "92217".getBytes()));
@@ -288,7 +288,7 @@ class LettuceClusterConnectionUnitTests {
 		verifyNoInteractions(clusterConnection1Mock, clusterConnection3Mock);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void resetConfigStatsShouldBeExecutedOnAllNodes() {
 
 		connection.resetConfigStats();
@@ -298,7 +298,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection3Mock, times(1)).configResetstat();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void resetConfigStatsShouldBeExecutedOnSingleNodeCorrectly() {
 
 		connection.resetConfigStats(CLUSTER_NODE_2);
@@ -328,7 +328,7 @@ class LettuceClusterConnectionUnitTests {
 		verify(clusterConnection1Mock, never()).configRewrite();
 	}
 
-	@Test // DATAVALKEY-731, DATAVALKEY-545
+	@Test // DATAREDIS-731, DATAREDIS-545
 	void shouldExecuteOnSharedConnection() {
 
 		RedisAdvancedClusterAsyncCommands<byte[], byte[]> async = mock(RedisAdvancedClusterAsyncCommands.class);
@@ -345,7 +345,7 @@ class LettuceClusterConnectionUnitTests {
 		verifyNoMoreInteractions(connectionProviderMock);
 	}
 
-	@Test // DATAVALKEY-731, DATAVALKEY-545
+	@Test // DATAREDIS-731, DATAREDIS-545
 	void shouldExecuteOnDedicatedConnection() {
 
 		RedisAsyncCommands<byte[], byte[]> async = mock(RedisAsyncCommands.class);

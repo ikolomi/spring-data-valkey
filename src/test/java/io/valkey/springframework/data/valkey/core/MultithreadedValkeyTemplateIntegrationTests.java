@@ -54,7 +54,7 @@ public class MultithreadedValkeyTemplateIntegrationTests {
 		return Arrays.asList(jedis, lettuce);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-300
+	@ParameterizedValkeyTest // DATAREDIS-300
 	void assertResouresAreReleasedProperlyWhenSharingValkeyTemplate() throws InterruptedException {
 
 		final ValkeyTemplate<Object, Object> template = new ValkeyTemplate<>();

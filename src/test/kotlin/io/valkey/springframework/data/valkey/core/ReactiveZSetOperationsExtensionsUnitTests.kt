@@ -39,7 +39,7 @@ import reactor.core.publisher.Mono
  */
 class ReactiveZSetOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun add() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -54,7 +54,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun addAll() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -69,7 +69,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun remove() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -84,7 +84,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun incrementScore() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -99,7 +99,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rank() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -114,7 +114,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `rank returning an empty Mono`() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -129,7 +129,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun reverseRank() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -144,7 +144,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `reverseRank returning an enpty Mono`() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -291,7 +291,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun count() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -306,7 +306,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1111
+	@Test // DATAREDIS-1111
 	fun size() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -321,7 +321,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun score() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -336,7 +336,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `score returning an empty Mono`() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -351,7 +351,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun removeRange() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -381,7 +381,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun removeRangeByScore() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -396,7 +396,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unionAndStore() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -411,7 +411,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unionAndStoreListOfKeys() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -426,7 +426,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unionAndStoreAggregate() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -441,7 +441,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun unionAndStoreWeights() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -456,7 +456,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun intersectAndStore() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -471,7 +471,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun intersectAndStoreListOfKeys() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -486,7 +486,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun intersectAndStoreAggregate() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -501,7 +501,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun intersectAndStoreWeights() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -516,7 +516,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1111
+	@Test // DATAREDIS-1111
 	fun rangeByLex() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -531,7 +531,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1111
+	@Test // DATAREDIS-1111
 	fun reverseRangeByLexAndAwait() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()
@@ -546,7 +546,7 @@ class ReactiveZSetOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1111
+	@Test // DATAREDIS-1111
 	fun delete() {
 
 		val operations = mockk<ReactiveZSetOperations<String, String>>()

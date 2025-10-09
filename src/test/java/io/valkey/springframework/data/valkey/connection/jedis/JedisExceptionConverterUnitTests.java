@@ -35,7 +35,7 @@ class JedisExceptionConverterUnitTests {
 
 	private JedisExceptionConverter converter = new JedisExceptionConverter();
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldConvertMovedDataException() {
 
 		DataAccessException converted = converter
@@ -47,7 +47,7 @@ class JedisExceptionConverterUnitTests {
 		assertThat(((ClusterRedirectException) converted).getTargetPort()).isEqualTo(6381);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldConvertAskDataException() {
 
 		DataAccessException converted = converter
@@ -59,7 +59,7 @@ class JedisExceptionConverterUnitTests {
 		assertThat(((ClusterRedirectException) converted).getTargetPort()).isEqualTo(6381);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldConvertMaxRedirectException() {
 
 		DataAccessException converted = converter

@@ -147,7 +147,7 @@ class ClusterCommandExecutorUnitTests {
 		this.executor.destroy();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnSingleNodeShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK, CLUSTER_NODE_2);
@@ -155,7 +155,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection2).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnSingleNodeByHostAndPortShouldBeExecutedCorrectly() {
 
 		executor.executeCommandOnSingleNode(COMMAND_CALLBACK,
@@ -164,7 +164,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection2).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	@SuppressWarnings("ConstantConditions")
 	void executeCommandOnSingleNodeByNodeIdShouldBeExecutedCorrectly() {
 
@@ -173,25 +173,25 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection2).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	@SuppressWarnings("ConstantConditions")
 	void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandOnSingleNode(COMMAND_CALLBACK, null));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	@SuppressWarnings("ConstantConditions")
 	void executeCommandOnSingleNodeShouldThrowExceptionWhenCommandCallbackIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandOnSingleNode(null, CLUSTER_NODE_1));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnSingleNodeShouldThrowExceptionWhenNodeIsUnknown() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> executor.executeCommandOnSingleNode(COMMAND_CALLBACK, UNKNOWN_CLUSTER_NODE));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodes() {
 
 		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK, Arrays.asList(CLUSTER_NODE_1, CLUSTER_NODE_2));
@@ -201,7 +201,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByHostAndPort() {
 
 		executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
@@ -213,7 +213,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	@SuppressWarnings("ConstantConditions")
 	void executeCommandAsyncOnNodesShouldExecuteCommandOnGivenNodesByNodeId() {
 
@@ -225,14 +225,14 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection3, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandAsyncOnNodesShouldFailOnGivenUnknownNodes() {
 
 		assertThatIllegalArgumentException().isThrownBy(() -> executor.executeCommandAsyncOnNodes(COMMAND_CALLBACK,
 				Arrays.asList(new ValkeyClusterNode("unknown"), CLUSTER_NODE_2_LOOKUP)));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnAllNodesShouldExecuteCommandOnEveryKnownClusterNode() {
 
 		executor.executeCommandOnAllNodes(COMMAND_CALLBACK);
@@ -242,7 +242,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection3).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandAsyncOnNodesShouldCompleteAndCollectErrorsOfAllNodes() {
 
 		when(connection1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
@@ -263,7 +263,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection3).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandAsyncOnNodesShouldCollectResultsCorrectly() {
 
 		when(connection1.theWheelWeavesAsTheWheelWills()).thenReturn("rand");
@@ -275,7 +275,7 @@ class ClusterCommandExecutorUnitTests {
 		assertThat(result.resultsAsList()).contains("rand", "mat", "perrin");
 	}
 
-	@Test // DATAVALKEY-315, DATAVALKEY-467
+	@Test // DATAREDIS-315, DATAREDIS-467
 	void executeMultikeyCommandShouldRunCommandAcrossCluster() {
 
 		// key-1 and key-9 map both to node1
@@ -294,7 +294,7 @@ class ClusterCommandExecutorUnitTests {
 		assertThat(captor.getAllValues().size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnSingleNodeAndFollowRedirect() {
 
 		when(connection1.theWheelWeavesAsTheWheelWills())
@@ -307,7 +307,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection2, never()).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnSingleNodeAndFollowRedirectButStopsAfterMaxRedirects() {
 
 		when(connection1.theWheelWeavesAsTheWheelWills())
@@ -328,7 +328,7 @@ class ClusterCommandExecutorUnitTests {
 		verify(connection2).theWheelWeavesAsTheWheelWills();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void executeCommandOnArbitraryNodeShouldPickARandomNode() {
 
 		executor.executeCommandOnArbitraryNode(COMMAND_CALLBACK);

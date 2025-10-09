@@ -105,7 +105,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				.verifyAndClose();
 	}
 
-	@Test // DATAVALKEY-714
+	@Test // DATAREDIS-714
 	void testCreateConnectionWithDbFailure() {
 
 		JedisConnectionFactory factory2 = new JedisConnectionFactory();
@@ -370,7 +370,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-285
+	@Test // DATAREDIS-285
 	void testExecuteShouldConvertArrayReplyCorrectly() {
 		connection.set("spring", "awesome");
 		connection.set("data", "cool");
@@ -382,7 +382,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 						.contains("awesome".getBytes(), "cool".getBytes(), "supercalifragilisticexpialidocious".getBytes());
 	}
 
-	@Test // DATAVALKEY-286, DATAVALKEY-564
+	@Test // DATAREDIS-286, DATAREDIS-564
 	void expireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("expireKey", "foo");
@@ -394,7 +394,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(ttl).isEqualTo(seconds);
 	}
 
-	@Test // DATAVALKEY-286
+	@Test // DATAREDIS-286
 	void pExpireShouldSupportExiprationForValuesLargerThanInteger() {
 
 		connection.set("pexpireKey", "foo");
@@ -409,7 +409,7 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 				.isTrue();
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	@EnabledOnValkeySentinelAvailable
 	void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 
@@ -418,12 +418,12 @@ public class JedisConnectionIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(connection.getSentinelConnection()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-552
+	@Test // DATAREDIS-552
 	void shouldSetClientName() {
 		assertThat(connection.getClientName()).isEqualTo("jedis-client");
 	}
 
-	@Test // DATAVALKEY-106
+	@Test // DATAREDIS-106
 	void zRangeByScoreTest() {
 
 		connection.zAdd("myzset", 1, "one");

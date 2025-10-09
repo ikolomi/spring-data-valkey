@@ -52,7 +52,7 @@ class CdiExtensionIntegrationTests {
 		container.close();
 	}
 
-	@Test // DATAVALKEY-425, DATAVALKEY-700
+	@Test // DATAREDIS-425, DATAREDIS-700
 	@SuppressWarnings("rawtypes")
 	void beanShouldBeRegistered() {
 
@@ -62,7 +62,7 @@ class CdiExtensionIntegrationTests {
 		assertThat(beans.iterator().next().getScope()).isEqualTo((Class) ApplicationScoped.class);
 	}
 
-	@Test // DATAVALKEY-425, DATAVALKEY-700
+	@Test // DATAREDIS-425, DATAREDIS-700
 	void saveAndFindUnqualified() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
@@ -76,7 +76,7 @@ class CdiExtensionIntegrationTests {
 		assertThat(result).containsExactly(person);
 	}
 
-	@Test // DATAVALKEY-425, DATAVALKEY-700
+	@Test // DATAREDIS-425, DATAREDIS-700
 	void saveAndFindQualified() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();
@@ -90,7 +90,7 @@ class CdiExtensionIntegrationTests {
 		assertThat(result).containsExactly(person);
 	}
 
-	@Test // DATAVALKEY-425, DATAVALKEY-700
+	@Test // DATAREDIS-425, DATAREDIS-700
 	void callMethodOnCustomRepositoryShouldSuceed() {
 
 		RepositoryConsumer repositoryConsumer = container.select(RepositoryConsumer.class).get();

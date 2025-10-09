@@ -56,7 +56,7 @@ class ValkeyConnectionUtilsUnitTests {
 		when(factoryMock.getConnection()).thenReturn(connectionMock1, connectionMock2);
 	}
 
-	@Test // DATAVALKEY-1104
+	@Test // DATAREDIS-1104
 	void shouldSilentlyCloseValkeyConnection() {
 
 		Mockito.reset(connectionMock1);
@@ -66,7 +66,7 @@ class ValkeyConnectionUtilsUnitTests {
 		verify(connectionMock1).close();
 	}
 
-	@Test // DATAVALKEY-891
+	@Test // DATAREDIS-891
 	void bindConnectionShouldBindConnectionToClosureScope() {
 
 		assertThat(ValkeyConnectionUtils.bindConnection(factoryMock)).isSameAs(connectionMock1);
@@ -83,7 +83,7 @@ class ValkeyConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
-	@Test // DATAVALKEY-891
+	@Test // DATAREDIS-891
 	void getConnectionShouldBindConnectionToTransactionScopeWithReadOnlyTransaction() {
 
 		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
@@ -105,7 +105,7 @@ class ValkeyConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
-	@Test // DATAVALKEY-891, GH-2016
+	@Test // DATAREDIS-891, GH-2016
 	void bindConnectionShouldBindConnectionToOngoingTransactionScope() {
 
 		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
@@ -128,7 +128,7 @@ class ValkeyConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
-	@Test // DATAVALKEY-891
+	@Test // DATAREDIS-891
 	void bindConnectionShouldNotBindConnectionToTransactionWithoutTransaction() {
 
 		assertThat(ValkeyConnectionUtils.bindConnection(factoryMock, true)).isNotNull();
@@ -142,7 +142,7 @@ class ValkeyConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
-	@Test // DATAVALKEY-891
+	@Test // DATAREDIS-891
 	void getConnectionShouldBindConnectionToTransactionScopeWithReadWriteTransaction() {
 
 		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
@@ -162,7 +162,7 @@ class ValkeyConnectionUtilsUnitTests {
 		assertThat(TransactionSynchronizationManager.hasResource(factoryMock)).isFalse();
 	}
 
-	@Test // DATAVALKEY-891
+	@Test // DATAREDIS-891
 	void getConnectionShouldNotBindConnectionToTransaction() {
 
 		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());
@@ -182,7 +182,7 @@ class ValkeyConnectionUtilsUnitTests {
 		verifyNoMoreInteractions(connectionMock1);
 	}
 
-	@Test // DATAVALKEY-891
+	@Test // DATAREDIS-891
 	void bindConnectionShouldNotBindConnectionToTransaction() {
 
 		TransactionTemplate template = new TransactionTemplate(new DummyTransactionManager());

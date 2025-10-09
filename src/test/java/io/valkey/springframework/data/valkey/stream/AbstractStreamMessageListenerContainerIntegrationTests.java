@@ -83,7 +83,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		connection.close();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveMapMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
@@ -108,7 +108,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		assertThat(subscription.isActive()).isFalse();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveSimpleObjectHashRecords() throws InterruptedException {
 
 		StreamMessageListenerContainerOptions<String, ObjectRecord<String, String>> containerOptions = StreamMessageListenerContainerOptions
@@ -132,7 +132,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		assertThat(subscription.isActive()).isFalse();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveObjectHashRecords() throws InterruptedException {
 
 		StreamMessageListenerContainerOptions<String, ObjectRecord<String, LoginEvent>> containerOptions = StreamMessageListenerContainerOptions
@@ -157,7 +157,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		assertThat(subscription.isActive()).isFalse();
 	}
 
-	@Test // DATAVALKEY-864, DATAVALKEY-1079
+	@Test // DATAREDIS-864, DATAREDIS-1079
 	void shouldReceiveMessagesInConsumerGroup() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
@@ -183,7 +183,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAVALKEY-1079
+	@Test // DATAREDIS-1079
 	void shouldReceiveAndAckMessagesInConsumerGroup() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
@@ -209,7 +209,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldUseCustomErrorHandler() throws InterruptedException {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
@@ -232,7 +232,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void errorShouldStopListening() throws InterruptedException {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
@@ -261,7 +261,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void customizedCancelPredicateShouldNotStopListening() throws InterruptedException {
 
 		BlockingQueue<Throwable> failures = new LinkedBlockingQueue<>();
@@ -293,7 +293,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAVALKEY-1230
+	@Test // DATAREDIS-1230
 	void deserializationShouldContinueStreamRead() throws InterruptedException {
 
 		StreamMessageListenerContainerOptions<String, ObjectRecord<String, Long>> containerOptions = StreamMessageListenerContainerOptions
@@ -339,7 +339,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		cancelAwait(subscription);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void cancelledStreamShouldNotReceiveMessages() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer
@@ -357,7 +357,7 @@ abstract class AbstractStreamMessageListenerContainerIntegrationTests {
 		assertThat(queue.poll(200, TimeUnit.MILLISECONDS)).isNull();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void containerRestartShouldRestartSubscription() throws InterruptedException {
 
 		StreamMessageListenerContainer<String, MapRecord<String, String, String>> container = StreamMessageListenerContainer

@@ -37,7 +37,7 @@ class ValkeyAtomicLongUnitTests {
 	@Mock ValkeyOperations<String, Long> operationsMock;
 	@Mock ValueOperations<String, Long> valueOperationsMock;
 
-	@Test // DATAVALKEY-872
+	@Test // DATAREDIS-872
 	@SuppressWarnings("unchecked")
 	void shouldUseSetIfAbsentForInitialValue() {
 

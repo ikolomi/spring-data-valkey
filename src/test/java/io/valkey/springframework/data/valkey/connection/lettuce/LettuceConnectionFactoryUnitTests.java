@@ -93,7 +93,7 @@ class LettuceConnectionFactoryUnitTests {
 		ConnectionFactoryTracker.cleanUp();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldInitClientCorrectlyWhenClusterConfigPresent() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
@@ -104,7 +104,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(getField(connectionFactory, "client")).isInstanceOf(RedisClusterClient.class);
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
 	void timeoutShouldBeSetCorrectlyOnClusterClient() {
 
@@ -124,7 +124,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-930
+	@Test // DATAREDIS-930
 	void portShouldBeReturnedProperlyBasedOnConfiguration() {
 
 		ValkeyConfiguration valkeyConfiguration = new ValkeyStandaloneConfiguration("localhost", 16379);
@@ -135,7 +135,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPort()).isEqualTo(16379);
 	}
 
-	@Test // DATAVALKEY-930
+	@Test // DATAREDIS-930
 	void portShouldBeReturnedProperlyBasedOnCustomValkeyConfiguration() {
 
 		ValkeyConfiguration valkeyConfiguration = new CustomValkeyConfiguration("localhost", 16379);
@@ -147,7 +147,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getHostName()).isEqualTo("localhost");
 	}
 
-	@Test // DATAVALKEY-930
+	@Test // DATAREDIS-930
 	void hostNameShouldBeReturnedProperlyBasedOnConfiguration() {
 
 		ValkeyConfiguration valkeyConfiguration = new ValkeyStandaloneConfiguration("external");
@@ -158,7 +158,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getHostName()).isEqualTo("external");
 	}
 
-	@Test // DATAVALKEY-930
+	@Test // DATAREDIS-930
 	void hostNameShouldBeReturnedProperlyBasedOnCustomValkeyConfiguration() {
 
 		ValkeyConfiguration valkeyConfiguration = new CustomValkeyConfiguration("external");
@@ -170,7 +170,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getHostName()).isEqualTo("external");
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	@SuppressWarnings("unchecked")
 	void passwordShouldBeSetCorrectlyOnClusterClient() {
 
@@ -242,7 +242,7 @@ class LettuceConnectionFactoryUnitTests {
 		}).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-524, DATAVALKEY-1045, DATAVALKEY-1060
+	@Test // DATAREDIS-524, DATAREDIS-1045, DATAREDIS-1060
 	void passwordShouldNotBeSetOnSentinelClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -264,7 +264,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1060
+	@Test // DATAREDIS-1060
 	void sentinelPasswordShouldBeSetOnSentinelClient() {
 
 		ValkeySentinelConfiguration config = new ValkeySentinelConfiguration("mymaster", Collections.singleton("host:1234"));
@@ -322,7 +322,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1060
+	@Test // DATAREDIS-1060
 	void sentinelPasswordShouldNotLeakIntoDataNodeClient() {
 
 		ValkeySentinelConfiguration config = new ValkeySentinelConfiguration("mymaster", Collections.singleton("host:1234"));
@@ -345,7 +345,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-462
+	@Test // DATAREDIS-462
 	@Disabled("Until Lettuce supports Sinks")
 	void clusterClientShouldInitializeWithoutClientResources() {
 
@@ -358,7 +358,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(client).isInstanceOf(RedisClusterClient.class);
 	}
 
-	@Test // DATAVALKEY-480
+	@Test // DATAREDIS-480
 	void sslOptionsShouldBeDisabledByDefaultOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new ValkeyStandaloneConfiguration(),
@@ -381,7 +381,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
-	@Test // DATAVALKEY-476
+	@Test // DATAREDIS-476
 	void sslShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new ValkeyStandaloneConfiguration(),
@@ -402,7 +402,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
-	@Test // DATAVALKEY-480
+	@Test // DATAREDIS-480
 	void verifyPeerOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new ValkeyStandaloneConfiguration(),
@@ -422,7 +422,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 	}
 
-	@Test // DATAVALKEY-480
+	@Test // DATAREDIS-480
 	void startTLSOptionShouldBeSetCorrectlyOnClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new ValkeyStandaloneConfiguration(),
@@ -440,7 +440,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isStartTls()).isTrue();
 	}
 
-	@Test // DATAVALKEY-990
+	@Test // DATAREDIS-990
 	void sslShouldBeSetCorrectlyOnSentinelClient() {
 
 		ValkeySentinelConfiguration sentinelConfiguration = new ValkeySentinelConfiguration("myMaster",
@@ -463,7 +463,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.FULL));
 	}
 
-	@Test // DATAVALKEY-990
+	@Test // DATAREDIS-990
 	void verifyPeerOptionShouldBeSetCorrectlyOnSentinelClient() {
 
 		ValkeySentinelConfiguration sentinelConfiguration = new ValkeySentinelConfiguration("myMaster",
@@ -483,7 +483,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClientConfiguration().getVerifyMode().equals(SslVerifyMode.NONE));
 	}
 
-	@Test // DATAVALKEY-990
+	@Test // DATAREDIS-990
 	void startTLSOptionShouldBeSetCorrectlyOnSentinelClient() {
 
 		ValkeySentinelConfiguration sentinelConfiguration = new ValkeySentinelConfiguration("myMaster",
@@ -502,7 +502,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.isStartTls()).isTrue();
 	}
 
-	@Test // DATAVALKEY-537
+	@Test // DATAREDIS-537
 	void sslShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -521,7 +521,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-537
+	@Test // DATAREDIS-537
 	void startTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -540,7 +540,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-537
+	@Test // DATAREDIS-537
 	void verifyPeerTLSOptionShouldBeSetCorrectlyOnClusterClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(
@@ -560,7 +560,7 @@ class LettuceConnectionFactoryUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-682
+	@Test // DATAREDIS-682
 	void socketShouldBeSetOnStandaloneClient() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new ValkeySocketConfiguration(),
@@ -576,7 +576,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.getSocket()).isEqualTo("/tmp/valkey.sock");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadStandalonePassword() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -588,7 +588,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteStandalonePassword() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -602,7 +602,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadSentinelPassword() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -614,7 +614,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteSentinelPassword() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -628,7 +628,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-682
+	@Test // DATAREDIS-682
 	void shouldWriteSocketPassword() {
 
 		ValkeySocketConfiguration envConfig = new ValkeySocketConfiguration();
@@ -642,7 +642,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadClusterPassword() {
 
 		ValkeyClusterConfiguration envConfig = new ValkeyClusterConfiguration();
@@ -654,7 +654,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteClusterPassword() {
 
 		ValkeyClusterConfiguration envConfig = new ValkeyClusterConfiguration();
@@ -668,7 +668,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadStandaloneDatabaseIndex() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -680,7 +680,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteStandaloneDatabaseIndex() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -694,7 +694,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadSentinelDatabaseIndex() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -706,7 +706,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteSentinelDatabaseIndex() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -720,7 +720,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-682
+	@Test // DATAREDIS-682
 	void shouldWriteSocketDatabaseIndex() {
 
 		ValkeySocketConfiguration envConfig = new ValkeySocketConfiguration();
@@ -734,7 +734,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldApplyClientConfiguration() {
 
 		ClientOptions clientOptions = ClientOptions.create();
@@ -764,7 +764,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getShutdownTimeout()).isEqualTo(Duration.ofHours(2).toMillis());
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReturnStandaloneConfiguration() {
 
 		ValkeyStandaloneConfiguration configuration = new ValkeyStandaloneConfiguration();
@@ -776,7 +776,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
-	@Test // DATAVALKEY-682
+	@Test // DATAREDIS-682
 	void shouldReturnSocketConfiguration() {
 
 		ValkeySocketConfiguration configuration = new ValkeySocketConfiguration("/var/valkey/socket");
@@ -789,7 +789,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReturnSentinelConfiguration() {
 
 		ValkeySentinelConfiguration configuration = new ValkeySentinelConfiguration();
@@ -801,7 +801,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReturnClusterConfiguration() {
 
 		ValkeyClusterConfiguration configuration = new ValkeyClusterConfiguration();
@@ -813,7 +813,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isEqualTo(configuration);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldDenyChangesToImmutableClientConfiguration() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(new ValkeyStandaloneConfiguration(),
@@ -822,7 +822,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setUseSsl(false));
 	}
 
-	@Test // DATAVALKEY-676
+	@Test // DATAREDIS-676
 	void timeoutShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig);
@@ -839,7 +839,7 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConnection.close();
 	}
 
-	@Test // DATAVALKEY-676
+	@Test // DATAREDIS-676
 	void timeoutSetOnClientConfigShouldBePassedOnToClusterConnection() {
 
 		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory(clusterConfig,
@@ -855,7 +855,7 @@ class LettuceConnectionFactoryUnitTests {
 		clusterConnection.close();
 	}
 
-	@Test // DATAVALKEY-731
+	@Test // DATAREDIS-731
 	void shouldShareNativeConnectionWithCluster() {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
@@ -883,7 +883,7 @@ class LettuceConnectionFactoryUnitTests {
 		verify(clientMock).connectAsync(ArgumentMatchers.any(RedisCodec.class));
 	}
 
-	@Test // DATAVALKEY-950
+	@Test // DATAREDIS-950
 	void shouldValidateSharedClusterConnection() {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
@@ -914,7 +914,7 @@ class LettuceConnectionFactoryUnitTests {
 		verify(syncMock).ping();
 	}
 
-	@Test // DATAVALKEY-953
+	@Test // DATAREDIS-953
 	void shouldReleaseSharedConnectionOnlyOnce() {
 
 		RedisClusterClient clientMock = mock(RedisClusterClient.class);
@@ -942,7 +942,7 @@ class LettuceConnectionFactoryUnitTests {
 		verify(connectionMock).closeAsync();
 	}
 
-	@Test // DATAVALKEY-721
+	@Test // DATAREDIS-721
 	@SuppressWarnings("unchecked")
 	void shouldEagerlyInitializeSharedConnection() {
 
@@ -968,7 +968,7 @@ class LettuceConnectionFactoryUnitTests {
 		verify(connectionProviderMock, times(2)).getConnection(StatefulConnection.class);
 	}
 
-	@Test // DATAVALKEY-1189
+	@Test // DATAREDIS-1189
 	void shouldTranslateConnectionException() {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);
@@ -990,7 +990,7 @@ class LettuceConnectionFactoryUnitTests {
 				.isThrownBy(() -> connectionFactory.getConnection().ping()).withCauseInstanceOf(PoolException.class);
 	}
 
-	@Test // DATAVALKEY-1027
+	@Test // DATAREDIS-1027
 	void shouldDisposeConnectionProviders() throws Exception {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class,
@@ -1011,7 +1011,7 @@ class LettuceConnectionFactoryUnitTests {
 		verify((DisposableBean) connectionProviderMock, times(2)).destroy();
 	}
 
-	@Test // DATAVALKEY-842
+	@Test // DATAREDIS-842
 	void databaseShouldBeSetCorrectlyOnSentinelClient() {
 
 		ValkeySentinelConfiguration valkeySentinelConfiguration = new ValkeySentinelConfiguration("mymaster",
@@ -1031,7 +1031,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(redisUri.getDatabase()).isEqualTo(1);
 	}
 
-	@Test // DATAVALKEY-949
+	@Test // DATAREDIS-949
 	void maxRedirectsShouldBeSetOnClientOptions() {
 
 		ValkeyClusterConfiguration clusterConfiguration = new ValkeyClusterConfiguration();
@@ -1051,7 +1051,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(options.getTimeoutOptions().isApplyConnectionTimeout()).isTrue();
 	}
 
-	@Test // DATAVALKEY-949
+	@Test // DATAREDIS-949
 	void maxRedirectsShouldBeSetOnClusterClientOptions() {
 
 		ValkeyClusterConfiguration clusterConfiguration = new ValkeyClusterConfiguration();
@@ -1073,7 +1073,7 @@ class LettuceConnectionFactoryUnitTests {
 		assertThat(options.isValidateClusterNodeMembership()).isFalse();
 	}
 
-	@Test // DATAVALKEY-1142
+	@Test // DATAREDIS-1142
 	void shouldFallbackToReactiveValkeyClusterConnectionWhenGetReactiveConnectionWithClusterConfig() {
 
 		LettuceConnectionProvider connectionProviderMock = mock(LettuceConnectionProvider.class);

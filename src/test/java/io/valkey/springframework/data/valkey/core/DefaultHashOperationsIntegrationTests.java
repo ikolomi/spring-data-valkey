@@ -130,7 +130,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(numDeleted.longValue()).isEqualTo(2L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-305
+	@ParameterizedValkeyTest // DATAREDIS-305
 	void testHScanReadsValuesFully() throws IOException {
 
 		K key = keyFactory.instance();
@@ -155,7 +155,7 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		assertThat(count).isEqualTo(hashOps.size(key));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-698
+	@ParameterizedValkeyTest // DATAREDIS-698
 	void lengthOfValue() throws IOException {
 
 		assumeThat(hashValueFactory instanceof StringObjectFactory).isTrue();

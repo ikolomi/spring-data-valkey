@@ -97,7 +97,7 @@ class AbstractValkeyCollectionUnitTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-188
+	@Test // DATAREDIS-188
 	void testRenameOfEmptyCollectionShouldNotTriggerValkeyOperation() {
 
 		collection.rename("new-key");
@@ -105,7 +105,7 @@ class AbstractValkeyCollectionUnitTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-188
+	@Test // DATAREDIS-188
 	void testRenameCollectionShouldTriggerValkeyOperation() {
 
 		when(valkeyTemplateSpy.hasKey(any())).thenReturn(Boolean.TRUE);

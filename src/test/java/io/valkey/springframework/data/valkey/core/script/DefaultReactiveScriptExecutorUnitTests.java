@@ -65,7 +65,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 		executor = new DefaultReactiveScriptExecutor<>(connectionFactoryMock, ValkeySerializationContext.string());
 	}
 
-	@Test // DATAVALKEY-683
+	@Test // DATAREDIS-683
 	void executeCheckForPresenceOfScriptViaEvalSha1() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
@@ -77,7 +77,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 		verify(scriptingCommandsMock, never()).eval(any(), any(ReturnType.class), anyInt());
 	}
 
-	@Test // DATAVALKEY-683
+	@Test // DATAREDIS-683
 	void executeShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(
@@ -92,7 +92,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 		verify(scriptingCommandsMock).eval(any(), any(ReturnType.class), anyInt());
 	}
 
-	@Test // DATAVALKEY-683
+	@Test // DATAREDIS-683
 	void executeShouldThrowExceptionInCaseEvalShaFailsWithOtherThanValkeySystemException() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn(Flux
@@ -101,7 +101,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 		executor.execute(SCRIPT).as(StepVerifier::create).verifyError(UnsupportedOperationException.class);
 	}
 
-	@Test // DATAVALKEY-683
+	@Test // DATAREDIS-683
 	void releasesConnectionAfterExecution() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
@@ -117,7 +117,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 		verify(connectionMock, never()).close();
 	}
 
-	@Test // DATAVALKEY-683
+	@Test // DATAREDIS-683
 	void releasesConnectionOnError() {
 
 		when(scriptingCommandsMock.evalSha(anyString(), any(ReturnType.class), anyInt()))
@@ -129,7 +129,7 @@ class DefaultReactiveScriptExecutorUnitTests {
 		verify(connectionMock, never()).close();
 	}
 
-	@Test // DATAVALKEY-683
+	@Test // DATAREDIS-683
 	void doesNotConvertRawResult() {
 
 		Person returnValue = new Person();

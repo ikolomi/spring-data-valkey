@@ -73,7 +73,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void trim() {
 
 		K key = keyFactory.instance();
@@ -96,7 +96,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void size() {
 
 		K key = keyFactory.instance();
@@ -118,7 +118,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPush() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -144,7 +144,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPushAll() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -165,7 +165,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPushIfPresent() {
 
 		K key = keyFactory.instance();
@@ -188,7 +188,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPushWithPivot() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -216,7 +216,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPush() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -241,7 +241,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPushAll() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -259,7 +259,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPushIfPresent() {
 
 		K key = keyFactory.instance();
@@ -271,7 +271,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.rightPushIfPresent(key, value2).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPushWithPivot() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -361,7 +361,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void set() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -381,7 +381,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void remove() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -403,7 +403,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void index() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -443,7 +443,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.getLast(key).as(StepVerifier::create).expectNext(v3).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1196
+	@ParameterizedValkeyTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void indexOf() {
 
@@ -457,7 +457,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.indexOf(key, v1).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1196
+	@ParameterizedValkeyTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void lastIndexOf() {
 
@@ -471,7 +471,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.lastIndexOf(key, v1).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPop() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -500,7 +500,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.leftPop(key, 2).as(StepVerifier::create).expectNext(value3).expectNext(value2).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPop() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -529,7 +529,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.rightPop(key, 2).as(StepVerifier::create).expectNext(value1).expectNext(value2).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPopWithTimeout() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -543,7 +543,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.leftPop(key, Duration.ZERO).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void leftPopWithMillisecondTimeoutShouldFail() {
 
 		K key = keyFactory.instance();
@@ -551,7 +551,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		assertThatIllegalArgumentException().isThrownBy(() -> listOperations.leftPop(key, Duration.ofMillis(1001)));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPopWithTimeout() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -565,7 +565,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.rightPop(key, Duration.ZERO).as(StepVerifier::create).expectNext(value2).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rightPopAndLeftPush() {
 
 		assumeThat(this.valueFactory).isNotInstanceOf(ByteBufferObjectFactory.class);
@@ -582,7 +582,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.size(target).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	@EnabledIfLongRunningTest
 	void rightPopAndLeftPushWithTimeout() {
 
@@ -604,7 +604,7 @@ public class DefaultReactiveListOperationsIntegrationTests<K, V> {
 		listOperations.size(target).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void delete() {
 
 		K key = keyFactory.instance();

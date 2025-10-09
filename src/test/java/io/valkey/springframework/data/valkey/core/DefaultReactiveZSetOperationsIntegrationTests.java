@@ -90,7 +90,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		connection.close();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void add() {
 
 		K key = keyFactory.instance();
@@ -99,7 +99,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.add(key, value, 42.1).as(StepVerifier::create).expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void addAll() {
 
 		K key = keyFactory.instance();
@@ -118,7 +118,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.score(key, value1).as(StepVerifier::create).expectNext(52.1d).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void remove() {
 
 		K key = keyFactory.instance();
@@ -131,7 +131,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.remove(key, value).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void incrementScore() {
 
 		K key = keyFactory.instance();
@@ -183,7 +183,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.distinctRandomMembersWithScore(key, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rank() {
 
 		K key = keyFactory.instance();
@@ -196,7 +196,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.rank(key, value1).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRank() {
 
 		K key = keyFactory.instance();
@@ -209,7 +209,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.reverseRank(key, value1).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void range() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -227,7 +227,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -244,7 +244,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -261,7 +261,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeByScoreWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -278,7 +278,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeByScoreWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -296,7 +296,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeByScoreWithScoresWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -314,7 +314,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRange() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -332,7 +332,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -349,7 +349,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -366,7 +366,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeByScoreWithScores() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -383,7 +383,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeByScoreWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -401,7 +401,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeByScoreWithScoresWithLimit() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -511,7 +511,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-743
+	@ParameterizedValkeyTest // DATAREDIS-743
 	void scan() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -534,7 +534,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void count() {
 
 		K key = keyFactory.instance();
@@ -548,7 +548,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.count(key, Range.closed(0d, 10d)).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-729
+	@ParameterizedValkeyTest // DATAREDIS-729
 	void lexCount() {
 
 		assumeThat(serializer instanceof StringValkeySerializer).isTrue();
@@ -614,7 +614,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.expectNext(new DefaultTypedTuple<>(value1, 1D)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void size() {
 
 		K key = keyFactory.instance();
@@ -627,7 +627,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.size(key).as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void score() {
 
 		K key = keyFactory.instance();
@@ -656,7 +656,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.expectNext(Arrays.asList(42.1d, 10d, null)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void removeRange() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -672,7 +672,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.range(key, ZERO_TO_FIVE).as(StepVerifier::create).expectNext(value1).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void removeRangeByScore() {
 
 		assumeThat(valueFactory instanceof ByteBufferObjectFactory).isFalse();
@@ -763,7 +763,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.as(StepVerifier::create).expectNext(new DefaultTypedTuple<>(shared, 33D)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void intersectAndStore() {
 
 		K key = keyFactory.instance();
@@ -788,7 +788,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-746
+	@ParameterizedValkeyTest // DATAREDIS-746
 	void intersectAndStoreWithAggregation() {
 
 		K key = keyFactory.instance();
@@ -853,7 +853,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void unionAndStore() {
 
 		K key = keyFactory.instance();
@@ -874,7 +874,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.range(destKey, Range.closed(0L, 100L)).as(StepVerifier::create).expectNextCount(3).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-746
+	@ParameterizedValkeyTest // DATAREDIS-746
 	void unionAndStoreWithAggregation() {
 
 		K key = keyFactory.instance();
@@ -900,7 +900,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 		zSetOperations.score(destKey, shared).as(StepVerifier::create).expectNext(33d).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeByLex() {
 
 		assumeThat(serializer instanceof StringValkeySerializer).isTrue();
@@ -918,7 +918,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rangeByLexWithLimit() {
 
 		assumeThat(serializer instanceof StringValkeySerializer).isTrue();
@@ -941,7 +941,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeByLex() {
 
 		assumeThat(serializer instanceof StringValkeySerializer).isTrue();
@@ -958,7 +958,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void reverseRangeByLexLimit() {
 
 		assumeThat(serializer instanceof StringValkeySerializer).isTrue();
@@ -981,7 +981,7 @@ public class DefaultReactiveZSetOperationsIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void delete() {
 
 		K key = keyFactory.instance();

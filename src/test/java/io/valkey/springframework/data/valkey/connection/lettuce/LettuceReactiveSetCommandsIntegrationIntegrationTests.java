@@ -37,18 +37,18 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		super(fixture);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sAddShouldAddSingleValue() {
 		assertThat(connection.setCommands().sAdd(KEY_1_BBUFFER, VALUE_1_BBUFFER).block()).isEqualTo(1L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sAddShouldAddValues() {
 		assertThat(connection.setCommands().sAdd(KEY_1_BBUFFER, Arrays.asList(VALUE_1_BBUFFER, VALUE_2_BBUFFER)).block())
 				.isEqualTo(2L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sRemShouldRemoveSingleValue() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -57,7 +57,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(nativeCommands.sismember(KEY_1, VALUE_1)).isFalse();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sRemShouldRemoveValues() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -68,7 +68,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(nativeCommands.sismember(KEY_1, VALUE_2)).isFalse();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sPopShouldRetrieveRandomValue() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -76,7 +76,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block()).isNotNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-668
+	@ParameterizedValkeyTest // DATAREDIS-668
 	void sPopCountShouldRetrieveValues() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -84,12 +84,12 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		connection.setCommands().sPop(KEY_1_BBUFFER, 2).as(StepVerifier::create).expectNextCount(2).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sPopShouldReturnNullWhenNotPresent() {
 		assertThat(connection.setCommands().sPop(KEY_1_BBUFFER).block()).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sMoveShouldMoveValueCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -99,7 +99,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(nativeCommands.sismember(KEY_2, VALUE_3)).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sMoveShouldReturnFalseIfValueIsNotAMember() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -109,7 +109,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(nativeCommands.sismember(KEY_2, VALUE_3)).isFalse();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sMoveShouldReturnOperateCorrectlyWhenValueAlreadyPresentInTarget() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -120,7 +120,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(nativeCommands.sismember(KEY_2, VALUE_3)).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sCardShouldCountValuesCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -128,7 +128,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(connection.setCommands().sCard(KEY_1_BBUFFER).block()).isEqualTo(3L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sIsMemberShouldReturnTrueWhenValueContainedInKey() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -136,7 +136,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(connection.setCommands().sIsMember(KEY_1_BBUFFER, VALUE_1_BBUFFER).block()).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sIsMemberShouldReturnFalseWhenValueNotContainedInKey() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -156,7 +156,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525, DATAVALKEY-647
+	@ParameterizedValkeyTest // DATAREDIS-525, DATAREDIS-647
 	void sInterShouldIntersectSetsCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -171,7 +171,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sInterStoreShouldReturnSizeCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -182,7 +182,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 		assertThat(nativeCommands.sismember(KEY_3, VALUE_2)).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sUnionShouldCombineSetsCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -193,7 +193,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sUnionStoreShouldReturnSizeCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -203,7 +203,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.isEqualTo(3L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525, DATAVALKEY-647
+	@ParameterizedValkeyTest // DATAREDIS-525, DATAREDIS-647
 	void sDiffShouldBeExcecutedCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -218,7 +218,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sDiffStoreShouldBeExcecutedCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2);
@@ -228,7 +228,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.isEqualTo(1L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sMembersReadsValuesFromSetCorrectly() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -238,7 +238,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-743
+	@ParameterizedValkeyTest // DATAREDIS-743
 	void sScanShouldIterateOverSet() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -253,7 +253,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sRandMemberReturnsRandomMember() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);
@@ -262,7 +262,7 @@ public class LettuceReactiveSetCommandsIntegrationIntegrationTests extends Lettu
 				VALUE_3_BBUFFER);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void sRandMemberReturnsRandomMembers() {
 
 		nativeCommands.sadd(KEY_1, VALUE_1, VALUE_2, VALUE_3);

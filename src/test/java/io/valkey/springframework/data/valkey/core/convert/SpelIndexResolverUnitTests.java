@@ -70,19 +70,19 @@ public class SpelIndexResolverUnitTests {
 		resolver = createWithExpression("getAttribute('" + securityContextAttrName + "')?.authentication?.name");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void constructorNullValkeyMappingContext() {
 
 		mappingContext = null;
 		assertThatIllegalArgumentException().isThrownBy(() -> new SpelIndexResolver(mappingContext));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void constructorNullSpelExpressionParser() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new SpelIndexResolver(mappingContext, null));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void nullValue() {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, null);
@@ -90,7 +90,7 @@ public class SpelIndexResolverUnitTests {
 		assertThat(indexes.size()).isEqualTo(0);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void wrongKeyspace() {
 
 		typeInformation = TypeInformation.of(String.class);
@@ -99,7 +99,7 @@ public class SpelIndexResolverUnitTests {
 		assertThat(indexes.size()).isEqualTo(0);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void sessionAttributeNull() {
 
 		session = new Session();
@@ -108,7 +108,7 @@ public class SpelIndexResolverUnitTests {
 		assertThat(indexes.size()).isEqualTo(0);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolvePrincipalName() {
 
 		Set<IndexedData> indexes = resolver.resolveIndexesFor(typeInformation, session);
@@ -116,7 +116,7 @@ public class SpelIndexResolverUnitTests {
 		assertThat(indexes).contains(new SimpleIndexedPropertyValue(keyspace, indexName, username));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void spelError() {
 
 		session.setAttribute(securityContextAttrName, "");
@@ -125,7 +125,7 @@ public class SpelIndexResolverUnitTests {
 				.isThrownBy(() -> resolver.resolveIndexesFor(typeInformation, session));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void withBeanAndThis() {
 
 		this.resolver = createWithExpression("@bean.run(#this)");

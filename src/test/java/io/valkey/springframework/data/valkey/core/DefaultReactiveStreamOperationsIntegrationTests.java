@@ -112,7 +112,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		connection.close();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void addShouldAddMessage() {
 
 		K key = keyFactory.instance();
@@ -135,7 +135,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void addShouldAddReadSimpleMessage() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonValkeySerializer)
@@ -158,7 +158,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void addShouldAddReadSimpleMessageWithRawSerializer() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonValkeySerializer)
@@ -335,7 +335,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		streamOperations.range(key, Range.unbounded()).as(StepVerifier::create).expectNextCount(2L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void rangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
@@ -356,7 +356,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void reverseRangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
@@ -372,7 +372,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void reverseRangeShouldConvertSimpleMessages() {
 
 		assumeTrue(!(serializer instanceof Jackson2JsonValkeySerializer)
@@ -390,7 +390,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.consumeNextWith(it -> assertThat(it.getId()).isEqualTo(messageId1)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void readShouldReadMessage() {
 
 		// assumeFalse(valueFactory instanceof PersonObjectFactory);
@@ -416,7 +416,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void readShouldReadMessages() {
 
 		assumeFalse(valueFactory instanceof PersonObjectFactory);
@@ -434,7 +434,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void sizeShouldReportStreamSize() {
 
 		K key = keyFactory.instance();
@@ -456,7 +456,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void pendingShouldReadMessageSummary() {
 
 		K key = keyFactory.instance();
@@ -479,7 +479,7 @@ public class DefaultReactiveStreamOperationsIntegrationTests<K, HK, HV> {
 		}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void pendingShouldReadMessageDetails() {
 
 		K key = keyFactory.instance();

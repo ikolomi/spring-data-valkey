@@ -172,7 +172,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-285
+	@Test // DATAREDIS-285
 	void testExecuteShouldConvertArrayReplyCorrectly() {
 
 		connection.set("spring", "awesome");
@@ -208,7 +208,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 				.isEqualTo(Arrays.asList(new Object[] { "key1", "arg1" }));
 	}
 
-	@Test // DATAVALKEY-106
+	@Test // DATAREDIS-106
 	void zRangeByScoreTest() {
 
 		connection.zAdd("myzset", 1, "one");
@@ -220,7 +220,7 @@ public class LettuceConnectionIntegrationTests extends AbstractConnectionIntegra
 		assertThat(zRangeByScore.iterator().next()).isEqualTo("two");
 	}
 
-	@Test // DATAVALKEY-348
+	@Test // DATAREDIS-348
 	@EnabledOnValkeySentinelAvailable
 	void shouldReturnSentinelCommandsWhenWhenActiveSentinelFound() {
 

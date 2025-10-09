@@ -79,7 +79,7 @@ public class DefaultValkeyCacheWriterTests {
 		doWithConnection(ValkeyConnection::flushAll);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void putShouldAddEternalEntry() {
 
 		ValkeyCacheWriter writer = nonLockingValkeyCacheWriter(connectionFactory)
@@ -96,7 +96,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getLockWaitDuration(TimeUnit.NANOSECONDS)).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putShouldAddExpiringEntry() {
 
 		nonLockingValkeyCacheWriter(connectionFactory).put(CACHE_NAME, binaryCacheKey, binaryCacheValue,
@@ -108,7 +108,7 @@ public class DefaultValkeyCacheWriterTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putShouldOverwriteExistingEternalEntry() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes()));
@@ -121,7 +121,7 @@ public class DefaultValkeyCacheWriterTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putShouldOverwriteExistingExpiringEntryAndResetTtl() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, "foo".getBytes(),
@@ -136,7 +136,7 @@ public class DefaultValkeyCacheWriterTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void getShouldReturnValue() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
@@ -150,7 +150,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getMisses()).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void getShouldReturnNullWhenKeyDoesNotExist() {
 		assertThat(nonLockingValkeyCacheWriter(connectionFactory).get(CACHE_NAME, binaryCacheKey)).isNull();
 	}
@@ -195,7 +195,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getMisses()).isOne();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void putIfAbsentShouldAddEternalEntryWhenKeyDoesNotExist() {
 
 		ValkeyCacheWriter writer = nonLockingValkeyCacheWriter(connectionFactory)
@@ -210,7 +210,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void putIfAbsentShouldNotAddEternalEntryWhenKeyAlreadyExist() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
@@ -228,7 +228,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void putIfAbsentShouldAddExpiringEntryWhenKeyDoesNotExist() {
 
 		ValkeyCacheWriter writer = nonLockingValkeyCacheWriter(connectionFactory)
@@ -259,7 +259,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getPuts()).isOne();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void removeShouldDeleteEntry() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryCacheValue));
@@ -274,7 +274,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-418, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-418, DATAREDIS-1082
 	void cleanShouldRemoveAllKeysByPattern() {
 
 		doWithConnection(connection -> {
@@ -295,7 +295,7 @@ public class DefaultValkeyCacheWriterTests {
 		assertThat(writer.getCacheStatistics(CACHE_NAME).getDeletes()).isOne();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void nonLockingCacheWriterShouldIgnoreExistingLock() {
 
 		((DefaultValkeyCacheWriter) lockingValkeyCacheWriter(connectionFactory)).lock(CACHE_NAME);
@@ -307,7 +307,7 @@ public class DefaultValkeyCacheWriterTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void lockingCacheWriterShouldIgnoreExistingLockOnDifferenceCache() {
 
 		((DefaultValkeyCacheWriter) lockingValkeyCacheWriter(connectionFactory)).lock(CACHE_NAME);
@@ -320,7 +320,7 @@ public class DefaultValkeyCacheWriterTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481, DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-481, DATAREDIS-1082
 	void lockingCacheWriterShouldWaitForLockRelease() throws InterruptedException {
 
 		DefaultValkeyCacheWriter writer = (DefaultValkeyCacheWriter) lockingValkeyCacheWriter(connectionFactory)
@@ -362,7 +362,7 @@ public class DefaultValkeyCacheWriterTests {
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void lockingCacheWriterShouldExitWhenInterruptedWaitForLockRelease() throws InterruptedException {
 
 		DefaultValkeyCacheWriter cw = (DefaultValkeyCacheWriter) lockingValkeyCacheWriter(connectionFactory);
@@ -431,7 +431,7 @@ public class DefaultValkeyCacheWriterTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1082
+	@ParameterizedValkeyTest // DATAREDIS-1082
 	void noOpStatisticsCollectorReturnsEmptyStatsInstance() {
 
 		DefaultValkeyCacheWriter cw = (DefaultValkeyCacheWriter) lockingValkeyCacheWriter(connectionFactory);

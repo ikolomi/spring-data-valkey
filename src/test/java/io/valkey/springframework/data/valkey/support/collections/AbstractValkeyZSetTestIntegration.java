@@ -246,7 +246,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(zSet.rank(getT())).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-729
+	@ParameterizedValkeyTest // DATAREDIS-729
 	void testLexCountUnbounded() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -263,7 +263,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(zSet.lexCount(Range.unbounded())).isEqualTo(Long.valueOf(3));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-729
+	@ParameterizedValkeyTest // DATAREDIS-729
 	void testLexCountBounded() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -388,7 +388,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(tuple2.getScore()).isEqualTo(Double.valueOf(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-407
+	@ParameterizedValkeyTest // DATAREDIS-407
 	void testRangeByLexUnbounded() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -408,7 +408,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(tuple).isEqualTo(t1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-407
+	@ParameterizedValkeyTest // DATAREDIS-407
 	void testRangeByLexBounded() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -428,7 +428,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(tuple).isEqualTo(t2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-407
+	@ParameterizedValkeyTest // DATAREDIS-407
 	void testRangeByLexUnboundedWithLimit() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -448,7 +448,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(tuple).isEqualTo(t2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-407
+	@ParameterizedValkeyTest // DATAREDIS-407
 	void testRangeByLexBoundedWithLimit() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, LongAsStringObjectFactory.class,
@@ -467,7 +467,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(tuples).hasSize(2).containsSequence(t2, t3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-729
+	@ParameterizedValkeyTest // DATAREDIS-729
 	void testReverseRangeByLexBoundedWithLimit() {
 
 		assumeThat(factory).isOfAnyClassIn(DoubleObjectFactory.class, DoubleAsStringObjectFactory.class,
@@ -486,7 +486,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(tuples).hasSize(2).containsSequence(t2, t1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-729
+	@ParameterizedValkeyTest // DATAREDIS-729
 	void testReverseRangeByScore() {
 
 		T t1 = getT();
@@ -897,7 +897,7 @@ public abstract class AbstractValkeyZSetTestIntegration<T> extends AbstractValke
 		assertThat(array).isEqualTo(new Object[] { t1, t2, t3, t4 });
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-314
+	@ParameterizedValkeyTest // DATAREDIS-314
 	void testScanWorksCorrectly() throws IOException {
 
 		T t1 = getT();

@@ -65,7 +65,7 @@ class JedisConnectionFactoryUnitTests {
 	private static final ValkeyClusterConfiguration CLUSTER_CONFIG = new ValkeyClusterConfiguration()
 			.clusterNode("127.0.0.1", 6379).clusterNode("127.0.0.1", 6380);
 
-	@Test // DATAVALKEY-324
+	@Test // DATAREDIS-324
 	void shouldInitSentinelPoolWhenSentinelConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory(SINGLE_SENTINEL_CONFIG, new JedisPoolConfig());
@@ -76,7 +76,7 @@ class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createValkeyPool();
 	}
 
-	@Test // DATAVALKEY-324
+	@Test // DATAREDIS-324
 	void shouldInitJedisPoolWhenNoSentinelConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory((ValkeySentinelConfiguration) null, new JedisPoolConfig());
@@ -87,7 +87,7 @@ class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createValkeySentinelPool(any(ValkeySentinelConfiguration.class));
 	}
 
-	@Test // DATAVALKEY-765
+	@Test // DATAREDIS-765
 	void shouldRejectPoolDisablingWhenSentinelConfigPresent() {
 
 		connectionFactory = new JedisConnectionFactory(new ValkeySentinelConfiguration());
@@ -95,7 +95,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThatIllegalStateException().isThrownBy(() -> connectionFactory.setUsePool(false));
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldInitConnectionCorrectlyWhenClusterConfigPresent() {
 
 		connectionFactory = initSpyedConnectionFactory(CLUSTER_CONFIG, new JedisPoolConfig());
@@ -106,7 +106,7 @@ class JedisConnectionFactoryUnitTests {
 		verify(connectionFactory, never()).createValkeyPool();
 	}
 
-	@Test // DATAVALKEY-315
+	@Test // DATAREDIS-315
 	void shouldCloseClusterCorrectlyOnFactoryDestruction() throws IOException {
 
 		JedisCluster clusterMock = mock(JedisCluster.class);
@@ -119,7 +119,7 @@ class JedisConnectionFactoryUnitTests {
 		verify(clusterMock, times(1)).close();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadStandalonePassword() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -130,7 +130,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteStandalonePassword() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -143,7 +143,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadSentinelPassword() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -154,7 +154,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteSentinelPassword() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -167,7 +167,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadClusterPassword() {
 
 		ValkeyClusterConfiguration envConfig = new ValkeyClusterConfiguration();
@@ -178,7 +178,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getPassword()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteClusterPassword() {
 
 		ValkeyClusterConfiguration envConfig = new ValkeyClusterConfiguration();
@@ -191,7 +191,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(envConfig.getPassword()).isEqualTo(ValkeyPassword.of("bar"));
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadStandaloneDatabaseIndex() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -202,7 +202,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteStandaloneDatabaseIndex() {
 
 		ValkeyStandaloneConfiguration envConfig = new ValkeyStandaloneConfiguration();
@@ -215,7 +215,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReadSentinelDatabaseIndex() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -226,7 +226,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getDatabase()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldWriteSentinelDatabaseIndex() {
 
 		ValkeySentinelConfiguration envConfig = new ValkeySentinelConfiguration();
@@ -239,7 +239,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(envConfig.getDatabase()).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldApplyClientConfiguration() throws NoSuchAlgorithmException {
 
 		SSLParameters sslParameters = new SSLParameters();
@@ -289,7 +289,7 @@ class JedisConnectionFactoryUnitTests {
 		verify(poolMock).preparePool();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReturnStandaloneConfiguration() {
 
 		ValkeyStandaloneConfiguration configuration = new ValkeyStandaloneConfiguration();
@@ -300,7 +300,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isNull();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReturnSentinelConfiguration() {
 
 		ValkeySentinelConfiguration configuration = new ValkeySentinelConfiguration();
@@ -325,7 +325,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(clientConfig.getPassword()).isEqualTo("the-password");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldReturnClusterConfiguration() {
 
 		ValkeyClusterConfiguration configuration = new ValkeyClusterConfiguration();
@@ -336,7 +336,7 @@ class JedisConnectionFactoryUnitTests {
 		assertThat(connectionFactory.getClusterConfiguration()).isSameAs(configuration);
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldDenyChangesToImmutableClientConfiguration() throws NoSuchAlgorithmException {
 
 		connectionFactory = new JedisConnectionFactory(new ValkeyStandaloneConfiguration(),

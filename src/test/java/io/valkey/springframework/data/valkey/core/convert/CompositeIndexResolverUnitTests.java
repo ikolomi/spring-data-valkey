@@ -38,18 +38,18 @@ class CompositeIndexResolverUnitTests {
 	@Mock IndexResolver resolver2;
 	@Mock TypeInformation<?> typeInfoMock;
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldRejectNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> new CompositeIndexResolver(null));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldRejectCollectionWithNullValues() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new CompositeIndexResolver(Arrays.asList(resolver1, null, resolver2)));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void shouldCollectionIndexesFromResolvers() {
 
 		when(resolver1.resolveIndexesFor(any(TypeInformation.class), any())).thenReturn(

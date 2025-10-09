@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
  */
 class JedisClientConfigurationUnitTests {
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldCreateEmptyConfiguration() {
 
 		JedisClientConfiguration configuration = JedisClientConfiguration.defaultConfiguration();
@@ -51,7 +51,7 @@ class JedisClientConfigurationUnitTests {
 		assertThat(configuration.getSslSocketFactory()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldConfigureAllProperties() throws NoSuchAlgorithmException {
 
 		SSLParameters sslParameters = new SSLParameters();

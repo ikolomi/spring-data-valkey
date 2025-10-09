@@ -74,7 +74,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-784
+	@ParameterizedValkeyTest // DATAREDIS-784
 	void testIncrement() {
 
 		K key = keyFactory.instance();
@@ -105,7 +105,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value - 20);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-247
+	@ParameterizedValkeyTest // DATAREDIS-247
 	void testIncrementDouble() {
 
 		assumeThat(valueFactory).isInstanceOf(DoubleObjectFactory.class);
@@ -122,7 +122,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat((Double) valueOps.get(key)).isBetween(value + 1.39 - 10, value + 1.41 - 10);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-784
+	@ParameterizedValkeyTest // DATAREDIS-784
 	void testDecrement() {
 
 		K key = keyFactory.instance();
@@ -136,7 +136,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo((Long) value - 1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-784
+	@ParameterizedValkeyTest // DATAREDIS-784
 	void testDecrementByLong() {
 
 		K key = keyFactory.instance();
@@ -277,7 +277,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-815
+	@ParameterizedValkeyTest // DATAREDIS-815
 	void testSetWithExpirationEX() {
 
 		K key = keyFactory.instance();
@@ -290,7 +290,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-815
+	@ParameterizedValkeyTest // DATAREDIS-815
 	void testSetWithExpirationPX() {
 
 		K key = keyFactory.instance();
@@ -304,7 +304,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-271
+	@ParameterizedValkeyTest // DATAREDIS-271
 	@EnabledIfLongRunningTest
 	void testSetWithExpirationWithTimeUnitMilliseconds() {
 
@@ -395,7 +395,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.setIfAbsent(key, value2)).isFalse();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-782
+	@ParameterizedValkeyTest // DATAREDIS-782
 	void testSetIfAbsentWithExpiration() {
 
 		K key = keyFactory.instance();
@@ -410,7 +410,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-815
+	@ParameterizedValkeyTest // DATAREDIS-815
 	void testSetIfAbsentWithExpirationEX() {
 
 		K key = keyFactory.instance();
@@ -425,7 +425,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-815
+	@ParameterizedValkeyTest // DATAREDIS-815
 	void testSetIfAbsentWithExpirationPX() {
 
 		K key = keyFactory.instance();
@@ -440,7 +440,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(TimeUnit.SECONDS.toMillis(6)).isGreaterThan(TimeUnit.MILLISECONDS.toMillis(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-786
+	@ParameterizedValkeyTest // DATAREDIS-786
 	void setIfPresentReturnsTrueWhenKeyExists() {
 
 		K key = keyFactory.instance();
@@ -453,12 +453,12 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-786
+	@ParameterizedValkeyTest // DATAREDIS-786
 	void setIfPresentReturnsFalseWhenKeyDoesNotExist() {
 		assertThat(valueOps.setIfPresent(keyFactory.instance(), valueFactory.instance())).isFalse();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-786
+	@ParameterizedValkeyTest // DATAREDIS-786
 	void setIfPresentShouldSetExpirationCorrectly() {
 
 		K key = keyFactory.instance();
@@ -475,7 +475,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-815
+	@ParameterizedValkeyTest // DATAREDIS-815
 	void testSetIfPresentWithExpirationEX() {
 
 		K key = keyFactory.instance();
@@ -492,7 +492,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(valueOps.get(key)).isEqualTo(value2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-815
+	@ParameterizedValkeyTest // DATAREDIS-815
 	void testSetIfPresentWithExpirationPX() {
 
 		K key = keyFactory.instance();
@@ -555,7 +555,7 @@ public class DefaultValueOperationsIntegrationTests<K, V> {
 		assertThat(((DefaultValueOperations) valueOps).deserializeKey((byte[]) key)).isNotNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-197
+	@ParameterizedValkeyTest // DATAREDIS-197
 	void testSetAndGetBit() {
 
 		assumeThat(valkeyTemplate).isInstanceOf(StringValkeyTemplate.class);

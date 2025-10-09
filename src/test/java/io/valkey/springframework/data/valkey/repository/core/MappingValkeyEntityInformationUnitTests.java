@@ -35,7 +35,7 @@ class MappingValkeyEntityInformationUnitTests<T, ID> {
 
 	@Mock ValkeyPersistentEntity<T> entity;
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void throwsMappingExceptionWhenNoIdPropertyPresent() {
 
 		when(entity.hasIdProperty()).thenReturn(false);

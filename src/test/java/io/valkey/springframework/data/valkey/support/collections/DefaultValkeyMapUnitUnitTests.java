@@ -47,7 +47,7 @@ class DefaultValkeyMapUnitUnitTests {
 		map = new DefaultValkeyMap<>(operationsMock);
 	}
 
-	@Test // DATAVALKEY-803
+	@Test // DATAREDIS-803
 	void shouldGetEntrySet() {
 
 		when(operationsMock.entries()).thenReturn(Collections.singletonMap("foo", "bar"));

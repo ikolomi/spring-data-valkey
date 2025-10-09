@@ -95,7 +95,7 @@ public class ValkeyKeyValueTemplateTests {
 		adapter.destroy();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-425
+	@ParameterizedValkeyTest // DATAREDIS-425
 	void savesObjectCorrectly() {
 
 		final Person rand = new Person();
@@ -110,7 +110,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-425
+	@ParameterizedValkeyTest // DATAREDIS-425
 	void findProcessesCallbackReturningSingleIdCorrectly() {
 
 		Person rand = new Person();
@@ -128,7 +128,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(result).contains(mat);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-425
+	@ParameterizedValkeyTest // DATAREDIS-425
 	void findProcessesCallbackReturningMultipleIdsCorrectly() {
 
 		final Person rand = new Person();
@@ -147,7 +147,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(result).contains(rand, mat);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-425
+	@ParameterizedValkeyTest // DATAREDIS-425
 	void findProcessesCallbackReturningNullCorrectly() {
 
 		Person rand = new Person();
@@ -164,7 +164,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(result.size()).isEqualTo(0);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdate() {
 
 		final Person rand = new Person();
@@ -239,7 +239,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateSimpleType() {
 
 		final VariousTypes source = new VariousTypes();
@@ -262,7 +262,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateComplexType() {
 
 		Item callandor = new Item();
@@ -302,7 +302,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateObjectType() {
 
 		Item callandor = new Item();
@@ -344,7 +344,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateSimpleTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
@@ -375,7 +375,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateComplexTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
@@ -434,7 +434,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateObjectTypedMap() {
 
 		final VariousTypes source = new VariousTypes();
@@ -510,7 +510,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateSimpleTypedList() {
 
 		final VariousTypes source = new VariousTypes();
@@ -544,7 +544,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateComplexTypedList() {
 
 		final VariousTypes source = new VariousTypes();
@@ -596,7 +596,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-471
+	@ParameterizedValkeyTest // DATAREDIS-471
 	void partialUpdateObjectTypedList() {
 
 		final VariousTypes source = new VariousTypes();
@@ -661,7 +661,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-530
+	@ParameterizedValkeyTest // DATAREDIS-530
 	void partialUpdateShouldLeaveIndexesNotInvolvedInUpdateUntouched() {
 
 		final Person rand = new Person();
@@ -689,7 +689,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-530
+	@ParameterizedValkeyTest // DATAREDIS-530
 	void updateShouldAlterIndexesCorrectlyWhenValuesGetRemovedFromHash() {
 
 		final Person rand = new Person();
@@ -718,7 +718,7 @@ public class ValkeyKeyValueTemplateTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-523
+	@ParameterizedValkeyTest // DATAREDIS-523
 	void shouldReadBackExplicitTimeToLive() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
@@ -732,7 +732,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(target.get().ttl).isGreaterThan(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-523
+	@ParameterizedValkeyTest // DATAREDIS-523
 	void shouldReadBackExplicitTimeToLiveToPrimitiveField() throws InterruptedException {
 
 		WithPrimitiveTtl source = new WithPrimitiveTtl();
@@ -746,7 +746,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(target.get().ttl).isGreaterThan(0);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-523
+	@ParameterizedValkeyTest // DATAREDIS-523
 	void shouldReadBackExplicitTimeToLiveWhenFetchingList() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
@@ -762,7 +762,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(target.ttl).isGreaterThan(0);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-523
+	@ParameterizedValkeyTest // DATAREDIS-523
 	void shouldReadBackExplicitTimeToLiveAndSetItToMinusOnelIfPersisted() throws InterruptedException {
 
 		WithTtl source = new WithTtl();
@@ -779,7 +779,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(target.get().ttl).isEqualTo(-1L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-849
+	@ParameterizedValkeyTest // DATAREDIS-849
 	void shouldWriteImmutableType() {
 
 		ImmutableObject source = new ImmutableObject().withValue("foo").withTtl(1234L);
@@ -790,7 +790,7 @@ public class ValkeyKeyValueTemplateTests {
 		assertThat(inserted.id).isNotNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-849
+	@ParameterizedValkeyTest // DATAREDIS-849
 	void shouldReadImmutableType() {
 
 		ImmutableObject source = new ImmutableObject().withValue("foo").withTtl(1234L);

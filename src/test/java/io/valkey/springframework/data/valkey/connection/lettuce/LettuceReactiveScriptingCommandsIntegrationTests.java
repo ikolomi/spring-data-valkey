@@ -36,7 +36,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 		super(fixture);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void scriptExistsShouldReturnState() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -49,7 +49,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void scriptFlushShouldRemoveScripts() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -69,7 +69,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void evalShaShouldReturnKey() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -83,7 +83,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683, DATAVALKEY-711
+	@ParameterizedValkeyTest // DATAREDIS-683, DATAREDIS-711
 	void evalShaShouldReturnMulti() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -97,7 +97,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void evalShaShouldFail() {
 
 		assumeThat(connectionProvider).isInstanceOf(StandaloneConnectionProvider.class);
@@ -108,7 +108,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verify();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void evalShouldReturnStatus() {
 
 		ByteBuffer script = wrap("return redis.call('set','%s','ghk')".formatted(SAME_SLOT_KEY_1));
@@ -119,7 +119,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void evalShouldReturnBooleanFalse() {
 
 		ByteBuffer script = wrap("return false");
@@ -129,7 +129,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683, DATAVALKEY-711
+	@ParameterizedValkeyTest // DATAREDIS-683, DATAREDIS-711
 	void evalShouldReturnMultiNumbers() {
 
 		ByteBuffer script = wrap("return {1,2}");
@@ -139,7 +139,7 @@ public class LettuceReactiveScriptingCommandsIntegrationTests extends LettuceRea
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void evalShouldFailWithScriptError() {
 
 		ByteBuffer script = wrap("return {1,2");

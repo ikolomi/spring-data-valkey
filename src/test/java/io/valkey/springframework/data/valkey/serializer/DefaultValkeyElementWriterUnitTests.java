@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
  */
 class DefaultValkeyElementWriterUnitTests {
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldSerializeInputCorrectly() {
 
 		String input = "123ü?™";
@@ -43,7 +43,7 @@ class DefaultValkeyElementWriterUnitTests {
 		assertThat(result.array()).isEqualTo(bytes);
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldWrapByteArrayForAbsentSerializer() {
 
 		DefaultValkeyElementWriter<Object> writer = new DefaultValkeyElementWriter<>(null);
@@ -54,7 +54,7 @@ class DefaultValkeyElementWriterUnitTests {
 		assertThat(result.array()).isEqualTo(input);
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldPassThroughByteBufferForAbsentSerializer() {
 
 		DefaultValkeyElementWriter<Object> writer = new DefaultValkeyElementWriter<>(null);
@@ -65,7 +65,7 @@ class DefaultValkeyElementWriterUnitTests {
 		assertThat(result.array()).isEqualTo(input);
 	}
 
-	@Test // DATAVALKEY-602
+	@Test // DATAREDIS-602
 	void shouldFailForUnsupportedTypeWithAbsentSerializer() {
 
 		DefaultValkeyElementWriter<Object> writer = new DefaultValkeyElementWriter<>(null);

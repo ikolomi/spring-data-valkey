@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
  */
 class IndexConfigurationUnitTests {
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void valkeyIndexSettingIndexNameDefaulted() {
 
 		String path = "path";
@@ -33,7 +33,7 @@ class IndexConfigurationUnitTests {
 		assertThat(setting.getIndexName()).isEqualTo(path);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void valkeyIndexSettingIndexNameExplicit() {
 
 		String indexName = "indexName";
@@ -41,7 +41,7 @@ class IndexConfigurationUnitTests {
 		assertThat(setting.getIndexName()).isEqualTo(indexName);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void valkeyIndexSettingIndexNameUsedInEquals() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");
@@ -51,7 +51,7 @@ class IndexConfigurationUnitTests {
 		assertThat(setting1).isNotEqualTo(setting2);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void valkeyIndexSettingIndexNameUsedInHashCode() {
 
 		SimpleIndexDefinition setting1 = new SimpleIndexDefinition("keyspace", "path", "indexName1");

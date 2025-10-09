@@ -93,7 +93,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 		repository.saveAll(Arrays.asList(walt, hank, gus));
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldFindOneByExample() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -104,7 +104,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 		assertThat(result).contains(walt);
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldThrowExceptionWhenFindOneByExampleReturnsNonUniqueResult() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -117,7 +117,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 				.isInstanceOf(IncorrectResultSizeDataAccessException.class);
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldNotFindOneByExample() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -127,7 +127,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 		assertThat(result).isEmpty();
 	}
 
-	@Test // DATAVALKEY-605, GH-2880
+	@Test // DATAREDIS-605, GH-2880
 	void shouldFindAllByExample() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -140,7 +140,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 		assertThat(result).contains(walt, gus, hank);
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldNotSupportFindAllOrdered() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -153,7 +153,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 				.isInstanceOf(UnsupportedOperationException.class);
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldFindAllPagedByExample() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -167,7 +167,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 		assertThat(result.getTotalElements()).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldCountCorrectly() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),
@@ -182,7 +182,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 		assertThat(executor.count(Example.of(new Person("Foo", "Bar")))).isZero();
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldReportExistenceCorrectly() {
 
 		QueryByExampleValkeyExecutor<Person> executor = new QueryByExampleValkeyExecutor<>(getEntityInformation(Person.class),

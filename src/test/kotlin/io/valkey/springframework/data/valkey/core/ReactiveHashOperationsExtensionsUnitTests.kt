@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono
  */
 class ReactiveHashOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun hasKey() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -49,7 +49,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun get() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -64,7 +64,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `get returning an empty Mono`() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -79,7 +79,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun multiGet() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -94,7 +94,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun increment() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -109,7 +109,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun keys() {
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
 		every { operations.keys(any()) } returns Flux.just("bar", "baz")
@@ -123,7 +123,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun incrementDouble() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -138,7 +138,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun size() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -153,7 +153,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun put() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -168,7 +168,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun putAll() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -183,7 +183,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun putIfAbsent() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -198,7 +198,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun values() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -213,7 +213,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun entries() {
 
 		val entry = java.util.AbstractMap.SimpleEntry("bar", "baz")
@@ -229,7 +229,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun scan() {
 
 		val entry = java.util.AbstractMap.SimpleEntry("bar", "baz")
@@ -245,7 +245,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun remove() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()
@@ -260,7 +260,7 @@ class ReactiveHashOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveHashOperations<String, String, String>>()

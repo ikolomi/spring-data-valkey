@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
  */
 class ExpirationUnitTests {
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void fromDefault() {
 
 		Expiration expiration = Expiration.from(5, null);
@@ -39,7 +39,7 @@ class ExpirationUnitTests {
 		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.SECONDS);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void fromNanos() {
 
 		Expiration expiration = Expiration.from(5L * 1000 * 1000, TimeUnit.NANOSECONDS);
@@ -48,7 +48,7 @@ class ExpirationUnitTests {
 		assertThat(expiration.getTimeUnit()).isEqualTo(TimeUnit.MILLISECONDS);
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void fromMinutes() {
 
 		Expiration expiration = Expiration.from(5, TimeUnit.MINUTES);

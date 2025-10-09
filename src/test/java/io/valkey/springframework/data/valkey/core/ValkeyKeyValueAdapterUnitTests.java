@@ -108,7 +108,7 @@ class ValkeyKeyValueAdapterUnitTests {
 		adapter.destroy();
 	}
 
-	@Test // DATAVALKEY-507
+	@Test // DATAREDIS-507
 	void destroyShouldNotDestroyConnectionFactory() throws Exception {
 
 		adapter.destroy();
@@ -116,7 +116,7 @@ class ValkeyKeyValueAdapterUnitTests {
 		verify(jedisConnectionFactoryMock, never()).destroy();
 	}
 
-	@Test // DATAVALKEY-512, DATAVALKEY-530
+	@Test // DATAREDIS-512, DATAREDIS-530
 	void putShouldRemoveExistingIndexValuesWhenUpdating() {
 
 		ValkeyData rd = new ValkeyData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -131,7 +131,7 @@ class ValkeyKeyValueAdapterUnitTests {
 		verify(valkeyConnectionMock, times(1)).sRem(Mockito.any(byte[].class), Mockito.any(byte[].class));
 	}
 
-	@Test // DATAVALKEY-512
+	@Test // DATAREDIS-512
 	void putShouldNotTryToRemoveExistingIndexValuesWhenInsertingNew() {
 
 		ValkeyData rd = new ValkeyData(Bucket.newBucketFromStringMap(Collections.singletonMap("_id", "1")));
@@ -146,7 +146,7 @@ class ValkeyKeyValueAdapterUnitTests {
 		verify(valkeyConnectionMock, never()).sRem(Mockito.any(byte[].class), (byte[][]) any());
 	}
 
-	@Test // DATAVALKEY-491
+	@Test // DATAREDIS-491
 	void shouldInitKeyExpirationListenerOnStartup() throws Exception {
 
 		adapter.destroy();
@@ -180,7 +180,7 @@ class ValkeyKeyValueAdapterUnitTests {
 				.isNotNull();
 	}
 
-	@Test // DATAVALKEY-491
+	@Test // DATAREDIS-491
 	void shouldInitKeyExpirationListenerOnFirstPutWithTtl() throws Exception {
 
 		adapter.destroy();
@@ -204,7 +204,7 @@ class ValkeyKeyValueAdapterUnitTests {
 		assertThat(listener).isNotNull();
 	}
 
-	@Test // DATAVALKEY-491
+	@Test // DATAREDIS-491
 	void shouldNeverInitKeyExpirationListener() throws Exception {
 
 		adapter.destroy();

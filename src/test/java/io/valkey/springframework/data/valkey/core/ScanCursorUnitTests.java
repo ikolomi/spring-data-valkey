@@ -38,19 +38,19 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
  */
 class ScanCursorUnitTests {
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void cursorShouldNotLoopWhenNoValuesFound() {
 
 		CapturingCursorDummy cursor = initCursor(new LinkedList<>());
 		assertThat(cursor.hasNext()).isFalse();
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void cursorShouldReturnNullWhenNoNextElementAvailable() {
 		assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> initCursor(new LinkedList<>()).next());
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void cursorShouldNotLoopWhenReachingStartingPointInFistLoop() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
@@ -70,7 +70,7 @@ class ScanCursorUnitTests {
 		assertThat(cursor.hasNext()).isFalse();
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void cursorShouldStopLoopWhenReachingStartingPoint() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
@@ -92,7 +92,7 @@ class ScanCursorUnitTests {
 		assertThat(cursor.hasNext()).isFalse();
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void shouldThrowExceptionWhenAccessingClosedCursor() {
 
 		CapturingCursorDummy cursor = new CapturingCursorDummy(null);
@@ -103,7 +103,7 @@ class ScanCursorUnitTests {
 				.withMessageContaining("closed cursor");
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void repoeningCursorShouldHappenAtLastPosition() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
@@ -114,7 +114,7 @@ class ScanCursorUnitTests {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(() -> initCursor(values).open());
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void positionShouldBeIncrementedCorrectly() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
@@ -132,7 +132,7 @@ class ScanCursorUnitTests {
 		assertThat(cursor.getPosition()).isEqualTo(2L);
 	}
 
-	@Test // DATAVALKEY-417
+	@Test // DATAREDIS-417
 	void hasNextShouldCallScanUntilFinishedWhenScanResultIsAnEmptyCollection() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
@@ -153,7 +153,7 @@ class ScanCursorUnitTests {
 		assertThat(result).contains("spring", "valkey");
 	}
 
-	@Test // DATAVALKEY-417
+	@Test // DATAREDIS-417
 	void hasNextShouldStopWhenScanResultIsAnEmptyCollectionAndStateIsFinished() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();
@@ -176,7 +176,7 @@ class ScanCursorUnitTests {
 		assertThat(result).contains("spring", "data");
 	}
 
-	@Test // DATAVALKEY-417
+	@Test // DATAREDIS-417
 	void hasNextShouldStopCorrectlyWhenWholeScanIterationDoesNotReturnResultsAndStateIsFinished() {
 
 		LinkedList<ScanIteration<String>> values = new LinkedList<>();

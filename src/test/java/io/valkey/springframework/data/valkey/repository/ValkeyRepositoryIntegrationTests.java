@@ -103,7 +103,7 @@ public class ValkeyRepositoryIntegrationTests extends ValkeyRepositoryIntegratio
 
 	@Autowired ValkeyOperations<String, String> operations;
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	public void shouldConsiderCustomTypeMapper() {
 
 		Person rand = new Person();

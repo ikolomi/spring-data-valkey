@@ -61,7 +61,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		});
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldReadMastersCorrectly() {
 
 		List<ValkeyServer> servers = (List<ValkeyServer>) connectionFactory.getSentinelConnection().masters();
@@ -69,7 +69,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		assertThat(servers.get(0).getName()).isEqualTo(SettingsUtils.getSentinelMaster());
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldReadReplicaOfMastersCorrectly() {
 
 		ValkeySentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
@@ -81,7 +81,7 @@ public class JedisSentinelIntegrationTests extends AbstractConnectionIntegration
 		assertThat(replicas).hasSize(2).contains(REPLICA_0, REPLICA_1);
 	}
 
-	@Test // DATAVALKEY-552
+	@Test // DATAREDIS-552
 	void shouldSetClientName() {
 
 		ValkeySentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();

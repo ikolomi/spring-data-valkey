@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.*;
  */
 class ValkeyKeyExpiredEventUnitTests {
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnKeyspace() {
 
 		assertThat(new ValkeyKeyExpiredEvent<>("foo".getBytes(), "").getKeyspace()).isNull();
@@ -35,7 +35,7 @@ class ValkeyKeyExpiredEventUnitTests {
 		assertThat(new ValkeyKeyExpiredEvent<>("foo:bar:baz".getBytes(), "").getKeyspace()).isEqualTo("foo");
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnId() {
 
 		assertThat(new ValkeyKeyExpiredEvent<>("foo".getBytes(), "").getId()).isEqualTo("foo".getBytes());

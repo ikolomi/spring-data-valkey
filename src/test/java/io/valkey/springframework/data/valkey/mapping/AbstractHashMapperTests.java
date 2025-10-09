@@ -52,7 +52,7 @@ public abstract class AbstractHashMapperTests {
 		assertBackAndForwardMapping(new Person("George", "Enescu", 74, new Address("liveni", 19)));
 	}
 
-	@Test // DATAVALKEY-421
+	@Test // DATAREDIS-421
 	public void toHashShouldTreatNullValuesCorrectly() {
 
 		Person source = new Person("rand", null, 19);

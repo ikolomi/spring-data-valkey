@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
  */
 class StreamReadOptionsUnitTests {
 
-	@Test // DATAVALKEY-1138
+	@Test // DATAREDIS-1138
 	void shouldConsiderBlocking() {
 
 		assertThat(StreamReadOptions.empty().isBlocking()).isFalse();
@@ -37,7 +37,7 @@ class StreamReadOptionsUnitTests {
 		assertThat(StreamReadOptions.empty().block(Duration.ZERO).isBlocking()).isTrue();
 	}
 
-	@Test // DATAVALKEY-1210
+	@Test // DATAREDIS-1210
 	void testToString() {
 
 		assertThat(StreamReadOptions.empty())

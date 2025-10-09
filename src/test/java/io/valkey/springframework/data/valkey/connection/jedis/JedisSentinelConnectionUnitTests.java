@@ -45,13 +45,13 @@ class JedisSentinelConnectionUnitTests {
 		this.connection = new JedisSentinelConnection(jedisMock);
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldConnectAfterCreation() {
 		verify(jedisMock, times(1)).connect();
 	}
 
 	@SuppressWarnings("resource")
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldNotConnectIfAlreadyConnected() {
 
 		Jedis yetAnotherJedisMock = mock(Jedis.class);
@@ -62,82 +62,82 @@ class JedisSentinelConnectionUnitTests {
 		verify(yetAnotherJedisMock, never()).connect();
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void failoverShouldBeSentCorrectly() {
 
 		connection.failover(new ValkeyNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelFailover(eq("mymaster"));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void failoverShouldThrowExceptionIfMasterNodeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.failover(null));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void failoverShouldThrowExceptionIfMasterNodeNameIsEmpty() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.failover(new ValkeyNodeBuilder().build()));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void mastersShouldReadMastersCorrectly() {
 
 		connection.masters();
 		verify(jedisMock, times(1)).sentinelMasters();
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldReadReplicasCorrectly() {
 
 		connection.replicas("mymaster");
 		verify(jedisMock, times(1)).sentinelReplicas(eq("mymaster"));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldReadReplicasCorrectlyWhenGivenNamedNode() {
 
 		connection.replicas(new ValkeyNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelReplicas(eq("mymaster"));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void readReplicasShouldThrowExceptionWhenGivenEmptyMasterName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas(""));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void readReplicasShouldThrowExceptionWhenGivenNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas((ValkeyNode) null));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void readReplicasShouldThrowExceptionWhenNodeWithoutName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.replicas(new ValkeyNodeBuilder().build()));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldRemoveMasterCorrectlyWhenGivenNamedNode() {
 
 		connection.remove(new ValkeyNodeBuilder().withName("mymaster").build());
 		verify(jedisMock, times(1)).sentinelRemove(eq("mymaster"));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void removeShouldThrowExceptionWhenGivenEmptyMasterName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove(""));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void removeShouldThrowExceptionWhenGivenNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove((ValkeyNode) null));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void removeShouldThrowExceptionWhenNodeWithoutName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.remove(new ValkeyNodeBuilder().build()));
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void monitorShouldBeSentCorrectly() {
 
 		ValkeyServer server = new ValkeyServer("127.0.0.1", 6382);

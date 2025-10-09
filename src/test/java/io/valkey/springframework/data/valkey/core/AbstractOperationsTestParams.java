@@ -49,7 +49,7 @@ import io.valkey.springframework.data.valkey.test.extension.ValkeyStanalone;
  */
 abstract public class AbstractOperationsTestParams {
 
-	// DATAVALKEY-241
+	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
 
 		List<Object[]> params = new ArrayList<>();
@@ -58,7 +58,7 @@ abstract public class AbstractOperationsTestParams {
 		return params;
 	}
 
-	// DATAVALKEY-241
+	// DATAREDIS-241
 	public static Collection<Object[]> testParams(ValkeyConnectionFactory connectionFactory) {
 
 		ObjectFactory<String> stringFactory = new StringObjectFactory();

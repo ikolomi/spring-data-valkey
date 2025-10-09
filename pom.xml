@@ -114,14 +114,6 @@
 			<version>[2.0.0,)</version>
 		</dependency>
 
-		<!-- Protobuf required by current version of Valkey Glide, will go away in future release -->
-		<dependency>
-			<groupId>com.google.protobuf</groupId>
-			<artifactId>protobuf-java</artifactId>
-			<version>4.29.1</version>
-			<optional>true</optional>
-		</dependency>
-
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-transport-native-epoll</artifactId>

@@ -28,27 +28,27 @@ import static org.assertj.core.api.Assertions.*;
  */
 class ValkeyPasswordUnitTests {
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldCreateFromEmptyString() {
 		assertThat(ValkeyPassword.of("").toOptional()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldCreateFromExistingString() {
 		assertThat(ValkeyPassword.of("foo").map(String::new)).contains("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldCreateFromEmptyCharArray() {
 		assertThat(ValkeyPassword.of("".toCharArray()).toOptional()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldCreateFromExistingCharArray() {
 		assertThat(ValkeyPassword.of("foo".toCharArray()).map(String::new)).contains("foo");
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void toStringShouldHideValue() {
 		assertThat(ValkeyPassword.of("foo".toCharArray()).toString()).startsWith("ValkeyPassword[**").doesNotContain("foo");
 	}

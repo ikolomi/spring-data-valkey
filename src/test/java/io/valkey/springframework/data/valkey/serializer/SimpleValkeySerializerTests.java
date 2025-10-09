@@ -100,7 +100,7 @@ class SimpleValkeySerializerTests {
 		}
 	}
 
-	@Test // DATAVALKEY-427
+	@Test // DATAREDIS-427
 	void jdkSerializerShouldUseCustomClassLoader() throws ClassNotFoundException {
 
 		ClassLoader customClassLoader = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());

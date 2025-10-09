@@ -486,7 +486,7 @@ public abstract class AbstractValkeyMapIntegrationTests<K, V> {
 		assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> map.replace(getKey(), null));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-314
+	@ParameterizedValkeyTest // DATAREDIS-314
 	public void testScanWorksCorrectly() throws IOException {
 
 		K k1 = getKey();

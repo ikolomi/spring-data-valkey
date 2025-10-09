@@ -96,7 +96,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		super.testSelect();
 	}
 
-	@Test // DATAVALKEY-348
+	@Test // DATAREDIS-348
 	void shouldReadMastersCorrectly() {
 
 		List<ValkeyServer> servers = (List<ValkeyServer>) connectionFactory.getSentinelConnection().masters();
@@ -104,7 +104,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(servers.get(0).getName()).isEqualTo(MASTER_NAME);
 	}
 
-	@Test // DATAVALKEY-842, DATAVALKEY-973
+	@Test // DATAREDIS-842, DATAREDIS-973
 	void shouldUseSpecifiedDatabase() {
 
 		ValkeyConnection connection = connectionFactory.getConnection();
@@ -134,7 +134,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 
 	}
 
-	@Test // DATAVALKEY-973
+	@Test // DATAREDIS-973
 	void reactiveShouldUseSpecifiedDatabase() {
 
 		ValkeyConnection connection = connectionFactory.getConnection();
@@ -164,7 +164,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 	}
 
 	@Test
-	// DATAVALKEY-348
+	// DATAREDIS-348
 	void shouldReadReplicasOfMastersCorrectly() {
 
 		ValkeySentinelConnection sentinelConnection = connectionFactory.getSentinelConnection();
@@ -176,7 +176,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		assertThat(replicas).containsAnyOf(REPLICA_0, REPLICA_1);
 	}
 
-	@Test // DATAVALKEY-462
+	@Test // DATAREDIS-462
 	@Disabled("Until Lettuce has moved to Sinks API")
 	void factoryWorksWithoutClientResources() {
 
@@ -195,7 +195,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		}
 	}
 
-	@Test // DATAVALKEY-576
+	@Test // DATAREDIS-576
 	void connectionAppliesClientName() {
 
 		LettuceClientConfiguration clientName = LettuceTestClientConfiguration.builder().clientName("clientName").build();
@@ -214,7 +214,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		}
 	}
 
-	@Test // DATAVALKEY-580
+	@Test // DATAREDIS-580
 	void factoryWithReadFromMasterSettings() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
@@ -233,7 +233,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		}
 	}
 
-	@Test // DATAVALKEY-580
+	@Test // DATAREDIS-580
 	void factoryWithReadFromReplicaSettings() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(SENTINEL_CONFIG,
@@ -252,7 +252,7 @@ public class LettuceSentinelIntegrationTests extends AbstractConnectionIntegrati
 		}
 	}
 
-	@Test // DATAVALKEY-580
+	@Test // DATAREDIS-580
 	void factoryUsesMasterReplicaConnections() {
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().readFrom(ReadFrom.SLAVE)

@@ -58,7 +58,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 /**
- * {@code ValkeyConnection} implementation on top of <a href="https://github.com/valkey/jedis">Jedis</a> library.
+ * {@code ValkeyConnection} implementation on top of <a href="https://github.com/redis/jedis">Jedis</a> library.
  * <p>
  * This class is not Thread-safe and instances should not be shared across threads.
  *

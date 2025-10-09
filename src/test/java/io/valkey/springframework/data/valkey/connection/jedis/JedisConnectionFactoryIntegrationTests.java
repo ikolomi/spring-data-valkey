@@ -46,7 +46,7 @@ class JedisConnectionFactoryIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-574
+	@Test // DATAREDIS-574
 	void shouldInitializeWithStandaloneConfiguration() {
 
 		factory = new JedisConnectionFactory(
@@ -60,7 +60,7 @@ class JedisConnectionFactoryIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-575
+	@Test // DATAREDIS-575
 	void connectionAppliesClientName() {
 
 		factory = new JedisConnectionFactory(

@@ -58,20 +58,20 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		super(fixture);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hSetShouldOperateCorrectly() {
 
 		connection.hashCommands().hSet(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create)
 				.expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hSetNxShouldOperateCorrectly() {
 		connection.hashCommands().hSetNX(KEY_1_BBUFFER, FIELD_1_BBUFFER, VALUE_1_BBUFFER).as(StepVerifier::create)
 				.expectNext(true).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hSetNxShouldReturnFalseIfFieldAlreadyExists() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -80,7 +80,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hGetShouldReturnValueForExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -91,7 +91,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hGetShouldReturnNullForNotExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -99,7 +99,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hGet(KEY_1_BBUFFER, FIELD_2_BBUFFER).as(StepVerifier::create).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hMGetShouldReturnValueForFields() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -114,7 +114,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525, GH-2210
+	@ParameterizedValkeyTest // DATAREDIS-525, GH-2210
 	void hMGetShouldReturnNullValueForFieldsThatHaveNoValue() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -130,7 +130,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.as(StepVerifier::create).expectNext(Arrays.asList(VALUE_1_BBUFFER, null, VALUE_3_BBUFFER)).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hMSetSouldSetValuesCorrectly() {
 
 		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
@@ -143,7 +143,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.hget(KEY_1, FIELD_2)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-791
+	@ParameterizedValkeyTest // DATAREDIS-791
 	void hMSetShouldOverwriteValuesCorrectly() {
 
 		Map<ByteBuffer, ByteBuffer> fieldValues = new LinkedHashMap<>();
@@ -160,7 +160,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		assertThat(nativeCommands.hget(KEY_1, FIELD_1)).isEqualTo(VALUE_2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hExistsShouldReturnTrueForExistingField() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -169,13 +169,13 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hExistsShouldReturnFalseForNonExistingField() {
 		connection.hashCommands().hExists(KEY_1_BBUFFER, FIELD_1_BBUFFER).as(StepVerifier::create).expectNext(false)
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hDelShouldRemoveSingleFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -186,7 +186,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hDelShouldRemoveMultipleFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -197,7 +197,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.as(StepVerifier::create).expectNext(2L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hLenShouldReturnSizeCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -207,7 +207,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 		connection.hashCommands().hLen(KEY_1_BBUFFER).as(StepVerifier::create).expectNext(3L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hKeysShouldReturnFieldsCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -219,7 +219,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hValsShouldReturnValuesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -231,7 +231,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-525
+	@ParameterizedValkeyTest // DATAREDIS-525
 	void hGetAllShouldReturnEntriesCorrectly() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -250,7 +250,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-743
+	@ParameterizedValkeyTest // DATAREDIS-743
 	void hScanShouldIterateOverHash() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -262,7 +262,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-698
+	@ParameterizedValkeyTest // DATAREDIS-698
 	void hStrLenReturnsFieldLength() {
 
 		nativeCommands.hset(KEY_1, FIELD_1, VALUE_1);
@@ -273,7 +273,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-698
+	@ParameterizedValkeyTest // DATAREDIS-698
 	void hStrLenReturnsZeroWhenFieldDoesNotExist() {
 
 		nativeCommands.hset(KEY_1, FIELD_2, VALUE_3);
@@ -282,7 +282,7 @@ public class LettuceReactiveHashCommandsIntegrationTests extends LettuceReactive
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-698
+	@ParameterizedValkeyTest // DATAREDIS-698
 	void hStrLenReturnsZeroWhenKeyDoesNotExist() {
 
 		connection.hashCommands().hStrLen(KEY_1_BBUFFER, FIELD_1_BBUFFER).as(StepVerifier::create).expectNext(0L) //

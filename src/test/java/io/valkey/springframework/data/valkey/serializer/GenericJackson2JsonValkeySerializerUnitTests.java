@@ -69,7 +69,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 	private static final SimpleObject SIMPLE_OBJECT = new SimpleObject(1L);
 	private static final ComplexObject COMPLEX_OBJECT = new ComplexObject("steelheart", SIMPLE_OBJECT);
 
-	@Test // DATAVALKEY-392, GH-2878
+	@Test // DATAREDIS-392, GH-2878
 	void shouldUseDefaultTyping() {
 		assertThat(extractTypeResolver(new GenericJackson2JsonValkeySerializer())).isNotNull();
 		assertThat(extractTypeResolver(GenericJackson2JsonValkeySerializer.builder().build())).isNotNull();
@@ -79,7 +79,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 				.isNull();
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void shouldUseDefaultTypingWhenClassPropertyNameIsEmpty() {
 
 		TypeResolverBuilder<?> typeResolver = extractTypeResolver(new GenericJackson2JsonValkeySerializer(""));
@@ -87,7 +87,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 				.isEqualTo(JsonTypeInfo.Id.CLASS.getDefaultPropertyName());
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void shouldUseDefaultTypingWhenClassPropertyNameIsNull() {
 
 		TypeResolverBuilder<?> typeResolver = extractTypeResolver(new GenericJackson2JsonValkeySerializer((String) null));
@@ -95,7 +95,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 				.isEqualTo(JsonTypeInfo.Id.CLASS.getDefaultPropertyName());
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void shouldUseDefaultTypingWhenClassPropertyNameIsProvided() {
 
 		TypeResolverBuilder<?> typeResolver = extractTypeResolver(
@@ -103,22 +103,22 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 		assertThat((String) getField(typeResolver, "_typeProperty")).isEqualTo("firefight");
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void serializeShouldReturnEmptyByteArrayWhenSourceIsNull() {
 		assertThat(new GenericJackson2JsonValkeySerializer().serialize(null)).isEqualTo(SerializationUtils.EMPTY_ARRAY);
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void deserializeShouldReturnNullWhenSouceIsNull() {
 		assertThat(new GenericJackson2JsonValkeySerializer().deserialize(null)).isNull();
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void deserializeShouldReturnNullWhenSouceIsEmptyArray() {
 		assertThat(new GenericJackson2JsonValkeySerializer().deserialize(SerializationUtils.EMPTY_ARRAY)).isNull();
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void deserializeShouldBeAbleToRestoreSimpleObjectAfterSerialization() {
 
 		GenericJackson2JsonValkeySerializer serializer = new GenericJackson2JsonValkeySerializer();
@@ -126,7 +126,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 		assertThat((SimpleObject) serializer.deserialize(serializer.serialize(SIMPLE_OBJECT))).isEqualTo(SIMPLE_OBJECT);
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void deserializeShouldBeAbleToRestoreComplexObjectAfterSerialization() {
 
 		GenericJackson2JsonValkeySerializer serializer = new GenericJackson2JsonValkeySerializer();
@@ -134,7 +134,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 		assertThat((ComplexObject) serializer.deserialize(serializer.serialize(COMPLEX_OBJECT))).isEqualTo(COMPLEX_OBJECT);
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void serializeShouldThrowSerializationExceptionProcessingError() throws JsonProcessingException {
 
 		ObjectMapper objectMapperMock = mock(ObjectMapper.class);
@@ -144,7 +144,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 				.isThrownBy(() -> new GenericJackson2JsonValkeySerializer(objectMapperMock).serialize(SIMPLE_OBJECT));
 	}
 
-	@Test // DATAVALKEY-392
+	@Test // DATAREDIS-392
 	void deserializeShouldThrowSerializationExceptionProcessingError() throws IOException {
 
 		ObjectMapper objectMapperMock = mock(ObjectMapper.class);
@@ -155,7 +155,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 				.isThrownBy(() -> new GenericJackson2JsonValkeySerializer(objectMapperMock).deserialize(new byte[] { 1 }));
 	}
 
-	@Test // DATAVALKEY-553, DATAVALKEY-865
+	@Test // DATAREDIS-553, DATAREDIS-865
 	void shouldSerializeNullValueSoThatItCanBeDeserializedWithDefaultTypingEnabled() {
 
 		GenericJackson2JsonValkeySerializer serializer = new GenericJackson2JsonValkeySerializer();
@@ -163,7 +163,7 @@ class GenericJackson2JsonValkeySerializerUnitTests {
 		serializeAndDeserializeNullValue(serializer);
 	}
 
-	@Test // DATAVALKEY-865
+	@Test // DATAREDIS-865
 	void shouldSerializeNullValueWithCustomObjectMapper() {
 
 		ObjectMapper mapper = new ObjectMapper();

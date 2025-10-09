@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono
  */
 class ReactiveHyperLogLogOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun add() {
 
 		val operations = mockk<ReactiveHyperLogLogOperations<String, String>>()
@@ -45,7 +45,7 @@ class ReactiveHyperLogLogOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun size() {
 
 		val operations = mockk<ReactiveHyperLogLogOperations<String, String>>()
@@ -60,7 +60,7 @@ class ReactiveHyperLogLogOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun union() {
 
 		val operations = mockk<ReactiveHyperLogLogOperations<String, String>>()
@@ -75,7 +75,7 @@ class ReactiveHyperLogLogOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun remove() {
 
 		val operations = mockk<ReactiveHyperLogLogOperations<String, String>>()

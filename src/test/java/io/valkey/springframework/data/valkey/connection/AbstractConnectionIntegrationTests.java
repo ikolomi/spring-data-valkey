@@ -209,7 +209,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, true, false, true, false));
 	}
 
-	@Test // DATAVALKEY-1103
+	@Test // DATAREDIS-1103
 	void testSetWithKeepTTL() {
 
 		actual.add(connection.set("exp", "true"));
@@ -445,7 +445,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		await().atMost(Duration.ofMillis(2500L)).until(keyExpired::passes);
 	}
 
-	@LongRunningTest // DATAVALKEY-271
+	@LongRunningTest // DATAREDIS-271
 	void testPsetEx() {
 
 		actual.add(connection.pSetEx("expy", 500L, "yep"));
@@ -604,7 +604,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@Disabled("DATAVALKEY-525")
+	@Disabled("DATAREDIS-525")
 	public void testNullKey() {
 		try {
 			connection.decr((String) null);
@@ -613,7 +613,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@Disabled("DATAVALKEY-525")
+	@Disabled("DATAREDIS-525")
 	public void testNullValue() {
 
 		byte[] key = UUID.randomUUID().toString().getBytes();
@@ -625,7 +625,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@Disabled("DATAVALKEY-525")
+	@Disabled("DATAREDIS-525")
 	public void testHashNullKey() {
 
 		byte[] key = UUID.randomUUID().toString().getBytes();
@@ -636,7 +636,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@Test
-	@Disabled("DATAVALKEY-525")
+	@Disabled("DATAREDIS-525")
 	public void testHashNullValue() {
 		byte[] key = UUID.randomUUID().toString().getBytes();
 		byte[] field = "random".getBytes();
@@ -985,7 +985,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-661
+	@Test // DATAREDIS-661
 	public void testGetConfig() {
 		actual.add(connection.getConfig("*"));
 		Properties config = (Properties) getResults().get(0);
@@ -1007,7 +1007,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, true, false));
 	}
 
-	@Test // DATAVALKEY-529
+	@Test // DATAREDIS-529
 	void testExistsWithMultipleKeys() {
 
 		actual.add(connection.set("exist-1", "true"));
@@ -1019,7 +1019,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, true, true, 3L }));
 	}
 
-	@Test // DATAVALKEY-529
+	@Test // DATAREDIS-529
 	void testExistsWithMultipleKeysNoneExists() {
 
 		actual.add(connection.exists("no-exist-1", "no-exist-2"));
@@ -1027,7 +1027,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
-	@Test // DATAVALKEY-529
+	@Test // DATAREDIS-529
 	void testExistsSameKeyMultipleTimes() {
 
 		actual.add(connection.set("existent", "true"));
@@ -1082,7 +1082,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, -1L));
 	}
 
-	@Test // DATAVALKEY-526
+	@Test // DATAREDIS-526
 	void testTtlWithTimeUnit() {
 
 		actual.add(connection.set("whatup", "yo"));
@@ -1115,7 +1115,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(2) > -1).isTrue();
 	}
 
-	@Test // DATAVALKEY-526
+	@Test // DATAREDIS-526
 	void testPTtlWithTimeUnit() {
 
 		actual.add(connection.set("whatup", "yo"));
@@ -1172,7 +1172,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		});
 	}
 
-	@Test // DATAVALKEY-696
+	@Test // DATAREDIS-696
 	void testRestoreExistingKeyWithReplaceOption() {
 
 		actual.add(connection.set("testing", "12"));
@@ -1211,7 +1211,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, 1L, false));
 	}
 
-	@Test // DATAVALKEY-693
+	@Test // DATAREDIS-693
 	void unlinkReturnsNrOfKeysRemoved() {
 
 		actual.add(connection.set("unlink.this", "Can't track this"));
@@ -1221,7 +1221,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, 1L }));
 	}
 
-	@Test // DATAVALKEY-693
+	@Test // DATAREDIS-693
 	void testUnlinkBatch() {
 
 		actual.add(connection.set("testing", "123"));
@@ -1232,7 +1232,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(true, true, 2L, false));
 	}
 
-	@Test // DATAVALKEY-693
+	@Test // DATAREDIS-693
 	void unlinkReturnsZeroIfNoKeysRemoved() {
 
 		actual.add(connection.unlink("unlink.this"));
@@ -1659,7 +1659,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(2L, Arrays.asList("baz", "bar")));
 	}
 
-	@Test // DATAVALKEY-1196, GH-1957
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
 	void lPos() {
 
@@ -1669,7 +1669,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsOnly(2L);
 	}
 
-	@Test // DATAVALKEY-1196, GH-1957
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
 	void lPosRank() {
 
@@ -1679,7 +1679,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(6L);
 	}
 
-	@Test // DATAVALKEY-1196, GH-1957
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
 	void lPosNegativeRank() {
 
@@ -1689,7 +1689,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(7L);
 	}
 
-	@Test // DATAVALKEY-1196, GH-1957
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
 	void lPosCount() {
 
@@ -1699,7 +1699,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(2L, 6L);
 	}
 
-	@Test // DATAVALKEY-1196, GH-1957
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
 	void lPosRankCount() {
 
@@ -1709,7 +1709,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(1)).containsExactly(7L, 6L);
 	}
 
-	@Test // DATAVALKEY-1196, GH-1957
+	@Test // DATAREDIS-1196, GH-1957
 	@EnabledOnCommand("LPOS")
 	void lPosCountZero() {
 
@@ -1838,7 +1838,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(new HashSet<>(Arrays.asList("foo", "bar")).contains((String) getResults().get(2))).isTrue();
 	}
 
-	@Test // DATAVALKEY-688
+	@Test // DATAREDIS-688
 	void testSPopWithCount() {
 
 		actual.add(connection.sAdd("myset", "foo"));
@@ -2015,7 +2015,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, true, true, 2L }));
 	}
 
-	@Test // DATAVALKEY-729
+	@Test // DATAREDIS-729
 	void zLexCountTest() {
 
 		actual.add(connection.zAdd("myzset", 0, "a"));
@@ -2621,7 +2621,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(0)).isNotNull();
 	}
 
-	@Test // DATAVALKEY-206, DATAVALKEY-513
+	@Test // DATAREDIS-206, DATAREDIS-513
 	public void testGetTimeShouldRequestServerTime() {
 
 		actual.add(connection.time());
@@ -2657,12 +2657,12 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(hours).isCloseTo(now, within(1, ChronoUnit.HOURS));
 	}
 
-	@Test // DATAVALKEY-269
+	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		connection.setClientName("foo".getBytes());
 	}
 
-	@Test // DATAVALKEY-268
+	@Test // DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 
 		actual.add(connection.getClientList());
@@ -2678,7 +2678,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.getDatabaseId()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-290
+	@Test // DATAREDIS-290
 	void scanShouldReadEntireValueRange() {
 
 		if (isNotJedisOrLettuceConnection(connectionFactory)) {
@@ -2736,7 +2736,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		return Streamable.of(() -> cursor).map(String::new).toList();
 	}
 
-	@Test // DATAVALKEY-417
+	@Test // DATAREDIS-417
 	public void scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection() {
 
 		byteConnection.openPipeline();
@@ -2755,7 +2755,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i).isEqualTo(10);
 	}
 
-	@Test // DATAVALKEY-306
+	@Test // DATAREDIS-306
 	void zScanShouldReadEntireValueRange() {
 
 		if (isNotJedisOrLettuceConnection(connectionFactory)) {
@@ -2786,7 +2786,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(count).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-304
+	@Test // DATAREDIS-304
 	void sScanShouldReadEntireValueRange() {
 
 		if (isNotJedisOrLettuceConnection(connectionFactory)) {
@@ -2811,7 +2811,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i).isEqualTo(6);
 	}
 
-	@Test // DATAVALKEY-305
+	@Test // DATAREDIS-305
 	void hScanShouldReadEntireValueRange() {
 
 		if (isNotJedisOrLettuceConnection(connectionFactory)) {
@@ -2845,7 +2845,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(i).isEqualTo(3);
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfAddShouldAddToNonExistingKeyCorrectly() {
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2854,7 +2854,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(0)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfAddShouldReturnZeroWhenValueAlreadyExists() {
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2867,7 +2867,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(2)).isEqualTo(0L);
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfCountShouldReturnCorrectly() {
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2878,7 +2878,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(1)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfCountWithMultipleKeysShouldReturnCorrectly() {
 
 		actual.add(connection.pfAdd("hll", "a", "b", "c"));
@@ -2891,13 +2891,13 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results.get(2)).isEqualTo(6L);
 	}
 
-	@Test // DATAVALKEY-308
+	@Test // DATAREDIS-308
 	void pfCountWithNullKeysShouldThrowIllegalArgumentException() {
 		assertThatIllegalArgumentException().isThrownBy(() -> actual.add(connection.pfCount((String[]) null)));
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-378, DATAVALKEY-1222
+	@Test // DATAREDIS-378, DATAREDIS-1222
 	void zRangeByLexTest() {
 
 		actual.add(connection.zAdd("myzset", 0, "a"));
@@ -2930,7 +2930,7 @@ public abstract class AbstractConnectionIntegrationTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-729
+	@Test // DATAREDIS-729
 	public void zRevRangeByLexTest() {
 
 		actual.add(connection.zAdd("myzset", 0, "a"));
@@ -2962,7 +2962,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Set<String>) results.get(13)).contains("c", "b").doesNotContain("a", "d", "e", "f", "g");
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-692
+	@Test // DATAREDIS-316, DATAREDIS-692
 	void setWithExpirationAndNullOpionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -2970,7 +2970,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				.isThrownBy(() -> connection.set(key, "foo", Expiration.milliseconds(500), null));
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -2985,7 +2985,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(500d, Offset.offset(499d));
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3004,7 +3004,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(4))).isEqualTo("data");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3023,7 +3023,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(4))).isEqualTo("spring");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3040,7 +3040,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(3))).isEqualTo("data");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithExpirationAndPresentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3059,7 +3059,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(4))).isEqualTo("data");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithExpirationAndPresentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3075,14 +3075,14 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
 	}
 
-	@Test // DATAVALKEY-316, DATAVALKEY-692
+	@Test // DATAREDIS-316, DATAREDIS-692
 	void setWithNullExpirationAndUpsertOpionShouldThrowException() {
 
 		String key = "exp-" + UUID.randomUUID();
 		assertThatIllegalArgumentException().isThrownBy(() -> connection.set(key, "foo", null, SetOption.upsert()));
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithoutExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3097,7 +3097,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-1, Offset.offset(0d));
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithoutExpirationAndUpsertOpionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3117,7 +3117,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(4))).isEqualTo("data");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithoutExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3136,7 +3136,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(4))).isEqualTo("spring");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithoutExpirationAndAbsentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3153,7 +3153,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(3))).isEqualTo("data");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithoutExpirationAndPresentOptionShouldSetTtlWhenKeyDoesExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3172,7 +3172,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((result.get(4))).isEqualTo("data");
 	}
 
-	@Test // DATAVALKEY-316
+	@Test // DATAREDIS-316
 	void setWithoutExpirationAndPresentOptionShouldSetTtlWhenKeyDoesNotExist() {
 
 		String key = "exp-" + UUID.randomUUID();
@@ -3188,7 +3188,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Long) result.get(2)).doubleValue()).isCloseTo(-2, Offset.offset(0d));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoAddSingleGeoLocation() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3198,7 +3198,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(0)).isEqualTo(1L);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoAddMultipleGeoLocations() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3208,7 +3208,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(0)).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoDist() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3220,7 +3220,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("m");
 	}
 
-	@Test // DATAVALKEY-1214
+	@Test // DATAREDIS-1214
 	void geoDistNotExisting() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3231,7 +3231,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(result.get(1)).isNull();
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoDistWithMetric() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3243,7 +3243,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((Distance) result.get(1)).getUnit()).isEqualTo("km");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	@EnabledOnValkeyDriver({ ValkeyDriver.JEDIS })
 	void geoHash() {
 
@@ -3256,7 +3256,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((List<String>) result.get(1)).get(1)).isEqualTo("sqdtr74hyu0");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	@EnabledOnValkeyDriver({ ValkeyDriver.JEDIS })
 	void geoHashNonExisting() {
 
@@ -3270,7 +3270,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((List<String>) result.get(1)).get(2)).isEqualTo("sqdtr74hyu0");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoPosition() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3286,7 +3286,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((List<Point>) result.get(1)).get(1).getY()).isCloseTo(POINT_CATANIA.getY(), Offset.offset(0.005));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoPositionNonExisting() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3304,7 +3304,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((List<Point>) result.get(1)).get(2).getY()).isCloseTo(POINT_CATANIA.getY(), Offset.offset(0.005));
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoRadiusShouldReturnMembersCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3318,7 +3318,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((GeoResults<GeoLocation<String>>) results.get(2)).getContent()).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoRadiusShouldReturnDistanceCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3335,7 +3335,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				.isEqualTo("km");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoRadiusShouldApplyLimit() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3348,7 +3348,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(((GeoResults<GeoLocation<String>>) results.get(1)).getContent()).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3364,7 +3364,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				.isEqualTo(ARIGENTO.getName());
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoRadiusByMemberShouldReturnDistanceCorrectly() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3381,7 +3381,7 @@ public abstract class AbstractConnectionIntegrationTests {
 				.isEqualTo("km");
 	}
 
-	@Test // DATAVALKEY-438
+	@Test // DATAREDIS-438
 	void geoRadiusByMemberShouldApplyLimit() {
 
 		String key = "geo-" + UUID.randomUUID();
@@ -3482,7 +3482,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Double) results.get(3)).isGreaterThan(1);
 	}
 
-	@Test // DATAVALKEY-698
+	@Test // DATAREDIS-698
 	void hStrLenReturnsFieldLength() {
 
 		actual.add(connection.hSet("hash-hstrlen", "key-1", "value-1"));
@@ -3492,7 +3492,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { Boolean.TRUE, Boolean.TRUE, Long.valueOf("value-2".length()) }));
 	}
 
-	@Test // DATAVALKEY-698
+	@Test // DATAREDIS-698
 	void hStrLenReturnsZeroWhenFieldDoesNotExist() {
 
 		actual.add(connection.hSet("hash-hstrlen", "key-1", "value-1"));
@@ -3501,7 +3501,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { Boolean.TRUE, 0L }));
 	}
 
-	@Test // DATAVALKEY-698
+	@Test // DATAREDIS-698
 	void hStrLenReturnsZeroWhenKeyDoesNotExist() {
 
 		actual.add(connection.hStrLen("hash-no-exist", "key-2"));
@@ -3724,7 +3724,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { List.of(-2L), List.of(-2L) }));
 	}
 
-	@Test // DATAVALKEY-694
+	@Test // DATAREDIS-694
 	void touchReturnsNrOfKeysTouched() {
 
 		actual.add(connection.set("touch.this", "Can't touch this; - oh-oh oh oh oh-oh-oh"));
@@ -3733,7 +3733,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { Boolean.TRUE, 1L }));
 	}
 
-	@Test // DATAVALKEY-694
+	@Test // DATAREDIS-694
 	void touchReturnsZeroIfNoKeysTouched() {
 
 		actual.add(connection.touch("touch.this", "touch.that"));
@@ -3741,7 +3741,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 0L }));
 	}
 
-	@Test // DATAVALKEY-697
+	@Test // DATAREDIS-697
 	void bitPosShouldReturnPositionCorrectly() {
 
 		actual.add(connection.set("bitpos-1".getBytes(), HexStringUtils.hexToBytes("fff000")));
@@ -3750,7 +3750,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, 12L }));
 	}
 
-	@Test // DATAVALKEY-697
+	@Test // DATAREDIS-697
 	void bitPosShouldReturnPositionInRangeCorrectly() {
 
 		actual.add(connection.set("bitpos-1".getBytes(), HexStringUtils.hexToBytes("fff0f0")));
@@ -3760,7 +3760,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, 16L }));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void encodingReturnsCorrectly() {
 
 		actual.add(connection.set("encode.this", "1000"));
@@ -3770,7 +3770,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, ValkeyValueEncoding.INT }));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void encodingReturnsVacantWhenKeyDoesNotExist() {
 
 		actual.add(connection.encodingOf("encode.this"));
@@ -3778,7 +3778,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { ValkeyValueEncoding.VACANT }));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void idletimeReturnsCorrectly() {
 
 		actual.add(connection.set("idle.this", "1000"));
@@ -3789,7 +3789,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { true, "1000", Duration.ofSeconds(0) }));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void idldetimeReturnsNullWhenKeyDoesNotExist() {
 
 		actual.add(connection.idletime("idle.this"));
@@ -3797,7 +3797,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void refcountReturnsCorrectly() {
 
 		actual.add(connection.lPush("refcount.this", "1000"));
@@ -3807,7 +3807,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { 1L, 1L }));
 	}
 
-	@Test // DATAVALKEY-716
+	@Test // DATAREDIS-716
 	void refcountReturnsNullWhenKeyDoesNotExist() {
 
 		actual.add(connection.refcount("refcount.this"));
@@ -3815,7 +3815,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		verifyResults(Arrays.asList(new Object[] { null }));
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldSetShouldWorkCorrectly() {
 
 		actual.add(connection.bitfield(KEY_1, create().set(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L)).to(10L)));
@@ -3826,7 +3826,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) results.get(1)).containsExactly(10L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldGetShouldWorkCorrectly() {
 
 		actual.add(connection.bitfield(KEY_1, create().get(INT_8).valueAt(BitFieldSubCommands.Offset.offset(0L))));
@@ -3835,7 +3835,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) results.get(0)).containsExactly(0L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldIncrByShouldWorkCorrectly() {
 
 		actual
@@ -3845,7 +3845,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) results.get(0)).containsExactly(1L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitFieldIncrByWithOverflowShouldWorkCorrectly() {
 
 		actual.add(connection.bitfield(KEY_1,
@@ -3880,7 +3880,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(results).containsExactly(List.of(1L), List.of(1L));
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitfieldShouldAllowMultipleSubcommands() {
 
 		actual.add(connection.bitfield(KEY_1,
@@ -3889,7 +3889,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) getResults().get(0)).containsExactly(1L, 0L);
 	}
 
-	@Test // DATAVALKEY-562
+	@Test // DATAREDIS-562
 	void bitfieldShouldWorkUsingNonZeroBasedOffset() {
 
 		actual.add(connection.bitfield(KEY_1,
@@ -3904,7 +3904,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<Long>) results.get(1)).containsExactly(100L, -56L);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	void xAddShouldCreateStream() {
 
@@ -3955,7 +3955,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((Long) results.get(3)).isBetween(1L, 3L);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	public void xReadShouldReadMessage() {
 
@@ -3970,7 +3970,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(messages.get(0).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	public void xReadGroupShouldReadMessage() {
 
@@ -3991,7 +3991,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<MapRecord>) results.get(3)).isEmpty();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	public void xGroupCreateShouldWorkWithAndWithoutExistingStream() {
 
@@ -4013,7 +4013,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat((List<MapRecord>) results.get(3)).isEmpty();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	void xRangeShouldReportMessages() {
 
@@ -4033,7 +4033,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_3, VALUE_3));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	@EnabledOnCommand("XADD")
 	public void xRevRangeShouldReportMessages() {
 
@@ -4054,7 +4054,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 	}
 
-	@Test // DATAVALKEY-1207
+	@Test // DATAREDIS-1207
 	@EnabledOnCommand("XADD")
 	public void xRevRangeShouldWorkWithBoundedRange() {
 
@@ -4075,7 +4075,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(messages.get(1).getValue()).isEqualTo(Collections.singletonMap(KEY_2, VALUE_2));
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	void xPendingShouldLoadOverviewCorrectly() {
 
@@ -4096,7 +4096,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.getPendingMessagesPerConsumer()).hasSize(1).containsEntry("my-consumer", 1L);
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	void xPendingShouldLoadEmptyOverviewCorrectly() {
 
@@ -4114,7 +4114,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.getPendingMessagesPerConsumer()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	public void xPendingShouldLoadPendingMessages() {
 
@@ -4136,7 +4136,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.get(0).getIdAsString()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-1207
+	@Test // DATAREDIS-1207
 	@EnabledOnCommand("XADD")
 	public void xPendingShouldWorkWithBoundedRange() {
 
@@ -4158,7 +4158,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.get(0).getIdAsString()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	public void xPendingShouldLoadPendingMessagesForConsumer() {
 
@@ -4181,7 +4181,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.get(0).getIdAsString()).isNotNull();
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	public void xPendingShouldLoadPendingMessagesForNonExistingConsumer() {
 
@@ -4200,7 +4200,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.size()).isZero();
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	void xPendingShouldLoadEmptyPendingMessages() {
 
@@ -4216,7 +4216,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(pending.size()).isZero();
 	}
 
-	@Test // DATAVALKEY-1084
+	@Test // DATAREDIS-1084
 	@EnabledOnCommand("XADD")
 	public void xClaim() throws InterruptedException {
 
@@ -4236,7 +4236,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(claimed).containsAll(messages);
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfo() {
 
@@ -4264,7 +4264,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfoNoGroup() {
 
@@ -4288,7 +4288,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.lastEntryId()).isEqualTo(lastRecord.getValue());
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfoGroups() {
 
@@ -4312,7 +4312,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).lastDeliveredId()).isEqualTo(lastRecord.getValue());
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfoGroupsNoGroup() {
 
@@ -4328,7 +4328,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.size()).isZero();
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfoGroupsNoConsumer() {
 
@@ -4350,7 +4350,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).lastDeliveredId()).isEqualTo("0-0");
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfoConsumers() {
 
@@ -4373,7 +4373,7 @@ public abstract class AbstractConnectionIntegrationTests {
 		assertThat(info.get(0).idleTimeMs()).isCloseTo(1L, Offset.offset(200L));
 	}
 
-	@Test // DATAVALKEY-1119
+	@Test // DATAREDIS-1119
 	@EnabledOnCommand("XADD")
 	public void xinfoConsumersNoConsumer() {
 

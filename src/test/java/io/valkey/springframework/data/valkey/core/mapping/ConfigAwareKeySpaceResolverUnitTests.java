@@ -39,17 +39,17 @@ class ConfigAwareKeySpaceResolverUnitTests {
 		this.resolver = new ConfigAwareKeySpaceResolver(config);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveShouldThrowExceptionWhenTypeIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> resolver.resolveKeySpace(null));
 	}
 
-	@Test // DATAVALKEY-425, GH-2457
+	@Test // DATAREDIS-425, GH-2457
 	void resolveShouldReturnNullAsDefaultKeyspace() {
 		assertThat(resolver.resolveKeySpace(TypeWithoutAnySettings.class)).isNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void resolveShouldFavorConfiguredNameOverClassName() {
 
 		config.addKeyspaceSettings(new KeyspaceSettings(TypeWithoutAnySettings.class, "ji'e'toh"));

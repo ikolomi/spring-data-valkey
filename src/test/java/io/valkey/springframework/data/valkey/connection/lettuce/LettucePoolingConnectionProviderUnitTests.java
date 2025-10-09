@@ -54,7 +54,7 @@ class LettucePoolingConnectionProviderUnitTests {
 		when(connectionProviderMock.getConnection(any())).thenReturn(connectionMock);
 	}
 
-	@Test // DATAVALKEY-988
+	@Test // DATAREDIS-988
 	void shouldReturnConnectionOnRelease() {
 
 		LettucePoolingConnectionProvider provider = new LettucePoolingConnectionProvider(connectionProviderMock, config);
@@ -64,7 +64,7 @@ class LettucePoolingConnectionProviderUnitTests {
 		verifyNoInteractions(commandsMock);
 	}
 
-	@Test // DATAVALKEY-988
+	@Test // DATAREDIS-988
 	void shouldDiscardTransactionOnReleaseOnActiveTransaction() {
 
 		LettucePoolingConnectionProvider provider = new LettucePoolingConnectionProvider(connectionProviderMock, config);

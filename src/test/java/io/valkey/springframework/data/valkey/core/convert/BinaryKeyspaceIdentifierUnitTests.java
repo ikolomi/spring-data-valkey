@@ -28,7 +28,7 @@ import io.valkey.springframework.data.valkey.core.convert.MappingValkeyConverter
  */
 class BinaryKeyspaceIdentifierUnitTests {
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnIfKeyIsValid() {
 
 		assertThat(BinaryKeyspaceIdentifier.isValid("foo".getBytes())).isFalse();
@@ -38,7 +38,7 @@ class BinaryKeyspaceIdentifierUnitTests {
 		assertThat(BinaryKeyspaceIdentifier.isValid("foo:bar:baz:phantom".getBytes())).isTrue();
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnKeyspace() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
@@ -46,7 +46,7 @@ class BinaryKeyspaceIdentifierUnitTests {
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getKeyspace()).isEqualTo("foo".getBytes());
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnId() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).getId()).isEqualTo("bar".getBytes());
@@ -54,7 +54,7 @@ class BinaryKeyspaceIdentifierUnitTests {
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar:baz:phantom".getBytes()).getId()).isEqualTo("bar:baz".getBytes());
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void shouldReturnPhantomKey() {
 
 		assertThat(BinaryKeyspaceIdentifier.of("foo:bar".getBytes()).isPhantomKey()).isFalse();

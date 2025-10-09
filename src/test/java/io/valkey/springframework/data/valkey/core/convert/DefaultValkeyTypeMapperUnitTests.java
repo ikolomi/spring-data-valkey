@@ -53,12 +53,12 @@ class DefaultValkeyTypeMapperUnitTests {
 		typeMapper = new DefaultValkeyTypeMapper(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void defaultInstanceWritesClasses() {
 		writesTypeToField(new Bucket(), String.class, String.class.getName());
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void defaultInstanceReadsClasses() {
 
 		Bucket bucket = Bucket
@@ -66,7 +66,7 @@ class DefaultValkeyTypeMapperUnitTests {
 		readsTypeFromField(bucket, String.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void writesMapKeyForType() {
 
 		typeMapper = new DefaultValkeyTypeMapper(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY,
@@ -76,7 +76,7 @@ class DefaultValkeyTypeMapperUnitTests {
 		writesTypeToField(new Bucket(), Object.class, null);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void writesClassNamesForUnmappedValuesIfConfigured() {
 
 		typeMapper = new DefaultValkeyTypeMapper(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY,
@@ -86,7 +86,7 @@ class DefaultValkeyTypeMapperUnitTests {
 		writesTypeToField(new Bucket(), Object.class, Object.class.getName());
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void readsTypeForMapKey() {
 
 		typeMapper = new DefaultValkeyTypeMapper(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY,
@@ -98,7 +98,7 @@ class DefaultValkeyTypeMapperUnitTests {
 				null);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void readsTypeLoadingClassesForUnmappedTypesIfConfigured() {
 
 		typeMapper = new DefaultValkeyTypeMapper(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY,
@@ -110,57 +110,57 @@ class DefaultValkeyTypeMapperUnitTests {
 				Object.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void addsFullyQualifiedClassNameUnderDefaultKeyByDefault() {
 		writesTypeToField(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY, new Bucket(), String.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void writesTypeToCustomFieldIfConfigured() {
 		typeMapper = new DefaultValkeyTypeMapper("_custom");
 		writesTypeToField("_custom", new Bucket(), String.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void doesNotWriteTypeInformationInCaseKeyIsSetToNull() {
 		typeMapper = new DefaultValkeyTypeMapper(null);
 		writesTypeToField(null, new Bucket(), String.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void readsTypeFromDefaultKeyByDefault() {
 		readsTypeFromField(
 				Bucket.newBucketFromStringMap(singletonMap(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY, String.class.getName())),
 				String.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void readsTypeFromCustomFieldConfigured() {
 
 		typeMapper = new DefaultValkeyTypeMapper("_custom");
 		readsTypeFromField(Bucket.newBucketFromStringMap(singletonMap("_custom", String.class.getName())), String.class);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void returnsListForBasicDBLists() {
 		readsTypeFromField(new Bucket(), null);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void returnsNullIfNoTypeInfoInBucket() {
 
 		readsTypeFromField(new Bucket(), null);
 		readsTypeFromField(Bucket.newBucketFromStringMap(singletonMap(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY, "")), null);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void returnsNullIfClassCannotBeLoaded() {
 
 		readsTypeFromField(Bucket.newBucketFromStringMap(singletonMap(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY, "fooBar")),
 				null);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void returnsNullIfTypeKeySetToNull() {
 
 		typeMapper = new DefaultValkeyTypeMapper(null);
@@ -169,7 +169,7 @@ class DefaultValkeyTypeMapperUnitTests {
 				null);
 	}
 
-	@Test // DATAVALKEY-543
+	@Test // DATAREDIS-543
 	void returnsCorrectTypeKey() {
 
 		assertThat(typeMapper.isTypeKey(DefaultValkeyTypeMapper.DEFAULT_TYPE_KEY)).isTrue();

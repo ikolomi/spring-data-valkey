@@ -37,7 +37,7 @@ class ValkeyAtomicIntegerUnitTests {
 	@Mock ValkeyOperations<String, Integer> operationsMock;
 	@Mock ValueOperations<String, Integer> valueOperationsMock;
 
-	@Test // DATAVALKEY-872
+	@Test // DATAREDIS-872
 	@SuppressWarnings("unchecked")
 	void shouldUseSetIfAbsentForInitialValue() {
 

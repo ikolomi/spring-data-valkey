@@ -88,7 +88,7 @@ public class StreamReceiverIntegrationTests {
 		connection.close();
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveMapRecords() {
 
 		StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory);
@@ -108,7 +108,7 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveSimpleObjectHashRecords() {
 
 		StreamReceiverOptions<String, ObjectRecord<String, String>> receiverOptions = StreamReceiverOptions.builder()
@@ -130,7 +130,7 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveObjectHashRecords() {
 
 		StreamReceiverOptions<String, ObjectRecord<String, LoginEvent>> receiverOptions = StreamReceiverOptions.builder()
@@ -153,7 +153,7 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-1172
+	@Test // DATAREDIS-1172
 	void shouldReceiveCustomHashValueRecords() {
 
 		SerializationPair<Integer> serializationPair = mock(SerializationPair.class);
@@ -174,7 +174,7 @@ public class StreamReceiverIntegrationTests {
 				}).thenCancel().verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void latestModeLosesMessages() {
 
 		// XADD/XREAD highly timing-dependent as this tests require a poll subscription to receive messages using $ offset.
@@ -209,7 +209,7 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldReceiveAsConsumerGroupMessages() {
 
 		StreamReceiver<String, MapRecord<String, String, String>> receiver = StreamReceiver.create(connectionFactory);
@@ -237,7 +237,7 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldStopReceivingOnError() {
 
 		StreamReceiverOptions<String, MapRecord<String, String, String>> options = StreamReceiverOptions.builder()
@@ -259,7 +259,7 @@ public class StreamReceiverIntegrationTests {
 				.verify(Duration.ofSeconds(5));
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void shouldResumeFromError() {
 
 		AtomicReference<Throwable> ref = new AtomicReference<>();

@@ -239,7 +239,7 @@ public abstract class AbstractDefaultScriptExecutorTests {
 		assertThat(scriptExecutor.execute(script, null)).isEqualTo("HELLO");
 	}
 
-	@Test // DATAVALKEY-356
+	@Test // DATAREDIS-356
 	void shouldTransparentlyReEvaluateScriptIfNotPresent() throws Exception {
 
 		this.template = new StringValkeyTemplate();

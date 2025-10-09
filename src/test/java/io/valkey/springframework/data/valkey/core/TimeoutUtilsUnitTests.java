@@ -92,17 +92,17 @@ class TimeoutUtilsUnitTests {
 		assertThat(TimeoutUtils.toMillis(-2344, TimeUnit.MICROSECONDS)).isEqualTo(-2);
 	}
 
-	@Test // DATAVALKEY-815
+	@Test // DATAREDIS-815
 	void hasMillisReturnsFalseForTimeoutOfExactSeconds() {
 		assertThat(TimeoutUtils.hasMillis(Duration.ofSeconds(1))).isFalse();
 	}
 
-	@Test // DATAVALKEY-815
+	@Test // DATAREDIS-815
 	void hasMillisReturnsTrueForTimeoutWithMsec() {
 		assertThat(TimeoutUtils.hasMillis(Duration.ofMillis(1500))).isTrue();
 	}
 
-	@Test // DATAVALKEY-815
+	@Test // DATAREDIS-815
 	void hasMillisReturnsTrueForTimeoutLessThanOneSecond() {
 		assertThat(TimeoutUtils.hasMillis(Duration.ofMillis(500))).isTrue();
 	}

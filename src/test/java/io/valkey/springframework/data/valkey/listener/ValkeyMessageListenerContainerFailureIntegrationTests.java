@@ -83,7 +83,7 @@ class ValkeyMessageListenerContainerFailureIntegrationTests {
 		connectionFactory.destroy();
 	}
 
-	@Test // DATAVALKEY-415, GH-964
+	@Test // DATAREDIS-415, GH-964
 	void interruptAtStart() {
 
 		Thread main = Thread.currentThread();

@@ -105,7 +105,7 @@ public class ValkeyKeyValueAdapterTests {
 		}
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void putWritesDataCorrectly() {
 
 		Person rand = new Person();
@@ -119,7 +119,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void putWritesDataWithColonCorrectly() {
 
 		Person rand = new Person();
@@ -133,7 +133,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1:a").size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void putWritesSimpleIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -164,7 +164,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void putWritesSimpleIndexDataWithColonCorrectly() {
 
 		Person rand = new Person();
@@ -176,7 +176,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand")).contains("1:a");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void putWritesNestedDataCorrectly() {
 
 		Person rand = new Person();
@@ -189,7 +189,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().entries("persons:1").size()).isEqualTo(2);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void putWritesSimpleNestedIndexValuesCorrectly() {
 
 		Person rand = new Person();
@@ -202,7 +202,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:address.country:Andor")).contains("1");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getShouldReadSimpleObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
@@ -216,7 +216,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(((Person) loaded).age).isEqualTo(24);
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void getShouldReadSimpleObjectWithColonInIdCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<String, String>();
@@ -230,7 +230,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(((Person) loaded).age).isEqualTo(24);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void getShouldReadNestedObjectCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
@@ -272,7 +272,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(loaded).isExactlyInstanceOf(TaVeren.class);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void couldReadsKeyspaceSizeCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
@@ -285,7 +285,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(adapter.count("persons")).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void deleteRemovesEntriesCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
@@ -300,7 +300,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:1")).isFalse();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void deleteCleansIndexedDataCorrectly() {
 
 		Map<String, String> map = new LinkedHashMap<>();
@@ -317,7 +317,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons:firstname:rand")).doesNotContain("1");
 	}
 
-	@Test // DATAVALKEY-1106
+	@Test // DATAREDIS-1106
 	void deleteRemovesExpireHelperStructures() {
 
 		WithExpiration source = new WithExpiration();
@@ -335,7 +335,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("withexpiration:1:phantom")).isFalse();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	@EnabledIfLongRunningTest
 	void keyExpiredEventShouldRemoveHelperStructures() throws Exception {
 
@@ -362,7 +362,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons")).doesNotContain("1");
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	@EnabledIfLongRunningTest
 	void keyExpiredEventShouldRemoveHelperStructuresForObjectsWithColonInId() throws Exception {
 
@@ -389,7 +389,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons")).doesNotContain("1:b");
 	}
 
-	@Test // DATAVALKEY-589
+	@Test // DATAREDIS-589
 	@EnabledIfLongRunningTest
 	void keyExpiredEventWithoutKeyspaceShouldBeIgnored() throws Exception {
 
@@ -415,7 +415,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().members("persons")).contains("1");
 	}
 
-	@Test // DATAVALKEY-512
+	@Test // DATAREDIS-512
 	void putWritesIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -451,7 +451,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().isMember("persons:mat:idx", "persons:firstname:mat")).isTrue();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldAlterIndexDataCorrectly() {
 
 		Person rand = new Person();
@@ -470,7 +470,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:firstname:mat")).isTrue();
 	}
 
-	@Test // DATAVALKEY-744
+	@Test // DATAREDIS-744
 	void updateShouldAlterIndexDataForObjectsWithColonInIdCorrectly() {
 
 		Person rand = new Person();
@@ -489,7 +489,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:firstname:mat")).isTrue();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldAlterIndexDataOnNestedObjectCorrectly() {
 
 		Person rand = new Person();
@@ -512,7 +512,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:address.country:tear")).isTrue();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldAlterIndexDataOnNestedObjectPathCorrectly() {
 
 		Person rand = new Person();
@@ -532,7 +532,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:address.country:tear")).isTrue();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldRemoveComplexObjectCorrectly() {
 
 		Person rand = new Person();
@@ -552,7 +552,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForSet().isMember("persons:address.country:andor", "1")).isFalse();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldRemoveSimpleListValuesCorrectly() {
 
 		Person rand = new Person();
@@ -569,7 +569,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "nicknames.[1]")).isFalse();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldRemoveComplexListValuesCorrectly() {
 
 		Person mat = new Person();
@@ -596,7 +596,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "coworkers.[1].nicknames.[0]")).isFalse();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldRemoveSimpleMapValuesCorrectly() {
 
 		Person rand = new Person();
@@ -612,7 +612,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "physicalAttributes.[eye-color]")).isFalse();
 	}
 
-	@Test // DATAVALKEY-471
+	@Test // DATAREDIS-471
 	void updateShouldRemoveComplexMapValuesCorrectly() {
 
 		Person tam = new Person();
@@ -631,7 +631,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForHash().hasKey("persons:1", "relatives.[stepfather].firstname")).isFalse();
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void putShouldCreateGeoIndexCorrectly() {
 
 		Person tam = new Person();
@@ -645,7 +645,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1")).isNotNull();
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void deleteShouldRemoveGeoIndexCorrectly() {
 
 		Person tam = new Person();
@@ -661,7 +661,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1")).isNull();
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void updateShouldAlterGeoIndexCorrectlyOnDelete() {
 
 		Person tam = new Person();
@@ -680,7 +680,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.opsForZSet().score("persons:address:location", "1")).isNull();
 	}
 
-	@Test // DATAVALKEY-533, DATAVALKEY-614
+	@Test // DATAREDIS-533, DATAREDIS-614
 	void updateShouldAlterGeoIndexCorrectlyOnUpdate() {
 
 		Person tam = new Person();
@@ -703,7 +703,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(updatedLocation.getY()).isCloseTo(18D, offset(0.005));
 	}
 
-	@Test // DATAVALKEY-1091
+	@Test // DATAREDIS-1091
 	void phantomKeyNotInsertedOnPutWhenShadowCopyIsTurnedOff() {
 
 		ValkeyMappingContext mappingContext = new ValkeyMappingContext(
@@ -722,7 +722,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:1:phantom")).isFalse();
 	}
 
-	@Test // DATAVALKEY-1091
+	@Test // DATAREDIS-1091
 	void phantomKeyInsertedOnPutWhenShadowCopyIsTurnedOn() {
 
 		ValkeyMappingContext mappingContext = new ValkeyMappingContext(
@@ -741,7 +741,7 @@ public class ValkeyKeyValueAdapterTests {
 		assertThat(template.hasKey("persons:1:phantom")).isTrue();
 	}
 
-	@Test // DATAVALKEY-1091
+	@Test // DATAREDIS-1091
 	void phantomKeyInsertedOnPutWhenShadowCopyIsInDefaultAndKeyspaceNotificationEnabled() {
 
 		ExpiringPerson rand = new ExpiringPerson();

@@ -33,7 +33,7 @@ import java.time.Duration
  */
 class ReactiveValueOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun set() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -48,7 +48,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setWithDuration() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -63,7 +63,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setIfAbsent() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -78,7 +78,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setIfAbsentWithDuration() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -93,7 +93,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setIfPresent() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -108,7 +108,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setIfPresentWithDuration() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -123,7 +123,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun multiSet() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -138,7 +138,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun multiSetIfAbsent() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -153,7 +153,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun get() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -168,7 +168,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `get returning an empty Mono`() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -183,7 +183,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun getAndSet() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -198,7 +198,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `getAndSet returning an empty Mono`() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -213,7 +213,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun multiGet() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -228,7 +228,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun increment() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -243,7 +243,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun incrementWithDelta() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -258,7 +258,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun incrementWithDoubleDelta() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -273,7 +273,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun decrement() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -288,7 +288,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun decrementWithDelta() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -303,7 +303,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun append() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -318,7 +318,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun getSubstring() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -333,7 +333,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun `getSubstring returning an empty Mono`() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -348,7 +348,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setSubstring() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -363,7 +363,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun size() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -378,7 +378,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun setBit() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -393,7 +393,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun getBit() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -408,7 +408,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun bitField() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()
@@ -424,7 +424,7 @@ class ReactiveValueOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveValueOperations<String, String>>()

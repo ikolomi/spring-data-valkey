@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 class ReturnTypeUnitTests {
 
-	@ParameterizedTest // DATAVALKEY-1245
+	@ParameterizedTest // DATAREDIS-1245
 	@ValueSource(classes = { List.class, ArrayList.class, LinkedList.class })
 	void shouldConsiderListsAsMultiType(Class<?> listClass) {
 		assertThat(ReturnType.fromJavaType(listClass)).isEqualTo(ReturnType.MULTI);

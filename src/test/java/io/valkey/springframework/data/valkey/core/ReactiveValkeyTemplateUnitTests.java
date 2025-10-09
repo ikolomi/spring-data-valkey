@@ -42,7 +42,7 @@ class ReactiveValkeyTemplateUnitTests {
 	private ReactiveValkeyConnectionFactory connectionFactoryMock = mock(ReactiveValkeyConnectionFactory.class);
 	private ReactiveValkeyConnection connectionMock = mock(ReactiveValkeyConnection.class);
 
-	@Test // DATAVALKEY-999
+	@Test // DATAREDIS-999
 	void closeShouldUseAsyncRelease() {
 
 		when(connectionFactoryMock.getReactiveConnection()).thenReturn(connectionMock);
@@ -59,7 +59,7 @@ class ReactiveValkeyTemplateUnitTests {
 		verifyNoMoreInteractions(connectionMock);
 	}
 
-	@Test // DATAVALKEY-1053
+	@Test // DATAREDIS-1053
 	void listenToShouldSubscribeToChannel() {
 
 		AtomicBoolean closed = new AtomicBoolean();

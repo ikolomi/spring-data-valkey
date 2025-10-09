@@ -65,7 +65,7 @@ class LettuceReactiveSubscriptionUnitTests {
 				e -> new ValkeySystemException(e.getMessage(), e));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribeChannels() {
 
 		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -80,7 +80,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		assertThat(subscription.getPatterns()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribeChannelsShouldFail() {
 
 		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.error(new RedisConnectionException("Foo")));
@@ -90,7 +90,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		subscribe.as(StepVerifier::create).expectError(ValkeySystemException.class).verify();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldSubscribePatterns() {
 
 		when(pubSubMock.pSubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -105,7 +105,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		assertThat(subscription.getChannels()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldUnsubscribeChannels() {
 
 		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -118,7 +118,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		verify(pubSubMock).unsubscribe(any(ByteBuffer[].class));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldUnsubscribePatterns() {
 
 		when(pubSubMock.pSubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -131,7 +131,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		verify(pubSubMock).pUnsubscribe(any(ByteBuffer[].class));
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldEmitChannelMessage() {
 
 		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -151,7 +151,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		}).thenCancel().verify();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldEmitPatternMessage() {
 
 		when(pubSubMock.pSubscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -173,7 +173,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		}).thenCancel().verify();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldEmitError() {
 
 		when(pubSubMock.subscribe(any(ByteBuffer[].class))).thenReturn(Mono.empty());
@@ -190,7 +190,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		}).expectError(ValkeySystemException.class).verify();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void shouldTerminateActiveSubscriptions() {
 
 		when(pubSubMock.pSubscribe(any())).thenReturn(Mono.empty());
@@ -208,7 +208,7 @@ class LettuceReactiveSubscriptionUnitTests {
 		assertThat(subscription.getPatterns()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-612
+	@Test // DATAREDIS-612
 	void cancelledSubscriptionShouldUnregisterDownstream() {
 
 		Sinks.Many<io.lettuce.core.pubsub.api.reactive.PatternMessage<ByteBuffer, ByteBuffer>> sink = Sinks.many().unicast()

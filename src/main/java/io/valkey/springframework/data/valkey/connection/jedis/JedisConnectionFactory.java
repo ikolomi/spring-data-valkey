@@ -65,7 +65,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 /**
- * Connection factory creating <a href="https://github.com/valkey/jedis">Jedis</a> based connections.
+ * Connection factory creating <a href="https://github.com/redis/jedis">Jedis</a> based connections.
  * <p>
  * {@link JedisConnectionFactory} should be configured using an environmental configuration and the
  * {@link JedisClientConfiguration client configuration}. Jedis supports the following environmental configurations:
@@ -84,7 +84,7 @@ import org.springframework.util.ObjectUtils;
  * <p>
  * Note that {@link JedisConnection} and its {@link JedisClusterConnection clustered variant} are not Thread-safe and
  * instances should not be shared across threads. Refer to the
- * <a href="https://github.com/valkey/jedis/wiki/Getting-started#using-jedis-in-a-multithreaded-environment">Jedis
+ * <a href="https://github.com/redis/jedis/wiki/Getting-started#using-jedis-in-a-multithreaded-environment">Jedis
  * documentation</a> for guidance on configuring Jedis in a multithreaded environment.
  *
  * @author Costin Leau

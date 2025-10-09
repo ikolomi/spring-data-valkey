@@ -28,7 +28,7 @@ class MutableCacheStatisticsUnitTests {
 
 	MutableCacheStatistics statistics = new MutableCacheStatistics("cache-name");
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void shouldReportRetrievals() {
 
 		assertThat(statistics.getGets()).isZero();
@@ -38,7 +38,7 @@ class MutableCacheStatisticsUnitTests {
 		assertThat(statistics.getGets()).isOne();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void shouldReportHits() {
 
 		assertThat(statistics.getHits()).isZero();
@@ -48,7 +48,7 @@ class MutableCacheStatisticsUnitTests {
 		assertThat(statistics.getHits()).isOne();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void shouldReportMisses() {
 
 		assertThat(statistics.getMisses()).isZero();
@@ -58,7 +58,7 @@ class MutableCacheStatisticsUnitTests {
 		assertThat(statistics.getMisses()).isOne();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void shouldReportPuts() {
 
 		assertThat(statistics.getPuts()).isZero();
@@ -68,7 +68,7 @@ class MutableCacheStatisticsUnitTests {
 		assertThat(statistics.getPuts()).isOne();
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void shouldReportRemovals() {
 
 		assertThat(statistics.getDeletes()).isZero();

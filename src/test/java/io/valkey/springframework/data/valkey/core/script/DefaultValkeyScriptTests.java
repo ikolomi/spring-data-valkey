@@ -56,7 +56,7 @@ class DefaultValkeyScriptTests {
 		assertThat(valkeyScript.getScriptAsString()).isEqualTo("return ARGS[1]");
 	}
 
-	@Test // DATAVALKEY-1030
+	@Test // DATAREDIS-1030
 	void testGetScriptAsStringFromResource() {
 
 		ValkeyScript<String> valkeyScript = ValkeyScript

@@ -63,7 +63,7 @@ class StreamRecordsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void objectRecordToMapRecordViaHashMapper() {
 
 		ObjectRecord<String, String> source = Record.of("some-string").withId(RECORD_ID).withStreamKey(STRING_STREAM_KEY);
@@ -76,7 +76,7 @@ class StreamRecordsUnitTests {
 		assertThat(target.getValue()).hasSize(1).containsEntry(STRING_MAP_KEY, STRING_VAL);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void mapRecordToObjectRecordViaHashMapper() {
 
 		MapRecord<String, String, String> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, "some-string"))
@@ -89,7 +89,7 @@ class StreamRecordsUnitTests {
 		assertThat(target.getValue()).isEqualTo(STRING_VAL);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void serializeMapRecordStringAsHashValue() {
 
 		MapRecord<String, String, String> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, STRING_VAL))
@@ -103,7 +103,7 @@ class StreamRecordsUnitTests {
 		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_STRING_VAL);
 	}
 
-	@Test // DATAVALKEY-993
+	@Test // DATAREDIS-993
 	void serializeMapRecordObjectAsHashValue() {
 
 		MapRecord<String, String, DummyObject> source = Record.of(Collections.singletonMap(STRING_MAP_KEY, OBJECT_VAL))
@@ -117,7 +117,7 @@ class StreamRecordsUnitTests {
 		assertThat(target.getValue().values().iterator().next()).isEqualTo(SERIALIZED_JSON_OBJECT_VAL);
 	}
 
-	@Test // DATAVALKEY-864
+	@Test // DATAREDIS-864
 	void deserializeByteMapRecord() {
 
 		ByteRecord source = StreamRecords.newRecord().in(SERIALIZED_STRING_STREAM_KEY).withId(RECORD_ID)

@@ -59,21 +59,21 @@ class ValkeyTemplateUnitTests {
 		template.afterPropertiesSet();
 	}
 
-	@Test // DATAVALKEY-277
+	@Test // DATAREDIS-277
 	void replicaOfIsDelegatedToConnectionCorrectly() {
 
 		template.replicaOf("127.0.0.1", 1001);
 		verify(valkeyConnectionMock, times(1)).replicaOf(eq("127.0.0.1"), eq(1001));
 	}
 
-	@Test // DATAVALKEY-277
+	@Test // DATAREDIS-277
 	void replicaOfNoOneIsDelegatedToConnectionCorrectly() {
 
 		template.replicaOfNoOne();
 		verify(valkeyConnectionMock, times(1)).replicaOfNoOne();
 	}
 
-	@Test // DATAVALKEY-501
+	@Test // DATAREDIS-501
 	void templateShouldPassOnAndUseResoureLoaderClassLoaderToDefaultJdkSerializerWhenNotAlreadySet() {
 
 		ShadowingClassLoader scl = new ShadowingClassLoader(ClassLoader.getSystemClassLoader());
@@ -91,7 +91,7 @@ class ValkeyTemplateUnitTests {
 		assertThat(deserialized.getClass().getClassLoader()).isEqualTo((ClassLoader) scl);
 	}
 
-	@Test // DATAVALKEY-531
+	@Test // DATAREDIS-531
 	void executeWithStickyConnectionShouldNotCloseConnectionWhenDone() {
 
 		CapturingCallback callback = new CapturingCallback();
@@ -101,7 +101,7 @@ class ValkeyTemplateUnitTests {
 		verify(valkeyConnectionMock, never()).close();
 	}
 
-	@Test // DATAVALKEY-988
+	@Test // DATAREDIS-988
 	void executeSessionShouldReuseConnection() {
 
 		template.execute(new SessionCallback<Object>() {
@@ -119,7 +119,7 @@ class ValkeyTemplateUnitTests {
 		verify(valkeyConnectionMock).close();
 	}
 
-	@Test // DATAVALKEY-988
+	@Test // DATAREDIS-988
 	void executeSessionInTransactionShouldReuseConnection() {
 
 		template.execute(new SessionCallback<Object>() {
@@ -136,7 +136,7 @@ class ValkeyTemplateUnitTests {
 		verify(valkeyConnectionMock).close();
 	}
 
-	@Test // DATAVALKEY-988, DATAVALKEY-891
+	@Test // DATAREDIS-988, DATAREDIS-891
 	void transactionAwareTemplateShouldReleaseConnection() {
 
 		template.setEnableTransactionSupport(true);

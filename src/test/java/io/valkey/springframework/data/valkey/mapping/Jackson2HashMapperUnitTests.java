@@ -60,7 +60,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		return getMapper();
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapTypedListOfSimpleType() {
 
 		WithList source = new WithList();
@@ -68,7 +68,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapTypedListOfComplexType() {
 
 		WithList source = new WithList();
@@ -77,7 +77,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapTypedListOfComplexObjectWihtNestedElements() {
 
 		WithList source = new WithList();
@@ -92,7 +92,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapNestedObject() {
 
 		Person jon = new Person("jon", "snow", 19);
@@ -104,7 +104,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(jon);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapUntypedList() {
 
 		WithList source = new WithList();
@@ -112,7 +112,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapTypedMapOfSimpleTypes() {
 
 		WithMap source = new WithMap();
@@ -123,7 +123,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapTypedMapOfComplexTypes() {
 
 		WithMap source = new WithMap();
@@ -133,7 +133,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void shouldMapUntypedMap() {
 
 		WithMap source = new WithMap();
@@ -144,7 +144,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(source);
 	}
 
-	@Test // DATAVALKEY-423
+	@Test // DATAREDIS-423
 	void nestedStuff() {
 
 		WithList nestedList = new WithList();
@@ -163,7 +163,7 @@ public abstract class Jackson2HashMapperUnitTests extends AbstractHashMapperTest
 		assertBackAndForwardMapping(outer);
 	}
 
-	@Test // DATAVALKEY-1001
+	@Test // DATAREDIS-1001
 	void dateValueShouldBeTreatedCorrectly() {
 
 		WithDates source = new WithDates();

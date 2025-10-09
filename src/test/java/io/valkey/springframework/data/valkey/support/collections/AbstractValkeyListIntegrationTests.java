@@ -170,7 +170,7 @@ public abstract class AbstractValkeyListIntegrationTests<T> extends AbstractValk
 		assertThatIllegalArgumentException().isThrownBy(() -> list.addAll(1, asList));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1196
+	@ParameterizedValkeyTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void testIndexOfObject() {
 
@@ -671,7 +671,7 @@ public abstract class AbstractValkeyListIntegrationTests<T> extends AbstractValk
 		testPollLast();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1196
+	@ParameterizedValkeyTest // DATAREDIS-1196
 	@EnabledOnCommand("LPOS")
 	void lastIndexOf() {
 

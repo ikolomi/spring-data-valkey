@@ -36,27 +36,27 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 	private static final ValkeyClusterNode NODE2 = new ValkeyClusterNode(CLUSTER_HOST, MASTER_NODE_2_PORT);
 	private static final ValkeyClusterNode NODE3 = new ValkeyClusterNode(CLUSTER_HOST, MASTER_NODE_3_PORT);
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void pingShouldRespondCorrectly() {
 		connection.ping(NODE1).as(StepVerifier::create).expectNext("PONG").verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void lastSaveShouldRespondCorrectly() {
 		connection.serverCommands().lastSave(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void saveShouldRespondCorrectly() {
 		connection.serverCommands().save(NODE1).as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void dbSizeShouldRespondCorrectly() {
 		connection.serverCommands().dbSize(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void flushDbShouldRespondCorrectly() {
 
 		connection.serverCommands().flushDb() //
@@ -114,7 +114,7 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void flushAllShouldRespondCorrectly() {
 
 		connection.serverCommands().flushAll() //
@@ -172,7 +172,7 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 		connection.serverCommands().dbSize(NODE3).as(StepVerifier::create).expectNext(1L).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void infoShouldRespondCorrectly() {
 
 		connection.serverCommands().info(NODE1).as(StepVerifier::create) //
@@ -180,7 +180,7 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void standaloneInfoWithSectionShouldRespondCorrectly() {
 
 		connection.serverCommands().info(NODE1, "server").as(StepVerifier::create) //
@@ -190,7 +190,7 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void getConfigShouldRespondCorrectly() {
 
 		connection.serverCommands().getConfig(NODE1, "*").as(StepVerifier::create) //
@@ -200,7 +200,7 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void setConfigShouldApplyConfiguration() throws InterruptedException {
 
 		final String slowLogKey = "slowlog-max-len";
@@ -237,17 +237,17 @@ class LettuceReactiveClusterServerCommandsIntegrationTests extends LettuceReacti
 		}
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void configResetstatShouldRespondCorrectly() {
 		connection.serverCommands().resetConfigStats(NODE1).as(StepVerifier::create).expectNext("OK").verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void timeShouldRespondCorrectly() {
 		connection.serverCommands().time(NODE1).as(StepVerifier::create).expectNextCount(1).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-659
+	@Test // DATAREDIS-659
 	void getClientListShouldReportClient() {
 		connection.serverCommands().getClientList(NODE1).as(StepVerifier::create).expectNextCount(1).thenCancel().verify();
 	}

@@ -39,7 +39,7 @@ import io.valkey.springframework.data.valkey.test.extension.LettuceTestClientRes
  */
 class LettuceClientConfigurationUnitTests {
 
-	@Test // DATAVALKEY-574, DATAVALKEY-576, DATAVALKEY-667, DATAVALKEY-918, GH-2945
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667, DATAREDIS-918, GH-2945
 	void shouldCreateEmptyConfiguration() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.defaultConfiguration();
@@ -60,7 +60,7 @@ class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
-	@Test // DATAVALKEY-574, DATAVALKEY-576, DATAVALKEY-667
+	@Test // DATAREDIS-574, DATAREDIS-576, DATAREDIS-667
 	void shouldConfigureAllProperties() {
 
 		ClientOptions clientOptions = ClientOptions.create();
@@ -90,7 +90,7 @@ class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ofMinutes(5));
 	}
 
-	@Test // DATAVALKEY-881
+	@Test // DATAREDIS-881
 	void shutdownQuietPeriodShouldDefaultInitialValue() {
 
 		LettuceClientConfiguration configuration = LettuceClientConfiguration.builder()
@@ -100,12 +100,12 @@ class LettuceClientConfigurationUnitTests {
 		assertThat(configuration.getShutdownQuietPeriod()).isEqualTo(Duration.ZERO);
 	}
 
-	@Test // DATAVALKEY-576
+	@Test // DATAREDIS-576
 	void clientConfigurationThrowsExceptionForNullClientName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> LettuceClientConfiguration.builder().clientName(null));
 	}
 
-	@Test // DATAVALKEY-576
+	@Test // DATAREDIS-576
 	void clientConfigurationThrowsExceptionForEmptyClientName() {
 		assertThatIllegalArgumentException().isThrownBy(() -> LettuceClientConfiguration.builder().clientName(" "));
 	}

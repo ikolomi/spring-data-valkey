@@ -136,7 +136,7 @@ class LettuceConnectionFactoryTests {
 		assertThat(conn2.getNativeConnection()).isSameAs(connection.getNativeConnection());
 	}
 
-	@Test // DATAVALKEY-973
+	@Test // DATAREDIS-973
 	void testSelectDb() {
 
 		// put an item in database 0
@@ -152,7 +152,7 @@ class LettuceConnectionFactoryTests {
 		runSelectDbTest(nonSharingConnectionFactory);
 	}
 
-	@Test // DATAVALKEY-973
+	@Test // DATAREDIS-973
 	void testSelectDbReactive() {
 
 		LettuceConnectionFactory sharingConnectionFactory = newConnectionFactory(cf -> cf.setDatabase(1));
@@ -294,7 +294,7 @@ class LettuceConnectionFactoryTests {
 		assertThat(factory.getSharedConnection()).isNull();
 	}
 
-	@Test // DATAVALKEY-431
+	@Test // DATAREDIS-431
 	void dbIndexShouldBePropagatedCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
@@ -318,7 +318,7 @@ class LettuceConnectionFactoryTests {
 		}
 	}
 
-	@Test // DATAVALKEY-462
+	@Test // DATAREDIS-462
 	@Disabled("Until Lettuce upgrades to Sinks")
 	void factoryWorksWithoutClientResources() {
 
@@ -337,7 +337,7 @@ class LettuceConnectionFactoryTests {
 		}
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void factoryShouldReturnReactiveConnectionWhenCorrectly() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory();
@@ -349,7 +349,7 @@ class LettuceConnectionFactoryTests {
 		assertThat(factory.getReactiveConnection().execute(BaseRedisReactiveCommands::ping).blockFirst()).isEqualTo("PONG");
 	}
 
-	@Test // DATAVALKEY-667
+	@Test // DATAREDIS-667
 	void factoryCreatesPooledConnections() {
 
 		GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
@@ -379,7 +379,7 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-687
+	@Test // DATAREDIS-687
 	void connectsThroughValkeySocket() {
 
 		assumeTrue(EpollProvider.isAvailable() || KqueueProvider.isAvailable());
@@ -399,7 +399,7 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-762, DATAVALKEY-869
+	@Test // DATAREDIS-762, DATAREDIS-869
 	void factoryUsesElastiCacheMasterReplicaConnections() {
 
 		assumeTrue("No replicas connected to %s:%d".formatted(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -426,7 +426,7 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-1093
+	@Test // DATAREDIS-1093
 	void pubSubDoesNotSupportMasterReplicaConnections() {
 
 		assumeTrue("No replicas connected to %s:%d".formatted(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -448,7 +448,7 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-762, DATAVALKEY-869
+	@Test // DATAREDIS-762, DATAREDIS-869
 	void factoryUsesElastiCacheMasterWithoutMaster() {
 
 		assumeTrue("No replicas connected to %s:%d.".formatted(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -478,7 +478,7 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-580, DATAVALKEY-869
+	@Test // DATAREDIS-580, DATAREDIS-869
 	void factoryUsesMasterReplicaConnections() {
 
 		assumeTrue("No replicas connected to %s:%d".formatted(SettingsUtils.getHost(), SettingsUtils.getPort()),
@@ -504,7 +504,7 @@ class LettuceConnectionFactoryTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-576
+	@Test // DATAREDIS-576
 	void connectionAppliesClientName() {
 
 		LettuceClientConfiguration configuration = LettuceTestClientConfiguration.builder().clientName("clientName")
@@ -522,7 +522,7 @@ class LettuceConnectionFactoryTests {
 		connection.close();
 	}
 
-	@Test // DATAVALKEY-576
+	@Test // DATAREDIS-576
 	void getClientNameShouldEqualWithFactorySetting() {
 
 		LettuceConnectionFactory factory = new LettuceConnectionFactory(new ValkeyStandaloneConfiguration());

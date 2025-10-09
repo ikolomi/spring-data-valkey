@@ -76,7 +76,7 @@ class KeyExpirationEventMessageListenerIntegrationTests {
 		container.destroy();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void listenerShouldPublishEventCorrectly() {
 
 		byte[] key = ("to-expire:" + UUID.randomUUID().toString()).getBytes();
@@ -100,7 +100,7 @@ class KeyExpirationEventMessageListenerIntegrationTests {
 		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(key);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void listenerShouldNotReactToDeleteEvents() throws InterruptedException {
 
 		byte[] key = ("to-delete:" + UUID.randomUUID().toString()).getBytes();

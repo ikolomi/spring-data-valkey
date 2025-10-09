@@ -52,7 +52,7 @@ class BasicValkeyPersistentEntityUnitTests<T> {
 		entity = new BasicValkeyPersistentEntity<>(entityInformation, keySpaceResolver, ttlAccessor);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void addingMultipleIdPropertiesWithoutAnExplicitOneThrowsException() {
 
 
@@ -69,7 +69,7 @@ class BasicValkeyPersistentEntityUnitTests<T> {
 				.withMessageContaining("but already have a property");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	@SuppressWarnings("unchecked")
 	void addingMultipleExplicitIdPropertiesThrowsException() {
 
@@ -87,7 +87,7 @@ class BasicValkeyPersistentEntityUnitTests<T> {
 				.withMessageContaining("but already have a property");
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	@SuppressWarnings("unchecked")
 	void explicitIdPropertiyShouldBeFavoredOverNonExplicit() {
 

@@ -120,28 +120,28 @@ class LettuceConnectionUnitTests {
 	@SuppressWarnings({ "rawtypes", "deprecation" })
 	class BasicUnitTests extends AbstractConnectionUnitTestBase<RedisAsyncCommands> {
 
-		@Test // DATAVALKEY-184
+		@Test // DATAREDIS-184
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
 			connection.shutdown(null);
 			verify(asyncCommandsMock).shutdown(true);
 		}
 
-		@Test // DATAVALKEY-184
+		@Test // DATAREDIS-184
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.NOSAVE);
 			verify(asyncCommandsMock).shutdown(false);
 		}
 
-		@Test // DATAVALKEY-184
+		@Test // DATAREDIS-184
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 			connection.shutdown(ShutdownOption.SAVE);
 			verify(asyncCommandsMock).shutdown(true);
 		}
 
-		@Test // DATAVALKEY-267
+		@Test // DATAREDIS-267
 		public void killClientShouldDelegateCallCorrectly() {
 
 			String ipPort = "127.0.0.1:1001";
@@ -149,39 +149,39 @@ class LettuceConnectionUnitTests {
 			verify(asyncCommandsMock).clientKill(eq(ipPort));
 		}
 
-		@Test // DATAVALKEY-270
+		@Test // DATAREDIS-270
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();
 			verify(asyncCommandsMock).clientGetname();
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		void replicaOfShouldThrowExectpionWhenCalledForNullHost() {
 			assertThatIllegalArgumentException().isThrownBy(() -> connection.replicaOf(null, 0));
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		public void replicaOfShouldBeSentCorrectly() {
 
 			connection.replicaOf("127.0.0.1", 1001);
 			verify(asyncCommandsMock).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
-		@Test // DATAVALKEY-277
+		@Test // DATAREDIS-277
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 
 			connection.replicaOfNoOne();
 			verify(asyncCommandsMock).slaveofNoOne();
 		}
 
-		@Test // DATAVALKEY-348
+		@Test // DATAREDIS-348
 		void shouldThrowExceptionWhenAccessingValkeySentinelsCommandsWhenNoSentinelsConfigured() {
 			assertThatExceptionOfType(InvalidDataAccessResourceUsageException.class)
 					.isThrownBy(() -> connection.getSentinelConnection());
 		}
 
-		@Test // DATAVALKEY-431, GH-2984
+		@Test // DATAREDIS-431, GH-2984
 		void dbIndexShouldBeSetWhenObtainingConnection() {
 
 			connection = new LettuceConnection(null, 0, clientMock, 0);
@@ -192,7 +192,7 @@ class LettuceConnectionUnitTests {
 			verifyNoInteractions(commandsMock);
 		}
 
-		@Test // DATAVALKEY-603
+		@Test // DATAREDIS-603
 		void translatesUnknownExceptions() {
 
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
@@ -203,7 +203,7 @@ class LettuceConnectionUnitTests {
 			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes())).hasRootCause(exception);
 		}
 
-		@Test // DATAVALKEY-603
+		@Test // DATAREDIS-603
 		void translatesPipelineUnknownExceptions() {
 
 			IllegalArgumentException exception = new IllegalArgumentException("Aw, snap");
@@ -215,7 +215,7 @@ class LettuceConnectionUnitTests {
 			assertThatThrownBy(() -> connection.set("foo".getBytes(), "bar".getBytes())).hasRootCause(exception);
 		}
 
-		@Test // DATAVALKEY-1122
+		@Test // DATAREDIS-1122
 		void xaddShouldHonorMaxlen() {
 
 			MapRecord<byte[], byte[], byte[]> record = MapRecord.create("key".getBytes(), Collections.emptyMap());
@@ -227,7 +227,7 @@ class LettuceConnectionUnitTests {
 			assertThat(args.getValue()).extracting("maxlen").isEqualTo(100L);
 		}
 
-		@Test // DATAVALKEY-1226
+		@Test // DATAREDIS-1226
 		void xClaimShouldNotAddJustIdFlagToArgs() {
 
 			connection.streamCommands().xClaim("key".getBytes(), "group", "owner",
@@ -239,7 +239,7 @@ class LettuceConnectionUnitTests {
 			assertThat(ReflectionTestUtils.getField(args.getValue(), "justid")).isEqualTo(false);
 		}
 
-		@Test // DATAVALKEY-1226
+		@Test // DATAREDIS-1226
 		void xClaimJustIdShouldAddJustIdFlagToArgs() {
 
 			connection.streamCommands().xClaimJustId("key".getBytes(), "group", "owner",
@@ -431,32 +431,32 @@ class LettuceConnectionUnitTests {
 			connection.openPipeline();
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		@Disabled("SHUTDOWN not supported in pipeline")
 		public void shutdownWithSaveOptionIsCalledCorrectly() {
 
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		@Disabled("SHUTDOWN not supported in pipeline")
 		public void shutdownWithNosaveOptionIsCalledCorrectly() {
 
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		public void replicaOfShouldBeSentCorrectly() {
 
 			connection.replicaOf("127.0.0.1", 1001);
 			verify(asyncCommandsMock).slaveof(eq("127.0.0.1"), eq(1001));
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		@Disabled("SHUTDOWN not supported in pipeline")
 		public void shutdownWithNullOptionsIsCalledCorrectly() {
 
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		public void killClientShouldDelegateCallCorrectly() {
 
 			String ipPort = "127.0.0.1:1001";
@@ -464,14 +464,14 @@ class LettuceConnectionUnitTests {
 			verify(asyncCommandsMock).clientKill(eq(ipPort));
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		public void replicaOfNoOneShouldBeSentCorrectly() {
 
 			connection.replicaOfNoOne();
 			verify(asyncCommandsMock).slaveofNoOne();
 		}
 
-		@Test // DATAVALKEY-528
+		@Test // DATAREDIS-528
 		public void getClientNameShouldSendRequestCorrectly() {
 
 			connection.getClientName();

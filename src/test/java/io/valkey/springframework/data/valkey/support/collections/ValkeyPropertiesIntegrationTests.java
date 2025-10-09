@@ -185,7 +185,7 @@ public class ValkeyPropertiesIntegrationTests extends ValkeyMapIntegrationTests 
 		assertThat(keys.contains(key3)).isTrue();
 	}
 
-	// DATAVALKEY-241
+	// DATAREDIS-241
 	public static Collection<Object[]> testParams() {
 
 		OxmSerializer serializer = XstreamOxmSerializerSingleton.getInstance();

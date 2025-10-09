@@ -54,7 +54,7 @@ class DefaultScriptExecutorUnitTests {
 		executor = new DefaultScriptExecutor<>(template);
 	}
 
-	@Test // DATAVALKEY-347
+	@Test // DATAREDIS-347
 	void excuteCheckForPresenceOfScriptViaEvalSha1() {
 
 		when(valkeyConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn("FOO".getBytes());
@@ -64,7 +64,7 @@ class DefaultScriptExecutorUnitTests {
 		verify(valkeyConnectionMock, times(1)).evalSha(anyString(), any(ReturnType.class), anyInt());
 	}
 
-	@Test // DATAVALKEY-347
+	@Test // DATAREDIS-347
 	void excuteShouldNotCallEvalWhenSha1Exists() {
 
 		when(valkeyConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenReturn("FOO".getBytes());
@@ -74,7 +74,7 @@ class DefaultScriptExecutorUnitTests {
 		verify(valkeyConnectionMock, never()).eval(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
-	@Test // DATAVALKEY-347
+	@Test // DATAREDIS-347
 	void excuteShouldUseEvalInCaseNoSha1PresentForGivenScript() {
 
 		when(valkeyConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
@@ -85,7 +85,7 @@ class DefaultScriptExecutorUnitTests {
 		verify(valkeyConnectionMock, times(1)).eval(any(byte[].class), any(ReturnType.class), anyInt());
 	}
 
-	@Test // DATAVALKEY-347
+	@Test // DATAREDIS-347
 	void excuteShouldThrowExceptionInCaseEvalShaFailsWithOtherThanValkeySystemException() {
 
 		when(valkeyConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(
@@ -94,7 +94,7 @@ class DefaultScriptExecutorUnitTests {
 		assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> executor.execute(SCRIPT, null));
 	}
 
-	@Test // DATAVALKEY-347
+	@Test // DATAREDIS-347
 	void excuteShouldThrowExceptionInCaseEvalShaFailsWithAlthoughTheScriptExists() {
 
 		when(valkeyConnectionMock.evalSha(anyString(), any(ReturnType.class), anyInt())).thenThrow(

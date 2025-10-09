@@ -33,7 +33,7 @@ import io.valkey.springframework.data.valkey.connection.ValkeyStringCommands;
  */
 class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void mSetNXShouldAddMultipleKeyValuePairsWhenMappedToSameSlot() {
 
 		Map<ByteBuffer, ByteBuffer> map = new LinkedHashMap<>();
@@ -46,7 +46,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void mSetNXShouldNotAddMultipleKeyValuePairsWhenAlreadyExitAndMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_2, VALUE_2);
@@ -61,7 +61,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_2)).isEqualTo(VALUE_2);
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void bitOpAndShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -72,7 +72,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo("value-0");
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void bitOpOrShouldWorkAsExpectedWhenKeysMapToSameSlot() {
 
 		nativeCommands.set(SAME_SLOT_KEY_1, VALUE_1);
@@ -83,7 +83,7 @@ class LettuceReactiveClusterStringCommandsIntegrationTests extends LettuceReacti
 		assertThat(nativeCommands.get(SAME_SLOT_KEY_3)).isEqualTo(VALUE_3);
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void bitNotShouldThrowExceptionWhenMoreThanOnSourceKeyAndKeysMapToSameSlot() {
 		assertThatIllegalArgumentException().isThrownBy(
 				() -> connection.stringCommands().bitOp(Arrays.asList(SAME_SLOT_KEY_1_BBUFFER, SAME_SLOT_KEY_2_BBUFFER),

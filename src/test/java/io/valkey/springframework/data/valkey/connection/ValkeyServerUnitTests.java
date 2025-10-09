@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  */
 class ValkeyServerUnitTests {
 
-	@Test // DATAVALKEY-618
+	@Test // DATAREDIS-618
 	void shouldReadNumberOfOtherSentinelsCorrectly() {
 
 		ValkeyServer valkeyServer = ValkeyServer.newServerFrom(createProperties());

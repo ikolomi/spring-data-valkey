@@ -52,7 +52,7 @@ class KeyExpirationEventMessageListenerUnitTests {
 		listener.setApplicationEventPublisher(publisherMock);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void handleMessageShouldPublishKeyExpiredEvent() {
 
 		listener.onMessage(MESSAGE, "*".getBytes());
@@ -64,7 +64,7 @@ class KeyExpirationEventMessageListenerUnitTests {
 		assertThat((byte[]) captor.getValue().getSource()).isEqualTo(MESSAGE_BODY.getBytes());
 	}
 
-	@Test // DATAVALKEY-425, DATAVALKEY-692
+	@Test // DATAREDIS-425, DATAREDIS-692
 	void handleMessageShouldNotRespondToEmptyMessage() {
 
 		listener.onMessage(new DefaultMessage(new byte[] {}, new byte[] {}), "*".getBytes());

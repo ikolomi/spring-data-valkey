@@ -37,18 +37,18 @@ import io.valkey.springframework.data.valkey.connection.ValkeyClusterNode;
  */
 class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClusterTestSupport {
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void pingShouldReturnPong() {
 		connection.ping().as(StepVerifier::create).expectNext("PONG").verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void pingShouldReturnPongForServers() {
 		connection.clusterGetNodes().flatMap(connection::ping).as(StepVerifier::create)
 				.expectNext("PONG", "PONG", "PONG", "PONG").verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetNodesShouldReturnNodes() {
 
 		connection.clusterGetNodes().collectList() //
@@ -59,7 +59,7 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 				}).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetReplicasShouldReturnNodes() {
 
 		connection.clusterGetNodes().filter(ValkeyClusterNode::isMaster)
@@ -73,7 +73,7 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 				}).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetMasterReplicaMapShouldReportTopology() {
 
 		connection.clusterGetMasterReplicaMap() //
@@ -84,7 +84,7 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 				}).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetSlotForKeyShouldResolveSlot() {
 
 		connection.clusterGetSlotForKey(ByteBuffer.wrap("hello".getBytes())) //
@@ -93,7 +93,7 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 				.verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetNodeForSlotShouldReportNode() {
 
 		connection.clusterGetNodeForSlot(866) //
@@ -104,7 +104,7 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 				}).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetNodeForKeyShouldReportNode() {
 
 		connection.clusterGetNodeForKey(ByteBuffer.wrap("hello".getBytes())) //
@@ -115,7 +115,7 @@ class LettuceReactiveClusterCommandsIntegrationTests extends LettuceReactiveClus
 				}).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-1150
+	@Test // DATAREDIS-1150
 	void clusterGetClusterInfoShouldReportState() {
 
 		connection.clusterGetClusterInfo() //

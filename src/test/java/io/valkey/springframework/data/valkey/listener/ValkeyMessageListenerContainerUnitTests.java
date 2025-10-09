@@ -82,7 +82,7 @@ class ValkeyMessageListenerContainerUnitTests {
 		container.afterPropertiesSet();
 	}
 
-	@Test // DATAVALKEY-840
+	@Test // DATAREDIS-840
 	void containerShouldStopGracefullyOnUnsubscribeErrors() {
 
 		when(connectionFactoryMock.getConnection()).thenReturn(connectionMock);

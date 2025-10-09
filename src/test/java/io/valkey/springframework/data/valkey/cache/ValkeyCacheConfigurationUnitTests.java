@@ -41,7 +41,7 @@ import org.springframework.lang.Nullable;
  */
 class ValkeyCacheConfigurationUnitTests {
 
-	@Test // DATAVALKEY-763
+	@Test // DATAREDIS-763
 	void shouldSetClassLoader() {
 
 		ShadowingClassLoader classLoader = new ShadowingClassLoader(getClass().getClassLoader());
@@ -57,7 +57,7 @@ class ValkeyCacheConfigurationUnitTests {
 		assertThat(usedClassLoader).isSameAs(classLoader);
 	}
 
-	@Test // DATAVALKEY-1032
+	@Test // DATAREDIS-1032
 	void shouldAllowConverterRegistration() {
 
 		ValkeyCacheConfiguration config = ValkeyCacheConfiguration.defaultCacheConfig();

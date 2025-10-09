@@ -134,7 +134,7 @@ abstract public class AbstractConnectionTransactionIntegrationTests extends Abst
 				.isThrownBy(() -> connection.watch("foo".getBytes()));
 	}
 
-	@Test // DATAVALKEY-417
+	@Test // DATAREDIS-417
 	@Disabled
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection() {

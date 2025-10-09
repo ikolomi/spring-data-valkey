@@ -90,7 +90,7 @@ public class BoundKeyOperationsIntegrationTests {
 		assertThat(keyOps.getKey()).isEqualTo(key);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-251
+	@ParameterizedValkeyTest // DATAREDIS-251
 	void testExpire() throws Exception {
 
 		assertThat(keyOps.getExpire()).as(keyOps.getClass().getName() + " -> " + keyOps.getKey())
@@ -102,7 +102,7 @@ public class BoundKeyOperationsIntegrationTests {
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-251
+	@ParameterizedValkeyTest // DATAREDIS-251
 	void testPersist() throws Exception {
 
 		keyOps.persist();

@@ -146,7 +146,7 @@ abstract public class AbstractConnectionPipelineIntegrationTests extends Abstrac
 		assertThat(results.isEmpty()).isTrue();
 	}
 
-	@Test // DATAVALKEY-417
+	@Test // DATAREDIS-417
 	@Disabled
 	@Override
 	public void scanShouldReadEntireValueRangeWhenIndividualScanIterationsReturnEmptyCollection() {

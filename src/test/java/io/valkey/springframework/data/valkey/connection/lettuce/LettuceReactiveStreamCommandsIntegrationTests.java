@@ -52,7 +52,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		super(fixture);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xAddShouldAddMessage() {
 
 		connection.streamCommands().xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_2_BBUFFER, VALUE_2_BBUFFER)) //
@@ -66,7 +66,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xDelShouldRemoveMessage() {
 
 		RecordId messageId = connection.streamCommands()
@@ -83,7 +83,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xRangeShouldReportMessages() {
 
 		connection.streamCommands().xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
@@ -116,7 +116,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xReadShouldReadMessage() {
 
 		connection.streamCommands().xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
@@ -134,7 +134,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xReadGroupShouldReadMessage() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -154,7 +154,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xRevRangeShouldReportMessages() {
 
 		connection.streamCommands().xAdd(KEY_1_BBUFFER, Collections.singletonMap(KEY_1_BBUFFER, VALUE_1_BBUFFER)) //
@@ -177,7 +177,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xGroupCreateShouldCreateGroup() {
 
 		nativeCommands.xadd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2));
@@ -188,7 +188,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xGroupCreateShouldCreateGroupBeforeStream() {
 		connection.streamCommands().xGroupCreate(KEY_1_BBUFFER, "group-1", ReadOffset.latest(), false)
 				.as(StepVerifier::create) //
@@ -201,7 +201,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	@Ignore("commands sent correctly - however lettuce returns false")
 	void xGroupDelConsumerShouldRemoveConsumer() {
 
@@ -216,7 +216,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void xGroupDestroyShouldDestroyGroup() {
 
 		String id = nativeCommands.xadd(KEY_1, Collections.singletonMap(KEY_2, VALUE_2));
@@ -227,7 +227,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xPendingShouldLoadOverviewCorrectly() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -252,7 +252,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xPendingShouldLoadEmptyOverviewCorrectly() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -269,7 +269,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xPendingShouldLoadPendingMessages() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -294,7 +294,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xPendingShouldLoadPendingMessagesForConsumer() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -319,7 +319,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xPendingShouldLoadPendingMessagesForNonExistingConsumer() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -340,7 +340,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xPendingShouldLoadEmptyPendingMessages() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -354,7 +354,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void xClaim() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);
@@ -376,7 +376,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfo() {
 
 		String firstRecord = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -397,7 +397,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfoNoGroup() {
 
 		String firstRecord = nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -415,7 +415,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfoGroups() {
 
 		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -433,7 +433,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfoGroupsNoGroup() {
 
 		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -443,7 +443,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfoGroupsNoConsumer() {
 
 		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -459,7 +459,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfoConsumers() {
 
 		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -477,7 +477,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 				}).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1119
+	@ParameterizedValkeyTest // DATAREDIS-1119
 	void xinfoConsumersNoConsumer() {
 
 		nativeCommands.xadd(KEY_1, KEY_2, VALUE_2);
@@ -487,7 +487,7 @@ public class LettuceReactiveStreamCommandsIntegrationTests extends LettuceReacti
 		connection.streamCommands().xInfoConsumers(KEY_1_BBUFFER, "my-group").as(StepVerifier::create).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1226
+	@ParameterizedValkeyTest // DATAREDIS-1226
 	void xClaimJustId() {
 
 		String initialMessage = nativeCommands.xadd(KEY_1, KEY_1, VALUE_1);

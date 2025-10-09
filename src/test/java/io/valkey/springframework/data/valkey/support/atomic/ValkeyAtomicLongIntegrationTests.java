@@ -107,7 +107,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(longCounter.decrementAndGet()).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-469
+	@ParameterizedValkeyTest // DATAREDIS-469
 	void testGetAndIncrement() {
 
 		longCounter.set(1);
@@ -115,7 +115,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-469
+	@ParameterizedValkeyTest // DATAREDIS-469
 	void testGetAndAdd() {
 
 		longCounter.set(1);
@@ -123,7 +123,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(6);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-469
+	@ParameterizedValkeyTest // DATAREDIS-469
 	void testGetAndDecrement() {
 
 		longCounter.set(1);
@@ -131,7 +131,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-469
+	@ParameterizedValkeyTest // DATAREDIS-469
 	void testGetAndSet() {
 
 		longCounter.set(1);
@@ -147,7 +147,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(longCounter.get()).isEqualTo(keyCopy.get());
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-317
+	@ParameterizedValkeyTest // DATAREDIS-317
 	void testShouldThrowExceptionIfAtomicLongIsUsedWithValkeyTemplateAndNoKeySerializer() {
 
 		assertThatExceptionOfType(IllegalArgumentException.class)
@@ -155,7 +155,7 @@ public class ValkeyAtomicLongIntegrationTests {
 				.withMessageContaining("a valid key serializer in template is required");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-317
+	@ParameterizedValkeyTest // DATAREDIS-317
 	void testShouldThrowExceptionIfAtomicLongIsUsedWithValkeyTemplateAndNoValueSerializer() {
 
 		ValkeyTemplate<String, Long> template = new ValkeyTemplate<>();
@@ -165,7 +165,7 @@ public class ValkeyAtomicLongIntegrationTests {
 				.withMessageContaining("a valid value serializer in template is required");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-317
+	@ParameterizedValkeyTest // DATAREDIS-317
 	void testShouldBeAbleToUseValkeyAtomicLongWithProperlyConfiguredValkeyTemplate() {
 
 		ValkeyTemplate<String, Long> template = new ValkeyTemplate<>();
@@ -174,13 +174,13 @@ public class ValkeyAtomicLongIntegrationTests {
 		template.setValueSerializer(new GenericToStringSerializer<>(Long.class));
 		template.afterPropertiesSet();
 
-		ValkeyAtomicLong ral = new ValkeyAtomicLong("DATAVALKEY-317.atomicLong", template);
+		ValkeyAtomicLong ral = new ValkeyAtomicLong("DATAREDIS-317.atomicLong", template);
 		ral.set(32L);
 
 		assertThat(ral.get()).isEqualTo(32L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-469
+	@ParameterizedValkeyTest // DATAREDIS-469
 	void getThrowsExceptionWhenKeyHasBeenRemoved() {
 
 		// setup long
@@ -193,7 +193,7 @@ public class ValkeyAtomicLongIntegrationTests {
 				.withMessageContaining("'test' seems to no longer exist");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-469
+	@ParameterizedValkeyTest // DATAREDIS-469
 	void getAndSetReturnsZeroWhenKeyHasBeenRemoved() {
 
 		// setup long
@@ -205,7 +205,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(test.getAndSet(2)).isZero();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void updateAndGetAppliesGivenUpdateFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -227,7 +227,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void updateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -248,7 +248,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void getAndUpdateAppliesGivenUpdateFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -270,7 +270,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void getAndUpdateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -291,7 +291,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void accumulateAndGetAppliesGivenAccumulatorFunctionAndReturnsUpdatedValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -313,7 +313,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void accumulateAndGetUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -335,7 +335,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void getAndAccumulateAppliesGivenAccumulatorFunctionAndReturnsOriginalValue() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();
@@ -357,7 +357,7 @@ public class ValkeyAtomicLongIntegrationTests {
 		assertThat(operatorHasBeenApplied).isTrue();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-874
+	@ParameterizedValkeyTest // DATAREDIS-874
 	void getAndAccumulateUsesCorrectArguments() {
 
 		AtomicBoolean operatorHasBeenApplied = new AtomicBoolean();

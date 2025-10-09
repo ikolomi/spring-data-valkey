@@ -77,7 +77,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		kvTemplate.delete(City.class);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void simpleFindShouldReturnEntitiesCorrectly() {
 
 		Person rand = new Person();
@@ -168,7 +168,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 				.contains(rand.getFirstname(), egwene.getFirstname());
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void simpleFindByMultipleProperties() {
 
 		Person egwene = new Person();
@@ -226,7 +226,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(repo.findAll(Sort.by(Sort.Direction.DESC, "firstname"))).containsSequence(marin, egwene);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void findReturnsReferenceDataCorrectly() {
 
 		// Prepare referenced data entry
@@ -256,7 +256,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(reLoaded.get().city).isNull();
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void findReturnsPageCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -279,7 +279,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(page2.getTotalElements()).isEqualTo(6L);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void findUsingOrReturnsResultCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -294,7 +294,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(eddardAndJon).contains(eddard, jon);
 	}
 
-	@Test // DATAVALKEY-547
+	@Test // DATAREDIS-547
 	void shouldApplyFirstKeywordCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -306,7 +306,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(repo.findFirstBy()).hasSize(1);
 	}
 
-	@Test // DATAVALKEY-547
+	@Test // DATAREDIS-547
 	void shouldApplyPageableCorrectlyWhenUsingFindAll() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -320,7 +320,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(repo.findAll(firstPage.nextPageable()).getContent()).hasSize(1);
 	}
 
-	@Test // DATAVALKEY-551
+	@Test // DATAREDIS-551
 	void shouldApplyPageableCorrectlyWhenUsingFindByWithoutCriteria() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -354,7 +354,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).contains(eddard, jon);
 	}
 
-	@Test // DATAVALKEY-771
+	@Test // DATAREDIS-771
 	void shouldFindByBooleanIsTrue() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -373,7 +373,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).containsExactly(eddard);
 	}
 
-	@Test // DATAVALKEY-771
+	@Test // DATAREDIS-771
 	void shouldFindByBooleanIsFalse() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -392,7 +392,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).containsExactly(robb);
 	}
 
-	@Test // DATAVALKEY-547
+	@Test // DATAREDIS-547
 	void shouldReturnEmptyListWhenPageableOutOfBoundsUsingFindAll() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -405,7 +405,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(firstPage.getContent()).hasSize(0);
 	}
 
-	@Test // DATAVALKEY-547
+	@Test // DATAREDIS-547
 	void shouldReturnEmptyListWhenPageableOutOfBoundsUsingQueryMethod() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -427,7 +427,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(page2.getTotalElements()).isEqualTo(3L);
 	}
 
-	@Test // DATAVALKEY-547
+	@Test // DATAREDIS-547
 	void shouldApplyTopKeywordCorrectly() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -439,7 +439,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(repo.findTop2By()).hasSize(2);
 	}
 
-	@Test // DATAVALKEY-547
+	@Test // DATAREDIS-547
 	void shouldApplyTopKeywordCorrectlyWhenCriteriaPresent() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -458,7 +458,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		}
 	}
 
-	@Test // DATAVALKEY-605
+	@Test // DATAREDIS-605
 	void shouldFindByExample() {
 
 		Person eddard = new Person("eddard", "stark");
@@ -474,7 +474,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).hasSize(3);
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void nearQueryShouldReturnResultsCorrectly() {
 
 		City palermo = new City();
@@ -492,7 +492,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).contains(catania).doesNotContain(palermo);
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void nearQueryShouldFindNothingIfOutOfRange() {
 
 		City palermo = new City();
@@ -507,7 +507,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).isEmpty();
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void nearQueryShouldReturnResultsCorrectlyOnNestedProperty() {
 
 		City palermo = new City();
@@ -553,7 +553,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(result).containsOnly(p2);
 	}
 
-	@Test // DATAVALKEY-849
+	@Test // DATAREDIS-849
 	void shouldReturnNewObjectInstanceOnImmutableSave() {
 
 		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
@@ -563,7 +563,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(saved.id).isNotNull();
 	}
 
-	@Test // DATAVALKEY-849
+	@Test // DATAREDIS-849
 	void shouldReturnNewObjectInstanceOnImmutableSaveAll() {
 
 		Immutable object = new Immutable(null, "Walter", new Immutable("heisenberg", "White", null));
@@ -573,7 +573,7 @@ public abstract class ValkeyRepositoryIntegrationTestBase {
 		assertThat(saved.get(0).id).isNotNull();
 	}
 
-	@Test // DATAVALKEY-849
+	@Test // DATAREDIS-849
 	void shouldProperlyReadNestedImmutableObject() {
 
 		Immutable nested = new Immutable("heisenberg", "White", null);

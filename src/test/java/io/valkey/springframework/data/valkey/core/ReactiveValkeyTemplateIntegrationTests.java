@@ -121,7 +121,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.opsForValue().get(targetKey).as(StepVerifier::create).expectNext(nextValue).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void exists() {
 
 		K key = keyFactory.instance();
@@ -158,7 +158,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.countExistingKeys(List.of(key)).as(StepVerifier::create).expectNext(0L).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-743
+	@ParameterizedValkeyTest // DATAREDIS-743
 	void scan() {
 
 		assumeThat(valueFactory.instance() instanceof Person).isFalse();
@@ -175,7 +175,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void type() {
 
 		K key = keyFactory.instance();
@@ -188,7 +188,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.type(key).as(StepVerifier::create).expectNext(DataType.STRING).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void rename() {
 
 		K oldName = keyFactory.instance();
@@ -203,7 +203,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void renameNx() {
 
 		K oldName = keyFactory.instance();
@@ -228,7 +228,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.verify();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-693
+	@ParameterizedValkeyTest // DATAREDIS-693
 	void unlink() {
 
 		K single = keyFactory.instance();
@@ -241,7 +241,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.hasKey(single).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-693
+	@ParameterizedValkeyTest // DATAREDIS-693
 	void unlinkMany() {
 
 		K key1 = keyFactory.instance();
@@ -258,7 +258,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-913
+	@ParameterizedValkeyTest // DATAREDIS-913
 	void unlinkManyPublisher() {
 
 		K key1 = keyFactory.instance();
@@ -277,7 +277,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-913
+	@ParameterizedValkeyTest // DATAREDIS-913
 	void deleteManyPublisher() {
 
 		K key1 = keyFactory.instance();
@@ -296,7 +296,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.hasKey(key2).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	@SuppressWarnings("unchecked")
 	void executeScript() {
 
@@ -314,7 +314,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		execute.as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-683
+	@ParameterizedValkeyTest // DATAREDIS-683
 	void executeScriptWithElementReaderAndWriter() {
 
 		K key = keyFactory.instance();
@@ -339,7 +339,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		execute.as(StepVerifier::create).expectNext(person).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void expire() {
 
 		K key = keyFactory.instance();
@@ -371,7 +371,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(5))).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void preciseExpire() {
 
 		K key = keyFactory.instance();
@@ -403,7 +403,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.consumeNextWith(actual -> assertThat(actual).isGreaterThan(Duration.ofSeconds(5))).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void expireAt() {
 
 		K key = keyFactory.instance();
@@ -420,7 +420,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void preciseExpireAt() {
 
 		K key = keyFactory.instance();
@@ -437,7 +437,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void getTtlForAbsentKeyShouldCompleteWithoutValue() {
 
 		K key = keyFactory.instance();
@@ -445,7 +445,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.getExpire(key).as(StepVerifier::create).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void getTtlForKeyWithoutExpiryShouldCompleteWithZeroDuration() {
 
 		K key = keyFactory.instance();
@@ -456,7 +456,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.getExpire(key).as(StepVerifier::create).expectNext(Duration.ZERO).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void move() {
 
 		try (ReactiveValkeyClusterConnection connection = valkeyTemplate.getConnectionFactory()
@@ -473,7 +473,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valkeyTemplate.hasKey(key).as(StepVerifier::create).expectNext(false).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void shouldApplyCustomSerializationContextToValues() {
 
 		Person key = new PersonObjectFactory().instance();
@@ -494,7 +494,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		valueOperations.get(key).as(StepVerifier::create).expectNext(value).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-602
+	@ParameterizedValkeyTest // DATAREDIS-602
 	void shouldApplyCustomSerializationContextToHash() {
 
 		ValkeySerializationContext<K, V> serializationContext = valkeyTemplate.getSerializationContext();
@@ -517,7 +517,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 		hashOperations.get(key, hashField).as(StepVerifier::create).expectNext(hashValue).verifyComplete();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612
+	@ParameterizedValkeyTest // DATAREDIS-612
 	@EnabledIfLongRunningTest
 	void listenToChannelShouldReceiveChannelMessagesCorrectly() throws InterruptedException {
 
@@ -562,7 +562,7 @@ public class ReactiveValkeyTemplateIntegrationTests<K, V> {
 				.verify(Duration.ofSeconds(3));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-612
+	@ParameterizedValkeyTest // DATAREDIS-612
 	void listenToPatternShouldReceiveChannelMessagesCorrectly() {
 
 		String channel = "my-channel";

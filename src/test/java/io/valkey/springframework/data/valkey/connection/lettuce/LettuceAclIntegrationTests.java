@@ -44,7 +44,7 @@ import io.valkey.springframework.data.valkey.util.ConnectionVerifier;
 @EnabledOnCommand("HELLO")
 class LettuceAclIntegrationTests {
 
-	@Test // DATAVALKEY-1046
+	@Test // DATAREDIS-1046
 	void shouldConnectWithDefaultAuthentication() {
 
 		ValkeyStandaloneConfiguration standaloneConfiguration = new ValkeyStandaloneConfiguration("localhost", 6382);
@@ -63,7 +63,7 @@ class LettuceAclIntegrationTests {
 				.verifyAndClose();
 	}
 
-	@Test // DATAVALKEY-1046
+	@Test // DATAREDIS-1046
 	void shouldConnectStandaloneWithAclAuthentication() {
 
 		ValkeyStandaloneConfiguration standaloneConfiguration = new ValkeyStandaloneConfiguration("localhost", 6382);
@@ -83,7 +83,7 @@ class LettuceAclIntegrationTests {
 				.verifyAndClose();
 	}
 
-	@Test // DATAVALKEY-1145
+	@Test // DATAREDIS-1145
 	@EnabledOnValkeySentinelAvailable(26382)
 	void shouldConnectSentinelWithAuthentication() throws IOException {
 
@@ -107,7 +107,7 @@ class LettuceAclIntegrationTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1046
+	@Test // DATAREDIS-1046
 	void shouldConnectMasterReplicaWithAclAuthentication() {
 
 		ValkeyStaticMasterReplicaConfiguration masterReplicaConfiguration = new ValkeyStaticMasterReplicaConfiguration(

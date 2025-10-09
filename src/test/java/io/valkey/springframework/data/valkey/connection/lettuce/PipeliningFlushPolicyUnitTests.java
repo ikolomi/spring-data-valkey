@@ -33,7 +33,7 @@ class PipeliningFlushPolicyUnitTests {
 
 	@Mock StatefulRedisConnection<?, ?> connection;
 
-	@Test // DATAVALKEY-1011
+	@Test // DATAREDIS-1011
 	void shouldFlushEachCommand() {
 
 		PipeliningFlushPolicy policy = PipeliningFlushPolicy.flushEachCommand();
@@ -47,7 +47,7 @@ class PipeliningFlushPolicyUnitTests {
 		verifyNoInteractions(connection);
 	}
 
-	@Test // DATAVALKEY-1011
+	@Test // DATAREDIS-1011
 	void shouldFlushOnClose() {
 
 		PipeliningFlushPolicy policy = PipeliningFlushPolicy.flushOnClose();
@@ -68,7 +68,7 @@ class PipeliningFlushPolicyUnitTests {
 		verify(connection).flushCommands();
 	}
 
-	@Test // DATAVALKEY-1011
+	@Test // DATAREDIS-1011
 	void shouldFlushOnBuffer() {
 
 		PipeliningFlushPolicy policy = PipeliningFlushPolicy.buffered(2);

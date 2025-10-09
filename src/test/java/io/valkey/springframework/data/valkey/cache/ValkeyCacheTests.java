@@ -97,7 +97,7 @@ public class ValkeyCacheTests {
 		this.cache = new ValkeyCache("cache", usingValkeyCacheWriter(), usingValkeyCacheConfiguration());
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putShouldAddEntry() {
 
 		cache.put("key-1", sample);
@@ -127,7 +127,7 @@ public class ValkeyCacheTests {
 		doWithConnection(connection -> assertThat(connection.exists(binaryCacheKey)).isTrue());
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putNullShouldAddEntryForNullValue() {
 
 		cache.put("key-1", null);
@@ -138,7 +138,7 @@ public class ValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putIfAbsentShouldAddEntryIfNotExists() {
 
 		cache.putIfAbsent("key-1", sample);
@@ -149,7 +149,7 @@ public class ValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putIfAbsentWithNullShouldAddNullValueEntryIfNotExists() {
 
 		assertThat(cache.putIfAbsent("key-1", null)).isNull();
@@ -160,7 +160,7 @@ public class ValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putIfAbsentShouldReturnExistingIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binarySample));
@@ -173,7 +173,7 @@ public class ValkeyCacheTests {
 		doWithConnection(connection -> assertThat(connection.get(binaryCacheKey)).isEqualTo(binarySample));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void putIfAbsentShouldReturnExistingNullValueIfExists() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -186,7 +186,7 @@ public class ValkeyCacheTests {
 		doWithConnection(connection -> assertThat(connection.get(binaryCacheKey)).isEqualTo(binaryNullValue));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void getShouldRetrieveEntry() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binarySample));
@@ -196,7 +196,7 @@ public class ValkeyCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void shouldReadAndWriteSimpleCacheKey() {
 
 		SimpleKey key = new SimpleKey("param-1", "param-2");
@@ -208,7 +208,7 @@ public class ValkeyCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void shouldRejectNonInvalidKey() {
 
 		InvalidKey key = new InvalidKey(sample.getFirstname(), sample.getBirthdate());
@@ -216,7 +216,7 @@ public class ValkeyCacheTests {
 		assertThatIllegalStateException().isThrownBy(() -> cache.put(key, sample));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void shouldAllowComplexKeyWithToStringMethod() {
 
 		ComplexKey key = new ComplexKey(sample.getFirstname(), sample.getBirthdate());
@@ -229,12 +229,12 @@ public class ValkeyCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void getShouldReturnNullWhenKeyDoesNotExist() {
 		assertThat(cache.get(key)).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void getShouldReturnValueWrapperHoldingNullIfNullValueStored() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -276,7 +276,7 @@ public class ValkeyCacheTests {
 		assertThat(counter).hasValue(1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void evictShouldRemoveKey() {
 
 		doWithConnection(connection -> {
@@ -331,7 +331,7 @@ public class ValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void getWithCallableShouldResolveValueIfNotPresent() {
 
 		assertThat(cache.get(key, () -> sample)).isEqualTo(sample);
@@ -342,7 +342,7 @@ public class ValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-481
+	@ParameterizedValkeyTest // DATAREDIS-481
 	void getWithCallableShouldNotResolveValueIfPresent() {
 
 		doWithConnection(connection -> connection.set(binaryCacheKey, binaryNullValue));
@@ -357,7 +357,7 @@ public class ValkeyCacheTests {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-715
+	@ParameterizedValkeyTest // DATAREDIS-715
 	void computePrefixCreatesCacheKeyCorrectly() {
 
 		ValkeyCache cacheWithCustomPrefix = new ValkeyCache("cache",
@@ -372,7 +372,7 @@ public class ValkeyCacheTests {
 						.isEqualTo(binarySample));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1041
+	@ParameterizedValkeyTest // DATAREDIS-1041
 	void prefixCacheNameCreatesCacheKeyCorrectly() {
 
 		ValkeyCache cacheWithCustomPrefix = new ValkeyCache("cache",
@@ -386,7 +386,7 @@ public class ValkeyCacheTests {
 				.isEqualTo(binarySample));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-715
+	@ParameterizedValkeyTest // DATAREDIS-715
 	void fetchKeyWithComputedPrefixReturnsExpectedResult() {
 
 		doWithConnection(connection -> connection.set("_cache_key-1".getBytes(StandardCharsets.UTF_8), binarySample));
@@ -402,7 +402,7 @@ public class ValkeyCacheTests {
 		assertThat(result.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1032
+	@ParameterizedValkeyTest // DATAREDIS-1032
 	void cacheShouldAllowListKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey(Collections.singletonList("my-cache-key-in-a-list"));
@@ -414,7 +414,7 @@ public class ValkeyCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1032
+	@ParameterizedValkeyTest // DATAREDIS-1032
 	void cacheShouldAllowArrayKeyCacheKeysOfSimpleTypes() {
 
 		Object key = SimpleKeyGenerator.generateKey("my-cache-key-in-an-array");
@@ -425,7 +425,7 @@ public class ValkeyCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1032
+	@ParameterizedValkeyTest // DATAREDIS-1032
 	void cacheShouldAllowListCacheKeysOfComplexTypes() {
 
 		Object key = SimpleKeyGenerator
@@ -438,7 +438,7 @@ public class ValkeyCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1032
+	@ParameterizedValkeyTest // DATAREDIS-1032
 	void cacheShouldAllowMapCacheKeys() {
 
 		Object key = SimpleKeyGenerator
@@ -451,7 +451,7 @@ public class ValkeyCacheTests {
 		assertThat(target.get()).isEqualTo(sample);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1032
+	@ParameterizedValkeyTest // DATAREDIS-1032
 	void cacheShouldFailOnNonConvertibleCacheKey() {
 
 		Object key = SimpleKeyGenerator

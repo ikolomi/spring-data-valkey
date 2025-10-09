@@ -82,7 +82,7 @@ public class DefaultReactiveScriptExecutorTests {
 		return connectionFactory;
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	void shouldReturnLong() {
 
 		DefaultValkeyScript<Long> script = new DefaultValkeyScript<>();
@@ -97,7 +97,7 @@ public class DefaultReactiveScriptExecutorTests {
 				.verifyComplete();
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	void shouldReturnBoolean() {
 
 		ValkeySerializationContextBuilder<String, Long> builder = ValkeySerializationContext
@@ -120,7 +120,7 @@ public class DefaultReactiveScriptExecutorTests {
 				.expectNext(false).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void shouldApplyCustomArgsSerializer() {
 
@@ -137,7 +137,7 @@ public class DefaultReactiveScriptExecutorTests {
 		mylist.as(StepVerifier::create).expectNext(Collections.singletonList("a")).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	void testExecuteMixedListResult() {
 
 		DefaultValkeyScript<List> script = new DefaultValkeyScript<>();
@@ -153,7 +153,7 @@ public class DefaultReactiveScriptExecutorTests {
 				.expectNext(Arrays.asList("a", 1L)).verifyComplete();
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	void shouldReturnValueResult() {
 
 		DefaultValkeyScript<String> script = new DefaultValkeyScript<>();
@@ -167,7 +167,7 @@ public class DefaultReactiveScriptExecutorTests {
 		foo.as(StepVerifier::create).expectNext("bar").expectNext();
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void shouldReturnStatusValue() {
 
@@ -187,7 +187,7 @@ public class DefaultReactiveScriptExecutorTests {
 		assertThat(stringTemplate.opsForValue().get("foo")).isEqualTo("3");
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	void shouldApplyCustomResultSerializer() {
 
 		Jackson2JsonValkeySerializer<Person> personSerializer = new Jackson2JsonValkeySerializer<>(Person.class);
@@ -212,7 +212,7 @@ public class DefaultReactiveScriptExecutorTests {
 		assertThat(template.opsForValue().get("bar")).isEqualTo(joe);
 	}
 
-	@Test // DATAVALKEY-711
+	@Test // DATAREDIS-711
 	void executeAddsScriptToScriptCache() {
 
 		DefaultValkeyScript<String> script = new DefaultValkeyScript<>();

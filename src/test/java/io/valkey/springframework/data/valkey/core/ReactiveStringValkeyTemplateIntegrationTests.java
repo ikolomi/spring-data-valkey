@@ -53,7 +53,7 @@ public class ReactiveStringValkeyTemplateIntegrationTests {
 				.verifyComplete();
 	}
 
-	@Test // DATAVALKEY-643
+	@Test // DATAREDIS-643
 	void shouldSetAndGetKeys() {
 
 		template.opsForValue().set("key", "value").as(StepVerifier::create).expectNext(true).verifyComplete();

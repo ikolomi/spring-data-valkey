@@ -35,7 +35,7 @@ class LettuceReactiveClusterKeyCommandsIntegrationTests extends LettuceReactiveC
 
 	private static final ValkeyClusterNode NODE_1 = newValkeyClusterNode().listeningAt("127.0.0.1", 7379).build();
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void keysShouldReturnOnlyKeysFromSelectedNode() {
 
 		nativeCommands.set(KEY_1, VALUE_1);
@@ -46,7 +46,7 @@ class LettuceReactiveClusterKeyCommandsIntegrationTests extends LettuceReactiveC
 		assertThat(result).containsExactly(KEY_1_BBUFFER);
 	}
 
-	@Test // DATAVALKEY-525
+	@Test // DATAREDIS-525
 	void randomkeyShouldReturnOnlyKeysFromSelectedNode() {
 
 		nativeCommands.set(KEY_1, VALUE_1);

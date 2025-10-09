@@ -42,7 +42,7 @@ class ValkeySentinelConfigurationUnitTests {
 	private static final String HOST_AND_PORT_2 = "localhost:456";
 	private static final String HOST_AND_PORT_3 = "localhost:789";
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldCreateValkeySentinelConfigurationCorrectlyGivenMasterAndSingleHostAndPortString() {
 
 		ValkeySentinelConfiguration config = new ValkeySentinelConfiguration("mymaster",
@@ -62,7 +62,7 @@ class ValkeySentinelConfigurationUnitTests {
 		assertThat(config.getSentinels()).contains(new ValkeyNode("ca:fee::1", 123));
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldCreateValkeySentinelConfigurationCorrectlyGivenMasterAndMultipleHostAndPortStrings() {
 
 		ValkeySentinelConfiguration config = new ValkeySentinelConfiguration("mymaster",
@@ -73,13 +73,13 @@ class ValkeySentinelConfigurationUnitTests {
 				new ValkeyNode("localhost", 789));
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldThrowExceptionWhenListOfHostAndPortIsNull() {
 		assertThatIllegalArgumentException()
 				.isThrownBy(() -> new ValkeySentinelConfiguration("mymaster", Collections.singleton(null)));
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldNotFailWhenListOfHostAndPortIsEmpty() {
 
 		ValkeySentinelConfiguration config = new ValkeySentinelConfiguration("mymaster", Collections.emptySet());
@@ -87,12 +87,12 @@ class ValkeySentinelConfigurationUnitTests {
 		assertThat(config.getSentinels()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldThrowExceptionGivenNullPropertySource() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeySentinelConfiguration.of(null));
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldNotFailWhenGivenPropertySourceNotContainingRelevantProperties() {
 
 		ValkeySentinelConfiguration config = ValkeySentinelConfiguration.of(new MockPropertySource());
@@ -101,7 +101,7 @@ class ValkeySentinelConfigurationUnitTests {
 		assertThat(config.getSentinels()).isEmpty();
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMasterAndSingleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
@@ -116,7 +116,7 @@ class ValkeySentinelConfigurationUnitTests {
 		assertThat(config.getSentinels()).contains(new ValkeyNode("127.0.0.1", 123));
 	}
 
-	@Test // DATAVALKEY-372
+	@Test // DATAREDIS-372
 	void shouldBeCreatedCorrectlyGivenValidPropertySourceWithMasterAndMultipleHostPort() {
 
 		MockPropertySource propertySource = new MockPropertySource();
@@ -131,7 +131,7 @@ class ValkeySentinelConfigurationUnitTests {
 				new ValkeyNode("localhost", 789));
 	}
 
-	@Test // DATAVALKEY-1060
+	@Test // DATAREDIS-1060
 	void dataNodePasswordDoesNotAffectSentinelPassword() {
 
 		ValkeyPassword password = ValkeyPassword.of("88888888-8x8-getting-creative-now");
@@ -154,7 +154,7 @@ class ValkeySentinelConfigurationUnitTests {
 		assertThat(configuration.getSentinelUsername()).isEqualTo("sentinel-admin");
 	}
 
-	@Test // DATAVALKEY-1060
+	@Test // DATAREDIS-1060
 	void readSentinelPasswordFromConfigProperty() {
 
 		MockPropertySource propertySource = new MockPropertySource();

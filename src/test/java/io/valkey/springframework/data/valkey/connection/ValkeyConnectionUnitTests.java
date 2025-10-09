@@ -67,7 +67,7 @@ class ValkeyConnectionUnitTests {
 		connection.setSentinelConnection(sentinelConnectionMock);
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldCloseSentinelConnectionAlongWithValkeyConnection() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true).thenReturn(false);
@@ -79,7 +79,7 @@ class ValkeyConnectionUnitTests {
 		verify(sentinelConnectionMock, times(1)).close();
 	}
 
-	@Test // DATAVALKEY-330
+	@Test // DATAREDIS-330
 	void shouldNotTryToCloseSentinelConnectionsWhenAlreadyClosed() throws IOException {
 
 		when(sentinelConnectionMock.isOpen()).thenReturn(true);

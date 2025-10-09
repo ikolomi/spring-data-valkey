@@ -56,7 +56,7 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	}
 
 	@Test
-	// DATAVALKEY-213 - Verify connection returns to pool after select
+	// DATAREDIS-213 - Verify connection returns to pool after select
 	public void testClosePoolPipelinedDbSelect() {
 
 		JedisPoolConfig config = new JedisPoolConfig();
@@ -76,20 +76,20 @@ public class JedisConnectionPipelineIntegrationTests extends AbstractConnectionP
 	}
 
 	// Unsupported Ops
-	@Test // DATAVALKEY-269
+	@Test // DATAREDIS-269
 	public void clientSetNameWorksCorrectly() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(super::clientSetNameWorksCorrectly);
 	}
 
 	@Test
 	@Override
-	// DATAVALKEY-268
+	// DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(super::testListClientsContainsAtLeastOneElement);
 	}
 
-	@Test // DATAVALKEY-296
+	@Test // DATAREDIS-296
 	@Disabled
 	public void testExecWithoutMulti() {}
 

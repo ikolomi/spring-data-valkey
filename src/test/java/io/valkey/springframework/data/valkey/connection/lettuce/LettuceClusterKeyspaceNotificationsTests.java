@@ -98,7 +98,7 @@ class LettuceClusterKeyspaceNotificationsTests {
 		factory.destroy();
 	}
 
-	@Test // DATAVALKEY-976
+	@Test // DATAREDIS-976
 	void shouldListenForKeyspaceNotifications() throws Exception {
 
 		CompletableFuture<String> expiry = new CompletableFuture<>();

@@ -50,7 +50,7 @@ class ValkeyCacheManagerUnitTests {
 
 	@Mock ValkeyCacheWriter cacheWriter;
 
-	@Test // DATAVALKEY-481
+	@Test // DATAREDIS-481
 	void missingCacheShouldBeCreatedWithDefaultConfiguration() {
 
 		ValkeyCacheConfiguration configuration = ValkeyCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
@@ -61,7 +61,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cm.getMissingCache("new-cache").getCacheConfiguration()).isEqualTo(configuration);
 	}
 
-	@Test // DATAVALKEY-481
+	@Test // DATAREDIS-481
 	void appliesDefaultConfigurationToInitialCache() {
 
 		ValkeyCacheConfiguration withPrefix = ValkeyCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
@@ -80,7 +80,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(((ValkeyCache) cm.getCache("other-cache")).getCacheConfiguration()).isEqualTo(withoutPrefix);
 	}
 
-	@Test // DATAVALKEY-481, DATAVALKEY-728
+	@Test // DATAREDIS-481, DATAREDIS-728
 	void predefinedCacheShouldBeCreatedWithSpecificConfig() {
 
 		ValkeyCacheConfiguration configuration = ValkeyCacheConfiguration.defaultCacheConfig().disableKeyPrefix();
@@ -95,7 +95,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cm.getMissingCache("new-cache").getCacheConfiguration()).isNotEqualTo(configuration);
 	}
 
-	@Test // DATAVALKEY-481
+	@Test // DATAREDIS-481
 	void transactionAwareCacheManagerShouldDecoracteCache() {
 
 		Cache cache = ValkeyCacheManager.builder(cacheWriter).transactionAware().build()
@@ -105,7 +105,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(ReflectionTestUtils.getField(cache, "targetCache")).isInstanceOf(ValkeyCache.class);
 	}
 
-	@Test // DATAVALKEY-767
+	@Test // DATAREDIS-767
 	void lockedCacheManagerShouldPreventInFlightCacheCreation() {
 
 		ValkeyCacheManager cacheManager = ValkeyCacheManager.builder(cacheWriter).disableCreateOnMissingCache().build();
@@ -114,7 +114,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cacheManager.getCache("not-configured")).isNull();
 	}
 
-	@Test // DATAVALKEY-767
+	@Test // DATAREDIS-767
 	void lockedCacheManagerShouldStillReturnPreconfiguredCaches() {
 
 		ValkeyCacheManager cacheManager = ValkeyCacheManager.builder(cacheWriter)
@@ -124,7 +124,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cacheManager.getCache("configured")).isNotNull();
 	}
 
-	@Test // DATAVALKEY-935
+	@Test // DATAREDIS-935
 	void cacheManagerBuilderReturnsConfiguredCaches() {
 
 		ValkeyCacheManagerBuilder cmb = ValkeyCacheManager.builder(cacheWriter)
@@ -135,7 +135,7 @@ class ValkeyCacheManagerUnitTests {
 				.isThrownBy(() -> cmb.getConfiguredCaches().add("another"));
 	}
 
-	@Test // DATAVALKEY-935
+	@Test // DATAREDIS-935
 	void cacheManagerBuilderDoesNotAllowSneakingInConfiguration() {
 
 		ValkeyCacheManagerBuilder cmb = ValkeyCacheManager.builder(cacheWriter)
@@ -145,7 +145,7 @@ class ValkeyCacheManagerUnitTests {
 				.isThrownBy(() -> cmb.getConfiguredCaches().add("another"));
 	}
 
-	@Test // DATAVALKEY-935
+	@Test // DATAREDIS-935
 	void cacheManagerBuilderReturnsConfigurationForKnownCache() {
 
 		ValkeyCacheManagerBuilder cmb = ValkeyCacheManager.builder(cacheWriter)
@@ -154,7 +154,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cmb.getCacheConfigurationFor("configured")).isPresent();
 	}
 
-	@Test // DATAVALKEY-935
+	@Test // DATAREDIS-935
 	void cacheManagerBuilderReturnsEmptyOptionalForUnknownCache() {
 
 		ValkeyCacheManagerBuilder cmb = ValkeyCacheManager.builder(cacheWriter)
@@ -163,7 +163,7 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cmb.getCacheConfigurationFor("unknown")).isNotPresent();
 	}
 
-	@Test // DATAVALKEY-1118
+	@Test // DATAREDIS-1118
 	void shouldConfigureValkeyCacheWriter() {
 
 		ValkeyCacheWriter writerMock = mock(ValkeyCacheWriter.class);
@@ -173,17 +173,17 @@ class ValkeyCacheManagerUnitTests {
 		assertThat(cm).extracting("cacheWriter").isEqualTo(writerMock);
 	}
 
-	@Test // DATAVALKEY-1118
+	@Test // DATAREDIS-1118
 	void cacheWriterMustNotBeNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> ValkeyCacheManager.builder().cacheWriter(null));
 	}
 
-	@Test // DATAVALKEY-1118
+	@Test // DATAREDIS-1118
 	void builderShouldRequireCacheWriter() {
 		assertThatIllegalStateException().isThrownBy(() -> ValkeyCacheManager.builder().build());
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void builderSetsStatisticsCollectorWhenEnabled() {
 
 		when(cacheWriter.withStatisticsCollector(any())).thenReturn(cacheWriter);
@@ -192,7 +192,7 @@ class ValkeyCacheManagerUnitTests {
 		verify(cacheWriter).withStatisticsCollector(any(DefaultCacheStatisticsCollector.class));
 	}
 
-	@Test // DATAVALKEY-1082
+	@Test // DATAREDIS-1082
 	void builderWontSetStatisticsCollectorByDefault() {
 
 		ValkeyCacheManager.builder(cacheWriter).build();

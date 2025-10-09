@@ -92,7 +92,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void testGeoAdd() {
 
 		Long numAdded = geoOperations.add(keyFactory.instance(), POINT_PALERMO, valueFactory.instance());
@@ -100,7 +100,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(numAdded).isEqualTo(1L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void testGeoAddWithLocationMap() {
 
 		Map<M, Point> memberCoordinateMap = new HashMap<>();
@@ -112,7 +112,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(numAdded).isEqualTo(2L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoDistShouldReturnDistanceInMetersByDefault() {
 
 		K key = keyFactory.instance();
@@ -127,7 +127,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(dist.getUnit()).isEqualTo("m");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoDistShouldReturnDistanceInKilometersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -142,7 +142,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(dist.getUnit()).isEqualTo("km");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoDistShouldReturnDistanceInMilesCorrectly() {
 
 		K key = keyFactory.instance();
@@ -157,7 +157,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(dist.getUnit()).isEqualTo("mi");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoDistShouldReturnDistanceInFeeCorrectly() {
 
 		K key = keyFactory.instance();
@@ -172,7 +172,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(dist.getUnit()).isEqualTo("ft");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1214
+	@ParameterizedValkeyTest // DATAREDIS-1214
 	void geoDistShouldReturnNullIfNoDistanceCalculable() {
 
 		K key = keyFactory.instance();
@@ -188,7 +188,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(dist).isNull();
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void testGeoHash() {
 
 		K key = keyFactory.instance();
@@ -205,7 +205,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.get(1)).isEqualTo("sqdtr74hyu0");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void testGeoPos() {
 
 		K key = keyFactory.instance();
@@ -250,7 +250,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(results.getContent().get(0).getDistance().getValue()).isCloseTo(0, Offset.offset(0.005));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusShouldReturnMembersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -266,7 +266,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent()).hasSize(2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusShouldReturnLocationsWithDistance() {
 
 		K key = keyFactory.instance();
@@ -290,7 +290,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusShouldReturnLocationsWithCoordinates() {
 
 		K key = keyFactory.instance();
@@ -318,7 +318,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusShouldReturnLocationsWithCoordinatesAndDistance() {
 
 		K key = keyFactory.instance();
@@ -350,7 +350,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusByMemberShouldReturnMembersCorrectly() {
 
 		K key = keyFactory.instance();
@@ -366,7 +366,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent()).hasSize(3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusByMemberShouldReturnDistanceCorrectly() {
 
 		K key = keyFactory.instance();
@@ -388,7 +388,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusByMemberShouldReturnCoordinates() {
 
 		K key = keyFactory.instance();
@@ -417,7 +417,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void geoRadiusByMemberShouldReturnCoordinatesAndDistance() {
 
 		K key = keyFactory.instance();
@@ -449,7 +449,7 @@ public class DefaultGeoOperationsIntegrationTests<K, M> {
 		assertThat(result.getContent().get(1).getContent().getName()).isEqualTo(member3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-438, DATAVALKEY-614
+	@ParameterizedValkeyTest // DATAREDIS-438, DATAREDIS-614
 	void testGeoRemove() {
 
 		K key = keyFactory.instance();

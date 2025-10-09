@@ -141,7 +141,7 @@ class MessageListenerUnitTests {
 		verify(target).customMethodWithChannel(PAYLOAD, CHANNEL);
 	}
 
-	@Test // DATAVALKEY-92
+	@Test // DATAREDIS-92
 	void triggersListenerImplementingInterfaceCorrectly() {
 
 		SampleListener listener = new SampleListener();
@@ -157,7 +157,7 @@ class MessageListenerUnitTests {
 		assertThat(listener.count).isEqualTo(1);
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void defaultConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -170,7 +170,7 @@ class MessageListenerUnitTests {
 		verify(listener, times(1)).handleMessage(anyString(), anyString());
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void defaultConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -184,7 +184,7 @@ class MessageListenerUnitTests {
 		verify(listener, times(1)).handleMessage(any(byte[].class), anyString());
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void defaultConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -198,7 +198,7 @@ class MessageListenerUnitTests {
 		verify(listener, times(1)).handleMessage(any(Pojo.class), anyString());
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void customConcreteHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -212,7 +212,7 @@ class MessageListenerUnitTests {
 		verify(listener, times(1)).handle(anyString(), anyString());
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void customConcreteMessageOnlyHandlerMethodShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -226,7 +226,7 @@ class MessageListenerUnitTests {
 		verify(listener, times(1)).handleMessageOnly(anyString());
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void customConcreteHandlerMethodWithoutSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());
@@ -241,7 +241,7 @@ class MessageListenerUnitTests {
 		verify(listener, times(1)).handle(any(byte[].class), anyString());
 	}
 
-	@Test // DATAVALKEY-337
+	@Test // DATAREDIS-337
 	void customConcreteHandlerMethodWithCustomSerializerShouldOnlyBeInvokedOnce() {
 
 		ConcreteMessageHandler listener = spy(new ConcreteMessageHandler());

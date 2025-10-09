@@ -317,7 +317,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(results).containsExactly(true, 5L, 1L, 2L, Arrays.asList(10L, 11L));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-500
+	@ParameterizedValkeyTest // DATAREDIS-500
 	void testExecutePipelinedWidthDifferentHashKeySerializerAndHashValueSerializer() {
 
 		assumeThat(valkeyTemplate instanceof StringValkeyTemplate).isTrue();
@@ -409,7 +409,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 				}));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-688
+	@ParameterizedValkeyTest // DATAREDIS-688
 	void testDelete() {
 
 		K key1 = keyFactory.instance();
@@ -444,7 +444,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(valkeyTemplate.opsForValue().get(key2)).isEqualTo(value2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-688
+	@ParameterizedValkeyTest // DATAREDIS-688
 	void testDeleteMultiple() {
 
 		K key1 = keyFactory.instance();
@@ -566,14 +566,14 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(valkeyTemplate.getExpire(key1, TimeUnit.SECONDS)).isEqualTo(Long.valueOf(1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	void testGetExpireSecondsForKeyDoesNotExist() {
 
 		Long expire = valkeyTemplate.getExpire(keyFactory.instance(), TimeUnit.SECONDS);
 		assertThat(expire).isLessThan(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	void testGetExpireSecondsForKeyExistButHasNoAssociatedExpire() {
 
 		K key = keyFactory.instance();
@@ -582,7 +582,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	void testGetExpireMillisForKeyDoesNotExist() {
 
 		Long expire = valkeyTemplate.getExpire(keyFactory.instance(), TimeUnit.MILLISECONDS);
@@ -590,7 +590,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	void testGetExpireMillisForKeyExistButHasNoAssociatedExpire() {
 
 		K key = keyFactory.instance();
@@ -601,7 +601,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(expire).isLessThan(0L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	void testGetExpireMillis() {
 
 		K key = keyFactory.instance();
@@ -631,7 +631,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(ttl).isLessThan(25L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-611
+	@ParameterizedValkeyTest // DATAREDIS-611
 	void testGetExpireDuration() {
 
 		K key = keyFactory.instance();
@@ -644,7 +644,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(ttl).isLessThan(25L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testGetExpireMillisUsingTransactions() {
 
@@ -668,7 +668,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(((Long) result.get(2))).isLessThan(25L);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-526
+	@ParameterizedValkeyTest // DATAREDIS-526
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testGetExpireMillisUsingPipelining() {
 
@@ -700,7 +700,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		await().until(() -> !valkeyTemplate.hasKey(key1));
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-611
+	@ParameterizedValkeyTest // DATAREDIS-611
 	void testExpireAtInstant() {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -772,7 +772,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(valkeyTemplate.type(key1)).isEqualTo(DataType.STRING);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-506
+	@ParameterizedValkeyTest // DATAREDIS-506
 	public void testWatch() {
 		K key1 = keyFactory.instance();
 		V value1 = valueFactory.instance();
@@ -836,7 +836,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(valkeyTemplate.opsForValue().get(key1)).isEqualTo(value3);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-506
+	@ParameterizedValkeyTest // DATAREDIS-506
 	public void testWatchMultipleKeys() {
 
 		K key1 = keyFactory.instance();
@@ -895,7 +895,7 @@ public class ValkeyTemplateIntegrationTests<K, V> {
 		assertThat(valkeyTemplate.getClientList().size()).isNotEqualTo(0);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-529
+	@ParameterizedValkeyTest // DATAREDIS-529
 	void countExistingKeysReturnsNumberOfKeysCorrectly() {
 
 		Map<K, V> source = new LinkedHashMap<>(3, 1);

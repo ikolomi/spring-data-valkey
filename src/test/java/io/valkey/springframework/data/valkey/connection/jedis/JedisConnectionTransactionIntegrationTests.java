@@ -107,19 +107,19 @@ public class JedisConnectionTransactionIntegrationTests extends AbstractConnecti
 	@Disabled
 	public void testRestoreExistingKey() {}
 
-	@Test // DATAVALKEY-269
+	@Test // DATAREDIS-269
 	@Disabled
 	public void clientSetNameWorksCorrectly() {}
 
 	@Test
 	@Override
-	// DATAVALKEY-268
+	// DATAREDIS-268
 	public void testListClientsContainsAtLeastOneElement() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class)
 				.isThrownBy(super::testListClientsContainsAtLeastOneElement);
 	}
 
-	@Test // DATAVALKEY-296
+	@Test // DATAREDIS-296
 	@Disabled
 	public void testExecWithoutMulti() {}
 

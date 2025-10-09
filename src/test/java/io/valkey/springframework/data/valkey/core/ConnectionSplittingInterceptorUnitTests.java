@@ -66,7 +66,7 @@ class ConnectionSplittingInterceptorUnitTests {
 		when(connectionFactoryMock.getConnection()).thenReturn(freshConnectionMock);
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void interceptorShouldRequestFreshConnectionForReadonlyCommand() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, READONLY_METHOD, new Object[] { new byte[] {} });
@@ -74,7 +74,7 @@ class ConnectionSplittingInterceptorUnitTests {
 		verifyNoInteractions(boundConnectionMock);
 	}
 
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void interceptorShouldUseBoundConnectionForWriteOperations() throws Throwable {
 
 		interceptor.intercept(boundConnectionMock, WRITE_METHOD, new Object[] { new byte[] {}, 0L });
@@ -83,7 +83,7 @@ class ConnectionSplittingInterceptorUnitTests {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test // DATAVALKEY-73
+	@Test // DATAREDIS-73
 	void interceptorShouldNotWrapException() {
 
 		when(freshConnectionMock.keys(any(byte[].class))).thenThrow(

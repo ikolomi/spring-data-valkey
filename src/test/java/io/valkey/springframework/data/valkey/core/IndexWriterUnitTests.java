@@ -71,7 +71,7 @@ class IndexWriterUnitTests {
 		writer = new IndexWriter(connectionMock, converter);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void addKeyToIndexShouldInvokeSaddCorrectly() {
 
 		writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", "Rand"));
@@ -81,12 +81,12 @@ class IndexWriterUnitTests {
 				eq("persons:firstname:Rand".getBytes(CHARSET)));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void addKeyToIndexShouldThrowErrorWhenIndexedDataIsNull() {
 		assertThatIllegalArgumentException().isThrownBy(() -> writer.addKeyToIndex(KEY_BIN, null));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void removeKeyFromExistingIndexesShouldCheckForExistingIndexesForPath() {
 
 		writer.removeKeyFromExistingIndexes(KEY_BIN, new StubIndxedData());
@@ -95,7 +95,7 @@ class IndexWriterUnitTests {
 		verifyNoMoreInteractions(connectionMock);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void removeKeyFromExistingIndexesShouldRemoveKeyFromAllExistingIndexesForPath() {
 
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
@@ -110,12 +110,12 @@ class IndexWriterUnitTests {
 		verify(connectionMock).sRem(indexKey2, KEY_BIN);
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void removeKeyFromExistingIndexesShouldThrowExecptionForNullIndexedData() {
 		assertThatIllegalArgumentException().isThrownBy(() -> writer.removeKeyFromExistingIndexes(KEY_BIN, null));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void removeAllIndexesShouldDeleteAllIndexKeys() {
 
 		byte[] indexKey1 = "persons:firstname:rand".getBytes(CHARSET);
@@ -132,13 +132,13 @@ class IndexWriterUnitTests {
 		assertThat(captor.getAllValues()).contains(new byte[][] { indexKey1, indexKey2 });
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void addToIndexShouldThrowDataAccessExceptionWhenAddingDataThatConnotBeConverted() {
 		assertThatExceptionOfType(InvalidDataAccessApiUsageException.class).isThrownBy(
 				() -> writer.addKeyToIndex(KEY_BIN, new SimpleIndexedPropertyValue(KEYSPACE, "firstname", new DummyObject())));
 	}
 
-	@Test // DATAVALKEY-425
+	@Test // DATAREDIS-425
 	void addToIndexShouldUseRegisteredConverterWhenAddingData() {
 
 		DummyObject value = new DummyObject();
@@ -157,7 +157,7 @@ class IndexWriterUnitTests {
 		verify(connectionMock).sAdd(eq(("persons:firstname:" + identityHexString).getBytes(CHARSET)), eq(KEY_BIN));
 	}
 
-	@Test // DATAVALKEY-512
+	@Test // DATAREDIS-512
 	void createIndexShouldNotTryToRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
@@ -172,7 +172,7 @@ class IndexWriterUnitTests {
 		verify(connectionMock, never()).sRem(any(byte[].class), eq(KEY_BIN));
 	}
 
-	@Test // DATAVALKEY-512
+	@Test // DATAREDIS-512
 	void updateIndexShouldRemoveExistingValues() {
 
 		when(connectionMock.keys(any(byte[].class)))
@@ -187,7 +187,7 @@ class IndexWriterUnitTests {
 		verify(connectionMock, times(1)).sRem(any(byte[].class), eq(KEY_BIN));
 	}
 
-	@Test // DATAVALKEY-533
+	@Test // DATAREDIS-533
 	void removeGeoIndexShouldCallGeoRemove() {
 
 		byte[] indexKey1 = "persons:location".getBytes(CHARSET);

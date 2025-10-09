@@ -117,7 +117,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		});
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void addShouldAddMessage() {
 
 		K key = keyFactory.instance();
@@ -140,7 +140,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void addShouldAddReadSimpleMessage() {
 
 		K key = keyFactory.instance();
@@ -309,7 +309,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(streamOps.range(key, Range.unbounded())).hasSize(2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void simpleMessageReadWriteSymmetry() {
 
 		K key = keyFactory.instance();
@@ -331,7 +331,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(message.getValue().values()).containsExactly(value);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void rangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
@@ -374,7 +374,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(messages).hasSize(1).extracting(MapRecord::getId).contains(messageId1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void reverseRangeShouldReportMessages() {
 
 		K key = keyFactory.instance();
@@ -412,7 +412,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(messages).hasSize(2).extracting(MapRecord::getId).containsSequence(messageId2, messageId1);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void reverseRangeShouldConvertSimpleMessages() {
 
 		K key = keyFactory.instance();
@@ -433,7 +433,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(message.getValue()).isEqualTo(value);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void readShouldReadMessage() {
 
 		K key = keyFactory.instance();
@@ -456,7 +456,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void readShouldReadSimpleMessage() {
 
 		K key = keyFactory.instance();
@@ -478,7 +478,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(message.getValue()).isEqualTo(value);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void readShouldReadMessages() {
 
 		K key = keyFactory.instance();
@@ -494,7 +494,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(messages).hasSize(2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void readShouldReadMessageWithConsumerGroup() {
 
 		K key = keyFactory.instance();
@@ -519,7 +519,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		}
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-864
+	@ParameterizedValkeyTest // DATAREDIS-864
 	void sizeShouldReportStreamSize() {
 
 		K key = keyFactory.instance();
@@ -533,7 +533,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(streamOps.size(key)).isEqualTo(2);
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void pendingShouldReadMessageSummary() {
 		// XPENDING summary not supported by Jedis
 		assumeThat(valkeyTemplate.getRequiredConnectionFactory()).isInstanceOf(LettuceConnectionFactory.class);
@@ -553,7 +553,7 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		assertThat(pending.getGroupName()).isEqualTo("my-group");
 	}
 
-	@ParameterizedValkeyTest // DATAVALKEY-1084
+	@ParameterizedValkeyTest // DATAREDIS-1084
 	void pendingShouldReadMessageDetails() {
 
 		K key = keyFactory.instance();

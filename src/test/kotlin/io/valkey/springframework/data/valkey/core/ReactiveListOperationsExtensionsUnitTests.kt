@@ -36,7 +36,7 @@ import java.time.Duration
  */
 class ReactiveListOperationsExtensionsUnitTests {
 
-	@Test // DATAVALKEY-1033
+	@Test // DATAREDIS-1033
 	fun range() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -51,7 +51,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun trim() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -66,7 +66,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun size() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -81,7 +81,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun leftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -96,7 +96,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun leftPushAll() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -111,7 +111,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun leftPushAllCollection() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -126,7 +126,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun leftPushIfPresent() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -141,7 +141,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun leftPushPivot() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -156,7 +156,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rightPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -171,7 +171,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rightPushAll() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -186,7 +186,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rightPushAllCollection() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -201,7 +201,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rightPushIfPresent() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -216,7 +216,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rightPushPivot() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -231,7 +231,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun set() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -246,7 +246,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun remove() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -261,7 +261,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun index() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -276,7 +276,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun leftPop() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -307,7 +307,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun blockingLeftPop() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -322,7 +322,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun rightPop() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -354,7 +354,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun blockingRightPop() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -369,7 +369,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1111
+	@Test // DATAREDIS-1111
 	fun rightPopAndLeftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -384,7 +384,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-1111
+	@Test // DATAREDIS-1111
 	fun blockingRightPopAndLeftPush() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
@@ -399,7 +399,7 @@ class ReactiveListOperationsExtensionsUnitTests {
 		}
 	}
 
-	@Test // DATAVALKEY-937
+	@Test // DATAREDIS-937
 	fun delete() {
 
 		val operations = mockk<ReactiveListOperations<String, String>>()
