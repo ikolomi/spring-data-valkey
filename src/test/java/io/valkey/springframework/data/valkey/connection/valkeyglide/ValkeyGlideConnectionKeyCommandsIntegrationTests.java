@@ -32,6 +32,7 @@ import io.valkey.springframework.data.valkey.connection.SortParameters;
 import io.valkey.springframework.data.valkey.connection.ValueEncoding;
 import io.valkey.springframework.data.valkey.core.Cursor;
 import io.valkey.springframework.data.valkey.core.ScanOptions;
+import io.valkey.springframework.data.valkey.test.condition.EnabledOnValkeyVersion;
 
 /**
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
@@ -480,6 +481,7 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
     }
 
     @Test
+    @EnabledOnValkeyVersion("7.0") // ExpirationOptions conditions (NX, XX, GT, LT) added in Redis 7.0
     void testExpirationConditions() {
         String key = "test:key:expire";
         byte[] value = "test_value".getBytes();
@@ -1367,6 +1369,7 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
     }
 
     @Test
+    @EnabledOnValkeyVersion("7.0") // ExpirationOptions conditions (NX, XX, GT, LT) added in Redis 7.0
     void testAdvancedExpirationConditions() {
         String key = "test:key:advanced:expiration";
         byte[] value = "test_value".getBytes();

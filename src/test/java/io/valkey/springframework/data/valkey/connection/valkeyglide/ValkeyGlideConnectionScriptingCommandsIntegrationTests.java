@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessException;
 import io.valkey.springframework.data.valkey.ValkeySystemException;
 import io.valkey.springframework.data.valkey.connection.ReturnType;
+import io.valkey.springframework.data.valkey.test.condition.EnabledOnValkeyVersion;
 
 /**
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
@@ -144,6 +145,7 @@ public class ValkeyGlideConnectionScriptingCommandsIntegrationTests extends Abst
     }
 
     @Test
+    @EnabledOnValkeyVersion("7.0") // Error handling for scriptExists() with no args differs in Redis < 7.0
     void testScriptLoadAndExists() {
         try {
             // Test scriptLoad
