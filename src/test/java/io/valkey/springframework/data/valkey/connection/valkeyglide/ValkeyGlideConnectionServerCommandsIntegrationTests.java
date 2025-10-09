@@ -288,7 +288,7 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
         // Test getting specific section
         Properties serverInfo = connection.serverCommands().info("server");
         assertThat(serverInfo).isNotNull();
-        assertThat(serverInfo.containsKey("redis_version") || serverInfo.containsKey("valkey_version")).isTrue();
+        assertThat(serverInfo.containsKey("valkey_version") || serverInfo.containsKey("redis_version")).isTrue();
         
         // Test getting memory info
         Properties memoryInfo = connection.serverCommands().info("memory");

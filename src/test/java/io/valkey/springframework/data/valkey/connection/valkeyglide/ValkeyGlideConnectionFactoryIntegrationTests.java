@@ -1078,7 +1078,9 @@ public class ValkeyGlideConnectionFactoryIntegrationTests {
         return template.execute((ValkeyCallback<Boolean>) connection -> {
                 // Execute INFO server command
                 Properties serverInfo = connection.serverCommands().info("server");
-                String versionString = serverInfo.getProperty("valkey_version");
+                // Check for valkey_version or redis_version
+                String versionString = serverInfo.getProperty("valkey_version",
+                        serverInfo.getProperty("redis_version"));
                 
                 // If valkey_version is not found, try server_version (for Valkey)
                 if (versionString == null) {
