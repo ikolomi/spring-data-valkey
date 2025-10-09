@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION?=7.4.0
-PROJECT?=redis
-GH_ORG?=redis
+VERSION?=8.1.1
+PROJECT?=valkey
+GH_ORG?=valkey-io
 SPRING_PROFILE?=ci
 SHELL=/bin/bash -euo pipefail
 
 #######
-# Redis
+# Valkey
 #######
 .PRECIOUS: work/$(PROJECT)-%.conf
 
