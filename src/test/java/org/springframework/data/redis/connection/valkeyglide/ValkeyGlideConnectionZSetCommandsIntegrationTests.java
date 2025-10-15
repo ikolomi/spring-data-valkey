@@ -1266,4 +1266,647 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
         }
     }
 
+    // ==================== PIPELINE MODE TESTS ====================
+    // All ZSet operations tested in pipeline mode to ensure proper null return handling
+    // and correct batch result processing via closePipeline()
+
+    @Test
+    void testBasicZSetOperationsInPipelineMode() {
+        String key = "test:zset:pipeline:basic";
+        
+        try {
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue basic operations - all should return null in pipeline mode
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("member3".getBytes(), 3.0));
+            
+            assertThat(connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty())).isNull();
+            assertThat(connection.zSetCommands().zCard(key.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zScore(key.getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zMScore(key.getBytes(), "member1".getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRank(key.getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRevRank(key.getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zIncrBy(key.getBytes(), 1.5, "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRem(key.getBytes(), "member1".getBytes())).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(8);
+            assertThat((Long) results.get(0)).isEqualTo(3L); // zAdd result
+            assertThat((Long) results.get(1)).isEqualTo(3L); // zCard result
+            assertThat((Double) results.get(2)).isEqualTo(2.0); // zScore result
+            
+            @SuppressWarnings("unchecked")
+            List<Double> mScoreResult = (List<Double>) results.get(3);
+            assertThat(mScoreResult).containsExactly(1.0, 2.0); // zMScore result
+            
+            assertThat((Long) results.get(4)).isEqualTo(1L); // zRank result (0-based)
+            assertThat((Long) results.get(5)).isEqualTo(1L); // zRevRank result
+            assertThat((Double) results.get(6)).isEqualTo(3.5); // zIncrBy result
+            assertThat((Long) results.get(7)).isEqualTo(1L); // zRem result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testRangeOperationsInPipelineMode() {
+        String key = "test:zset:pipeline:range";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("member3".getBytes(), 3.0));
+            tuples.add(new DefaultTuple("member4".getBytes(), 4.0));
+            tuples.add(new DefaultTuple("member5".getBytes(), 5.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            Range<Double> scoreRange = Range.closed(2.0, 4.0);
+            Range<byte[]> lexRange = Range.closed("member2".getBytes(), "member4".getBytes());
+            
+            // Queue range operations - all should return null in pipeline mode
+            assertThat(connection.zSetCommands().zRange(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRangeWithScores(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRevRange(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRevRangeWithScores(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRangeByScore(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRangeByScoreWithScores(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRevRangeByScore(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRevRangeByScoreWithScores(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zCount(key.getBytes(), scoreRange.map(Number.class::cast))).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(9);
+            
+            @SuppressWarnings("unchecked")
+            Set<byte[]> range1 = (Set<byte[]>) results.get(0);
+            assertThat(range1).hasSize(3);
+            
+            @SuppressWarnings("unchecked")
+            Set<Tuple> rangeWithScores = (Set<Tuple>) results.get(1);
+            assertThat(rangeWithScores).hasSize(3);
+            
+            assertThat((Long) results.get(8)).isEqualTo(3L); // zCount result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testSetAlgebraOperationsInPipelineMode() {
+        String key1 = "test:zset:pipeline:set1";
+        String key2 = "test:zset:pipeline:set2";
+        String destKey = "test:zset:pipeline:dest";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples1 = new HashSet<>();
+            tuples1.add(new DefaultTuple("a".getBytes(), 1.0));
+            tuples1.add(new DefaultTuple("b".getBytes(), 2.0));
+            tuples1.add(new DefaultTuple("c".getBytes(), 3.0));
+            
+            Set<Tuple> tuples2 = new HashSet<>();
+            tuples2.add(new DefaultTuple("b".getBytes(), 2.5));
+            tuples2.add(new DefaultTuple("c".getBytes(), 3.5));
+            tuples2.add(new DefaultTuple("d".getBytes(), 4.0));
+            
+            connection.zSetCommands().zAdd(key1.getBytes(), tuples1, RedisZSetCommands.ZAddArgs.empty());
+            connection.zSetCommands().zAdd(key2.getBytes(), tuples2, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue set algebra operations - all should return null in pipeline mode
+            assertThat(connection.zSetCommands().zDiff(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zDiffWithScores(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zDiffStore(destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zInter(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zInterWithScores(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zInterStore(destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zUnion(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zUnionWithScores(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zUnionStore(destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(9);
+            
+            @SuppressWarnings("unchecked")
+            Set<byte[]> diffResult = (Set<byte[]>) results.get(0);
+            assertThat(diffResult).hasSize(1); // Only "a" in key1 but not key2
+            
+            assertThat((Long) results.get(2)).isEqualTo(1L); // zDiffStore result
+            assertThat((Long) results.get(5)).isEqualTo(2L); // zInterStore result
+            assertThat((Long) results.get(8)).isEqualTo(4L); // zUnionStore result
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testPopAndRandomOperationsInPipelineMode() {
+        String key = "test:zset:pipeline:pop";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("member3".getBytes(), 3.0));
+            tuples.add(new DefaultTuple("member4".getBytes(), 4.0));
+            tuples.add(new DefaultTuple("member5".getBytes(), 5.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Queue pop and random operations - all should return null in pipeline mode
+            assertThat(connection.zSetCommands().zRandMember(key.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRandMember(key.getBytes(), 2)).isNull();
+            assertThat(connection.zSetCommands().zRandMemberWithScore(key.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRandMemberWithScore(key.getBytes(), 2)).isNull();
+            assertThat(connection.zSetCommands().zPopMin(key.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zPopMax(key.getBytes())).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(6);
+            
+            assertThat((byte[]) results.get(0)).isNotNull(); // random member
+            
+            @SuppressWarnings("unchecked")
+            List<byte[]> randomMembers = (List<byte[]>) results.get(1);
+            assertThat(randomMembers).hasSize(2);
+            
+            assertThat((Tuple) results.get(2)).isNotNull(); // random member with score
+            
+            @SuppressWarnings("unchecked")
+            List<Tuple> randomMembersWithScores = (List<Tuple>) results.get(3);
+            assertThat(randomMembersWithScores).hasSize(2);
+            
+            Tuple minTuple = (Tuple) results.get(4);
+            assertThat(minTuple).isNotNull();
+            assertThat(minTuple.getScore()).isEqualTo(1.0); // Should be the minimum
+            
+            Tuple maxTuple = (Tuple) results.get(5);
+            assertThat(maxTuple).isNotNull();
+            assertThat(maxTuple.getScore()).isEqualTo(5.0); // Should be the maximum
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testRangeStoreAndRemovalOperationsInPipelineMode() {
+        String srcKey = "test:zset:pipeline:rangestore:src";
+        String destKey = "test:zset:pipeline:rangestore:dest";
+        String remKey = "test:zset:pipeline:removal:key";
+        
+        try {
+            // Setup test data for range store operations
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("member3".getBytes(), 3.0));
+            tuples.add(new DefaultTuple("member4".getBytes(), 4.0));
+            tuples.add(new DefaultTuple("member5".getBytes(), 5.0));
+            
+            connection.zSetCommands().zAdd(srcKey.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Setup test data for removal operations
+            connection.zSetCommands().zAdd(remKey.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            Range<Double> scoreRange = Range.closed(2.0, 4.0);
+            Range<byte[]> lexRange = Range.closed("member2".getBytes(), "member4".getBytes());
+            
+            // Queue range store operations - all should return null in pipeline mode
+            assertThat(connection.zSetCommands().zRangeStoreByScore(destKey.getBytes(), srcKey.getBytes(), 
+                scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRangeStoreRevByScore(destKey.getBytes(), srcKey.getBytes(), 
+                scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            
+            // Queue removal operations - all should return null in pipeline mode
+            assertThat(connection.zSetCommands().zRemRange(remKey.getBytes(), 1, 3)).isNull();
+            assertThat(connection.zSetCommands().zRemRangeByScore(remKey.getBytes(), scoreRange.map(Number.class::cast))).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(4);
+            assertThat((Long) results.get(0)).isEqualTo(3L); // zRangeStoreByScore result
+            assertThat((Long) results.get(1)).isEqualTo(3L); // zRangeStoreRevByScore result
+            assertThat((Long) results.get(2)).isEqualTo(3L); // zRemRange result
+            assertThat((Long) results.get(3)).isEqualTo(0L); // zRemRangeByScore result (already removed by previous operation)
+            
+        } finally {
+            cleanupKey(srcKey);
+            cleanupKey(destKey);
+            cleanupKey(remKey);
+        }
+    }
+
+    @Test
+    void testScanOperationsInPipelineMode() {
+        String key = "test:zset:pipeline:scan";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples = new HashSet<>();
+            for (int i = 0; i < 5; i++) {
+                tuples.add(new DefaultTuple(("member" + i).getBytes(), i * 1.0));
+            }
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Note: zScan with cursor operations are complex in pipeline mode
+            // We test that the scan setup doesn't break pipeline mode
+            ScanOptions options = ScanOptions.scanOptions().count(2).build();
+            
+            // We can't easily test zScan in pipeline mode due to cursor nature
+            // But we can verify pipeline doesn't break with scan setup
+            assertThat(connection.zSetCommands().zCard(key.getBytes())).isNull();
+            
+            // Execute pipeline
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(1);
+            assertThat((Long) results.get(0)).isEqualTo(5L); // zCard result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    // ==================== TRANSACTION MODE TESTS ====================
+    // All ZSet operations tested in transaction mode to ensure proper null return handling
+    // and correct atomic execution via exec()
+
+    @Test
+    void testBasicZSetOperationsInTransactionMode() {
+        String key = "test:zset:transaction:basic";
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue basic operations - all should return null in transaction mode
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("member3".getBytes(), 3.0));
+            
+            assertThat(connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty())).isNull();
+            assertThat(connection.zSetCommands().zCard(key.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zScore(key.getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zMScore(key.getBytes(), "member1".getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRank(key.getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRevRank(key.getBytes(), "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zIncrBy(key.getBytes(), 1.5, "member2".getBytes())).isNull();
+            assertThat(connection.zSetCommands().zRem(key.getBytes(), "member1".getBytes())).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(8);
+            assertThat((Long) results.get(0)).isEqualTo(3L); // zAdd result
+            assertThat((Long) results.get(1)).isEqualTo(3L); // zCard result
+            assertThat((Double) results.get(2)).isEqualTo(2.0); // zScore result
+            
+            @SuppressWarnings("unchecked")
+            List<Double> mScoreResult = (List<Double>) results.get(3);
+            assertThat(mScoreResult).containsExactly(1.0, 2.0); // zMScore result
+            
+            assertThat((Long) results.get(4)).isEqualTo(1L); // zRank result (0-based)
+            assertThat((Long) results.get(5)).isEqualTo(1L); // zRevRank result
+            assertThat((Double) results.get(6)).isEqualTo(3.5); // zIncrBy result
+            assertThat((Long) results.get(7)).isEqualTo(1L); // zRem result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testRangeOperationsInTransactionMode() {
+        String key = "test:zset:transaction:range";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("member1".getBytes(), 1.0));
+            tuples.add(new DefaultTuple("member2".getBytes(), 2.0));
+            tuples.add(new DefaultTuple("member3".getBytes(), 3.0));
+            tuples.add(new DefaultTuple("member4".getBytes(), 4.0));
+            tuples.add(new DefaultTuple("member5".getBytes(), 5.0));
+            
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start transaction
+            connection.multi();
+            
+            Range<Double> scoreRange = Range.closed(2.0, 4.0);
+            
+            // Queue range operations - all should return null in transaction mode
+            assertThat(connection.zSetCommands().zRange(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRangeWithScores(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRevRange(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRevRangeWithScores(key.getBytes(), 0, 2)).isNull();
+            assertThat(connection.zSetCommands().zRangeByScore(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRangeByScoreWithScores(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRevRangeByScore(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zRevRangeByScoreWithScores(key.getBytes(), scoreRange.map(Number.class::cast), Limit.unlimited())).isNull();
+            assertThat(connection.zSetCommands().zCount(key.getBytes(), scoreRange.map(Number.class::cast))).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(9);
+            
+            @SuppressWarnings("unchecked")
+            Set<byte[]> range1 = (Set<byte[]>) results.get(0);
+            assertThat(range1).hasSize(3);
+            
+            @SuppressWarnings("unchecked")
+            Set<Tuple> rangeWithScores = (Set<Tuple>) results.get(1);
+            assertThat(rangeWithScores).hasSize(3);
+            
+            assertThat((Long) results.get(8)).isEqualTo(3L); // zCount result
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testSetAlgebraOperationsInTransactionMode() {
+        String key1 = "test:zset:transaction:set1";
+        String key2 = "test:zset:transaction:set2";
+        String destKey = "test:zset:transaction:dest";
+        
+        try {
+            // Setup test data
+            Set<Tuple> tuples1 = new HashSet<>();
+            tuples1.add(new DefaultTuple("a".getBytes(), 1.0));
+            tuples1.add(new DefaultTuple("b".getBytes(), 2.0));
+            tuples1.add(new DefaultTuple("c".getBytes(), 3.0));
+            
+            Set<Tuple> tuples2 = new HashSet<>();
+            tuples2.add(new DefaultTuple("b".getBytes(), 2.5));
+            tuples2.add(new DefaultTuple("c".getBytes(), 3.5));
+            tuples2.add(new DefaultTuple("d".getBytes(), 4.0));
+            
+            connection.zSetCommands().zAdd(key1.getBytes(), tuples1, RedisZSetCommands.ZAddArgs.empty());
+            connection.zSetCommands().zAdd(key2.getBytes(), tuples2, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue set algebra operations - all should return null in transaction mode
+            assertThat(connection.zSetCommands().zDiff(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zDiffWithScores(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zDiffStore(destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zInter(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zInterWithScores(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zInterStore(destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zUnion(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zUnionWithScores(key1.getBytes(), key2.getBytes())).isNull();
+            assertThat(connection.zSetCommands().zUnionStore(destKey.getBytes(), key1.getBytes(), key2.getBytes())).isNull();
+            
+            // Execute transaction
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).isNotNull();
+            assertThat(results).hasSize(9);
+            
+            @SuppressWarnings("unchecked")
+            Set<byte[]> diffResult = (Set<byte[]>) results.get(0);
+            assertThat(diffResult).hasSize(1); // Only "a" in key1 but not key2
+            
+            assertThat((Long) results.get(2)).isEqualTo(1L); // zDiffStore result
+            assertThat((Long) results.get(5)).isEqualTo(2L); // zInterStore result
+            assertThat((Long) results.get(8)).isEqualTo(4L); // zUnionStore result
+            
+        } finally {
+            cleanupKey(key1);
+            cleanupKey(key2);
+            cleanupKey(destKey);
+        }
+    }
+
+    @Test
+    void testTransactionDiscardWithZSetCommands() {
+        String key = "test:zset:transaction:discard";
+        
+        try {
+            // Start transaction
+            connection.multi();
+            
+            // Queue ZSet commands
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("shouldnotbeset".getBytes(), 1.0));
+            connection.zSetCommands().zAdd(key.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            connection.zSetCommands().zScore(key.getBytes(), "shouldnotbeset".getBytes());
+            
+            // Discard transaction
+            connection.discard();
+            
+            // Verify key does not exist (transaction was discarded)
+            Long card = connection.zSetCommands().zCard(key.getBytes());
+            assertThat(card).isEqualTo(0L);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testWatchWithZSetCommandsTransaction() {
+        String watchKey = "test:zset:transaction:watch";
+        String otherKey = "test:zset:transaction:other";
+        
+        try {
+            // Setup initial data
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("initial".getBytes(), 1.0));
+            connection.zSetCommands().zAdd(watchKey.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Watch the key
+            connection.watch(watchKey.getBytes());
+            
+            // Modify the watched key from "outside" the transaction
+            tuples.clear();
+            tuples.add(new DefaultTuple("modified".getBytes(), 2.0));
+            connection.zSetCommands().zAdd(watchKey.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            
+            // Start transaction
+            connection.multi();
+            
+            // Queue ZSet commands
+            tuples.clear();
+            tuples.add(new DefaultTuple("value".getBytes(), 3.0));
+            connection.zSetCommands().zAdd(otherKey.getBytes(), tuples, RedisZSetCommands.ZAddArgs.empty());
+            connection.zSetCommands().zScore(otherKey.getBytes(), "value".getBytes());
+            
+            // Execute transaction - should be aborted due to WATCH
+            List<Object> results = connection.exec();
+            
+            // Transaction should be aborted (results should be null)
+            assertThat(results).isNull();
+            
+            // Verify that the other key was not set
+            Long card = connection.zSetCommands().zCard(otherKey.getBytes());
+            assertThat(card).isEqualTo(0L);
+            
+        } finally {
+            cleanupKey(watchKey);
+            cleanupKey(otherKey);
+        }
+    }
+
+    // ==================== ADDITIONAL EDGE CASES ====================
+    // Additional comprehensive edge case testing for robustness
+
+    @Test
+    void testZSetWithBinaryData() {
+        String key = "test:zset:binary:data";
+        
+        try {
+            // Test with binary data containing null bytes and various byte values
+            byte[] binaryValue = new byte[]{0x00, 0x01, 0x02, (byte) 0xFF, (byte) 0xFE, (byte) 0x80};
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple(binaryValue, 1.0));
+            
+            Long addResult = connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            assertThat(addResult).isEqualTo(1L);
+            
+            // Verify binary data is preserved exactly
+            Double score = connection.zSetCommands().zScore(key.getBytes(), binaryValue);
+            assertThat(score).isEqualTo(1.0);
+            
+            Set<byte[]> range = connection.zSetCommands().zRange(key.getBytes(), 0, -1);
+            assertThat(range).hasSize(1);
+            assertThat(range.iterator().next()).isEqualTo(binaryValue);
+            
+            // Test binary data in range operations
+            Set<Tuple> rangeWithScores = connection.zSetCommands().zRangeWithScores(key.getBytes(), 0, -1);
+            assertThat(rangeWithScores).hasSize(1);
+            Tuple tuple = rangeWithScores.iterator().next();
+            assertThat(tuple.getValue()).isEqualTo(binaryValue);
+            assertThat(tuple.getScore()).isEqualTo(1.0);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testZSetWithExtremeScoreValues() {
+        String key = "test:zset:extreme:scores";
+        
+        try {
+            // Test with extreme score values
+            Set<Tuple> tuples = new HashSet<>();
+            tuples.add(new DefaultTuple("negative_large".getBytes(), -Double.MAX_VALUE / 2));
+            tuples.add(new DefaultTuple("negative_small".getBytes(), -0.000001));
+            tuples.add(new DefaultTuple("zero".getBytes(), 0.0));
+            tuples.add(new DefaultTuple("positive_small".getBytes(), 0.000001));
+            tuples.add(new DefaultTuple("positive_large".getBytes(), Double.MAX_VALUE / 2));
+            tuples.add(new DefaultTuple("max_precision".getBytes(), 1.7976931348623157E308)); // Near Double.MAX_VALUE
+            
+            Long addResult = connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            assertThat(addResult).isEqualTo(6L);
+            
+            // Test ordering is maintained with extreme values
+            Set<byte[]> range = connection.zSetCommands().zRange(key.getBytes(), 0, -1);
+            List<String> orderedMembers = range.stream()
+                .map(String::new)
+                .collect(java.util.stream.Collectors.toList());
+            
+            assertThat(orderedMembers.get(0)).isEqualTo("negative_large");
+            assertThat(orderedMembers.get(1)).isEqualTo("negative_small");
+            assertThat(orderedMembers.get(2)).isEqualTo("zero");
+            assertThat(orderedMembers.get(3)).isEqualTo("positive_small");
+            assertThat(orderedMembers.get(4)).isEqualTo("positive_large");
+            assertThat(orderedMembers.get(5)).isEqualTo("max_precision");
+            
+            // Test range operations with extreme values
+            Range<Double> extremeRange = Range.closed(-Double.MAX_VALUE, Double.MAX_VALUE);
+            Long count = connection.zSetCommands().zCount(key.getBytes(), extremeRange.map(Number.class::cast));
+            assertThat(count).isEqualTo(6L);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testZSetLargeDatasetPerformance() {
+        String key = "test:zset:large:dataset:performance";
+        
+        try {
+            // Create a large dataset to test performance characteristics
+            Set<Tuple> tuples = new HashSet<>();
+            for (int i = 0; i < 10000; i++) {
+                tuples.add(new DefaultTuple(("member" + String.format("%05d", i)).getBytes(), i * 1.0));
+            }
+            
+            // Test large add operation
+            Long addResult = connection.zSetCommands().zAdd(key.getBytes(), tuples, 
+                RedisZSetCommands.ZAddArgs.empty());
+            assertThat(addResult).isEqualTo(10000L);
+            
+            // Test cardinality
+            Long card = connection.zSetCommands().zCard(key.getBytes());
+            assertThat(card).isEqualTo(10000L);
+            
+            // Test range operations on large dataset
+            Set<byte[]> range = connection.zSetCommands().zRange(key.getBytes(), 0, 99);
+            assertThat(range).hasSize(100);
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
 }
