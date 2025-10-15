@@ -45,6 +45,18 @@ import glide.api.models.GlideString;
  */
 public class ValkeyGlideKeyCommands implements RedisKeyCommands {
 
+    /**
+     * Helper method to convert byte array to hex string for debugging
+     */
+    private static String bytesToHex(byte[] bytes) {
+        if (bytes == null) return "null";
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02x", b));
+        }
+        return result.toString();
+    }
+
     private final ValkeyGlideConnection connection;
 
     /**
@@ -368,7 +380,13 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, seconds);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("EXPIRE",
                     (Boolean glideResult) -> glideResult,
                     key, seconds, conditionStr);
@@ -389,7 +407,13 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, millis);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("PEXPIRE",
                     (Boolean glideResult) -> glideResult,
                     key, millis, conditionStr);
@@ -410,7 +434,13 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, unixTime);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("EXPIREAT",
                     (Boolean glideResult) -> glideResult,
                     key, unixTime, conditionStr);
@@ -431,7 +461,13 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, unixTimeInMillis);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("PEXPIREAT",
                     (Boolean glideResult) -> glideResult,
                     key, unixTimeInMillis, conditionStr);

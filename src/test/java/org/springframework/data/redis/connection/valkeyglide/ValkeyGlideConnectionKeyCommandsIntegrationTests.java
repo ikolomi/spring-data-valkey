@@ -497,6 +497,20 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
             Boolean expireXX1 = connection.keyCommands().expire(key.getBytes(), 30, ExpirationOptions.Condition.XX);
             assertThat(expireXX1).isTrue(); // Should succeed, key has expiration
             
+            // Test expire with GT condition (new expiration must be greater than current)
+            Boolean expireGT1 = connection.keyCommands().expire(key.getBytes(), 20, ExpirationOptions.Condition.GT);
+            assertThat(expireGT1).isFalse(); // Should fail, 20s < 30s (current)
+            
+            Boolean expireGT2 = connection.keyCommands().expire(key.getBytes(), 40, ExpirationOptions.Condition.GT);
+            assertThat(expireGT2).isTrue(); // Should succeed, 40s > 30s (current)
+            
+            // Test expire with LT condition (new expiration must be less than current)
+            Boolean expireLT1 = connection.keyCommands().expire(key.getBytes(), 50, ExpirationOptions.Condition.LT);
+            assertThat(expireLT1).isFalse(); // Should fail, 50s > 40s (current)
+            
+            Boolean expireLT2 = connection.keyCommands().expire(key.getBytes(), 35, ExpirationOptions.Condition.LT);
+            assertThat(expireLT2).isTrue(); // Should succeed, 35s < 40s (current)
+            
             // Remove expiration
             connection.keyCommands().persist(key.getBytes());
             
