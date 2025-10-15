@@ -1464,6 +1464,268 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
         }
     }
 
+    // ==================== PIPELINE MODE TTL TIMEUNIT CONVERSION TESTS ====================
+
+    @Test
+    void testTtlTimeUnitConversionPipeline() {
+        String key = "test:key:pipeline:ttl:conversion";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Set 1 day expiration (86400 seconds)
+            Boolean expireResult = connection.keyCommands().expire(key.getBytes(), 86400);
+            assertThat(expireResult).isNull(); // Should be null in pipeline mode
+            
+            // Get TTL in various time units - all should return null in pipeline mode
+            Long ttlSeconds = connection.keyCommands().ttl(key.getBytes());
+            assertThat(ttlSeconds).isNull();
+            
+            Long ttlMinutes = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MINUTES);
+            assertThat(ttlMinutes).isNull();
+            
+            Long ttlHours = connection.keyCommands().ttl(key.getBytes(), TimeUnit.HOURS);
+            assertThat(ttlHours).isNull();
+            
+            Long ttlMilliseconds = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlMilliseconds).isNull();
+            
+            // Execute pipeline and collect results
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results - this is the critical test case that was failing
+            assertThat(results).hasSize(5);
+            assertThat((Boolean) results.get(0)).isTrue(); // expire succeeded
+            
+            // TTL in seconds should be around 86400 (1 day)
+            Long actualTtlSeconds = (Long) results.get(1);
+            assertThat(actualTtlSeconds).isGreaterThanOrEqualTo(86390L).isLessThanOrEqualTo(86400L);
+            
+            // TTL in minutes should be around 1440 (24 hours * 60 minutes)
+            Long actualTtlMinutes = (Long) results.get(2);
+            assertThat(actualTtlMinutes).isGreaterThanOrEqualTo(1439L).isLessThanOrEqualTo(1440L);
+            
+            // TTL in hours should be around 24 - THIS WAS THE FAILING CASE
+            Long actualTtlHours = (Long) results.get(3);
+            assertThat(actualTtlHours).isGreaterThanOrEqualTo(23L).isLessThanOrEqualTo(24L);
+            
+            // TTL in milliseconds should be around 86400000 (1 day in ms)
+            Long actualTtlMilliseconds = (Long) results.get(4);
+            assertThat(actualTtlMilliseconds).isGreaterThanOrEqualTo(86390000L).isLessThanOrEqualTo(86400000L);
+            
+            // Verify conversion relationships
+            if (actualTtlHours != null && actualTtlHours > 0) {
+                double hoursToSecondsRatio = (double) actualTtlSeconds / actualTtlHours;
+                assertThat(hoursToSecondsRatio).isBetween(3500.0, 3700.0); // ~3600 seconds per hour
+                
+                double hoursToMillisecondsRatio = (double) actualTtlMilliseconds / actualTtlHours;
+                assertThat(hoursToMillisecondsRatio).isBetween(3500000.0, 3700000.0); // ~3600000 ms per hour
+            }
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testPTtlTimeUnitConversionPipeline() {
+        String key = "test:key:pipeline:pttl:conversion";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            // Start pipeline
+            connection.openPipeline();
+            
+            // Set 1 day expiration in milliseconds (86400000 ms)
+            Boolean pExpireResult = connection.keyCommands().pExpire(key.getBytes(), 86400000L);
+            assertThat(pExpireResult).isNull(); // Should be null in pipeline mode
+            
+            // Get PTTL in various time units - all should return null in pipeline mode
+            Long pTtlMilliseconds = connection.keyCommands().pTtl(key.getBytes());
+            assertThat(pTtlMilliseconds).isNull();
+            
+            Long pTtlSeconds = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.SECONDS);
+            assertThat(pTtlSeconds).isNull();
+            
+            Long pTtlMinutes = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.MINUTES);
+            assertThat(pTtlMinutes).isNull();
+            
+            Long pTtlHours = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.HOURS);
+            assertThat(pTtlHours).isNull();
+            
+            // Execute pipeline and collect results
+            List<Object> results = connection.closePipeline();
+            
+            // Verify results
+            assertThat(results).hasSize(5);
+            assertThat((Boolean) results.get(0)).isTrue(); // pExpire succeeded
+            
+            // PTTL in milliseconds should be around 86400000 (1 day)
+            Long actualPTtlMilliseconds = (Long) results.get(1);
+            assertThat(actualPTtlMilliseconds).isGreaterThanOrEqualTo(86390000L).isLessThanOrEqualTo(86400000L);
+            
+            // PTTL in seconds should be around 86400 (1 day in seconds)
+            Long actualPTtlSeconds = (Long) results.get(2);
+            assertThat(actualPTtlSeconds).isGreaterThanOrEqualTo(86390L).isLessThanOrEqualTo(86400L);
+            
+            // PTTL in minutes should be around 1440 (24 hours * 60 minutes)
+            Long actualPTtlMinutes = (Long) results.get(3);
+            assertThat(actualPTtlMinutes).isGreaterThanOrEqualTo(1439L).isLessThanOrEqualTo(1440L);
+            
+            // PTTL in hours should be around 24
+            Long actualPTtlHours = (Long) results.get(4);
+            assertThat(actualPTtlHours).isGreaterThanOrEqualTo(23L).isLessThanOrEqualTo(24L);
+            
+            // Verify conversion relationships
+            if (actualPTtlHours != null && actualPTtlHours > 0) {
+                double hoursToMillisecondsRatio = (double) actualPTtlMilliseconds / actualPTtlHours;
+                assertThat(hoursToMillisecondsRatio).isBetween(3500000.0, 3700000.0); // ~3600000 ms per hour
+            }
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    // ==================== TRANSACTION MODE TTL TIMEUNIT CONVERSION TESTS ====================
+
+    @Test
+    void testTtlTimeUnitConversionTransaction() {
+        String key = "test:key:transaction:ttl:conversion";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Set 1 day expiration (86400 seconds)
+            Boolean expireResult = connection.keyCommands().expire(key.getBytes(), 86400);
+            assertThat(expireResult).isNull(); // Should be null in transaction mode
+            
+            // Get TTL in various time units - all should return null in transaction mode
+            Long ttlSeconds = connection.keyCommands().ttl(key.getBytes());
+            assertThat(ttlSeconds).isNull();
+            
+            Long ttlMinutes = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MINUTES);
+            assertThat(ttlMinutes).isNull();
+            
+            Long ttlHours = connection.keyCommands().ttl(key.getBytes(), TimeUnit.HOURS);
+            assertThat(ttlHours).isNull();
+            
+            Long ttlMilliseconds = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlMilliseconds).isNull();
+            
+            // Execute transaction and collect results
+            List<Object> results = connection.exec();
+            
+            // Verify results - this is the critical test case that was failing
+            assertThat(results).hasSize(5);
+            assertThat((Boolean) results.get(0)).isTrue(); // expire succeeded
+            
+            // TTL in seconds should be around 86400 (1 day)
+            Long actualTtlSeconds = (Long) results.get(1);
+            assertThat(actualTtlSeconds).isGreaterThanOrEqualTo(86390L).isLessThanOrEqualTo(86400L);
+            
+            // TTL in minutes should be around 1440 (24 hours * 60 minutes)
+            Long actualTtlMinutes = (Long) results.get(2);
+            assertThat(actualTtlMinutes).isGreaterThanOrEqualTo(1439L).isLessThanOrEqualTo(1440L);
+            
+            // TTL in hours should be around 24 - THIS WAS THE FAILING CASE
+            Long actualTtlHours = (Long) results.get(3);
+            assertThat(actualTtlHours).isGreaterThanOrEqualTo(23L).isLessThanOrEqualTo(24L);
+            
+            // TTL in milliseconds should be around 86400000 (1 day in ms)
+            Long actualTtlMilliseconds = (Long) results.get(4);
+            assertThat(actualTtlMilliseconds).isGreaterThanOrEqualTo(86390000L).isLessThanOrEqualTo(86400000L);
+            
+            // Verify conversion relationships
+            if (actualTtlHours != null && actualTtlHours > 0) {
+                double hoursToSecondsRatio = (double) actualTtlSeconds / actualTtlHours;
+                assertThat(hoursToSecondsRatio).isBetween(3500.0, 3700.0); // ~3600 seconds per hour
+                
+                double hoursToMillisecondsRatio = (double) actualTtlMilliseconds / actualTtlHours;
+                assertThat(hoursToMillisecondsRatio).isBetween(3500000.0, 3700000.0); // ~3600000 ms per hour
+            }
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testPTtlTimeUnitConversionTransaction() {
+        String key = "test:key:transaction:pttl:conversion";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Set up test data
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            // Start transaction
+            connection.multi();
+            
+            // Set 1 day expiration in milliseconds (86400000 ms)
+            Boolean pExpireResult = connection.keyCommands().pExpire(key.getBytes(), 86400000L);
+            assertThat(pExpireResult).isNull(); // Should be null in transaction mode
+            
+            // Get PTTL in various time units - all should return null in transaction mode
+            Long pTtlMilliseconds = connection.keyCommands().pTtl(key.getBytes());
+            assertThat(pTtlMilliseconds).isNull();
+            
+            Long pTtlSeconds = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.SECONDS);
+            assertThat(pTtlSeconds).isNull();
+            
+            Long pTtlMinutes = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.MINUTES);
+            assertThat(pTtlMinutes).isNull();
+            
+            Long pTtlHours = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.HOURS);
+            assertThat(pTtlHours).isNull();
+            
+            // Execute transaction and collect results
+            List<Object> results = connection.exec();
+            
+            // Verify results
+            assertThat(results).hasSize(5);
+            assertThat((Boolean) results.get(0)).isTrue(); // pExpire succeeded
+            
+            // PTTL in milliseconds should be around 86400000 (1 day)
+            Long actualPTtlMilliseconds = (Long) results.get(1);
+            assertThat(actualPTtlMilliseconds).isGreaterThanOrEqualTo(86390000L).isLessThanOrEqualTo(86400000L);
+            
+            // PTTL in seconds should be around 86400 (1 day in seconds)
+            Long actualPTtlSeconds = (Long) results.get(2);
+            assertThat(actualPTtlSeconds).isGreaterThanOrEqualTo(86390L).isLessThanOrEqualTo(86400L);
+            
+            // PTTL in minutes should be around 1440 (24 hours * 60 minutes)
+            Long actualPTtlMinutes = (Long) results.get(3);
+            assertThat(actualPTtlMinutes).isGreaterThanOrEqualTo(1439L).isLessThanOrEqualTo(1440L);
+            
+            // PTTL in hours should be around 24
+            Long actualPTtlHours = (Long) results.get(4);
+            assertThat(actualPTtlHours).isGreaterThanOrEqualTo(23L).isLessThanOrEqualTo(24L);
+            
+            // Verify conversion relationships
+            if (actualPTtlHours != null && actualPTtlHours > 0) {
+                double hoursToMillisecondsRatio = (double) actualPTtlMilliseconds / actualPTtlHours;
+                assertThat(hoursToMillisecondsRatio).isBetween(3500000.0, 3700000.0); // ~3600000 ms per hour
+            }
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
     // ==================== ERROR HANDLING AND EDGE CASES ====================
 
     @Test

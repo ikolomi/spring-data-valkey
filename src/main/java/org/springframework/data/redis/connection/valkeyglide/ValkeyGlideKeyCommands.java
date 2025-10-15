@@ -525,18 +525,25 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(timeUnit, "TimeUnit must not be null");
         
-        Long ttlSeconds = ttl(key);
-        if (ttlSeconds == null) {
-            return null;
+        try {
+            return connection.execute("TTL",
+                (Long ttlSeconds) -> {
+                    if (ttlSeconds == null) {
+                        return null;
+                    }
+                    
+                    // Redis TTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
+                    // These are special values, not actual time values, so don't convert them
+                    if (ttlSeconds < 0) {
+                        return ttlSeconds;
+                    }
+                    
+                    return timeUnit.convert(ttlSeconds, TimeUnit.SECONDS);
+                },
+                key);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        // Redis TTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
-        // These are special values, not actual time values, so don't convert them
-        if (ttlSeconds < 0) {
-            return ttlSeconds;
-        }
-        
-        return timeUnit.convert(ttlSeconds, TimeUnit.SECONDS);
     }
 
     @Override
@@ -559,18 +566,25 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(timeUnit, "TimeUnit must not be null");
         
-        Long pTtlMillis = pTtl(key);
-        if (pTtlMillis == null) {
-            return null;
+        try {
+            return connection.execute("PTTL",
+                (Long pTtlMillis) -> {
+                    if (pTtlMillis == null) {
+                        return null;
+                    }
+                    
+                    // Redis PTTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
+                    // These are special values, not actual time values, so don't convert them
+                    if (pTtlMillis < 0) {
+                        return pTtlMillis;
+                    }
+                    
+                    return timeUnit.convert(pTtlMillis, TimeUnit.MILLISECONDS);
+                },
+                key);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        // Redis PTTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
-        // These are special values, not actual time values, so don't convert them
-        if (pTtlMillis < 0) {
-            return pTtlMillis;
-        }
-        
-        return timeUnit.convert(pTtlMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override
