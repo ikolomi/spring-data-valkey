@@ -100,10 +100,14 @@ public class ValkeyGlideStringCommands implements ValkeyStringCommands {
         Assert.notNull(expiration, "Expiration must not be null");
         
         try {
-            if (expiration.isKeepTtl()) {
+            if (expiration.isPersistent()) {
                 return connection.execute("GETEX",
                     (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
                     key, "PERSIST");
+            } else if (expiration.isKeepTtl()) {
+                return connection.execute("GETEX",
+                    (GlideString glideResult) -> glideResult != null ? glideResult.getBytes() : null,
+                    key);
             } else if (expiration.isUnixTimestamp()) {
                 if (expiration.getTimeUnit() == TimeUnit.SECONDS) {
                     return connection.execute("GETEX",

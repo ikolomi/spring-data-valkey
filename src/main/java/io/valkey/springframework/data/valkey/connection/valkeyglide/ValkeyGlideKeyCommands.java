@@ -45,6 +45,18 @@ import glide.api.models.GlideString;
  */
 public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
 
+    /**
+     * Helper method to convert byte array to hex string for debugging
+     */
+    private static String bytesToHex(byte[] bytes) {
+        if (bytes == null) return "null";
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02x", b));
+        }
+        return result.toString();
+    }
+
     private final ValkeyGlideConnection connection;
 
     /**
@@ -368,7 +380,13 @@ public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, seconds);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("EXPIRE",
                     (Boolean glideResult) -> glideResult,
                     key, seconds, conditionStr);
@@ -389,7 +407,13 @@ public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, millis);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("PEXPIRE",
                     (Boolean glideResult) -> glideResult,
                     key, millis, conditionStr);
@@ -410,7 +434,13 @@ public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, unixTime);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("EXPIREAT",
                     (Boolean glideResult) -> glideResult,
                     key, unixTime, conditionStr);
@@ -431,7 +461,13 @@ public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
                     (Boolean glideResult) -> glideResult,
                     key, unixTimeInMillis);
             } else {
-                String conditionStr = condition == ExpirationOptions.Condition.XX ? "XX" : "NX";
+                String conditionStr = switch (condition) {
+                    case XX -> "XX";
+                    case NX -> "NX";
+                    case GT -> "GT";
+                    case LT -> "LT";
+                    default -> throw new IllegalArgumentException("Unsupported expiration condition: " + condition);
+                };
                 return connection.execute("PEXPIREAT",
                     (Boolean glideResult) -> glideResult,
                     key, unixTimeInMillis, conditionStr);
@@ -489,12 +525,25 @@ public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(timeUnit, "TimeUnit must not be null");
         
-        Long ttlSeconds = ttl(key);
-        if (ttlSeconds == null) {
-            return null;
+        try {
+            return connection.execute("TTL",
+                (Long ttlSeconds) -> {
+                    if (ttlSeconds == null) {
+                        return null;
+                    }
+                    
+                    // Valkey TTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
+                    // These are special values, not actual time values, so don't convert them
+                    if (ttlSeconds < 0) {
+                        return ttlSeconds;
+                    }
+                    
+                    return timeUnit.convert(ttlSeconds, TimeUnit.SECONDS);
+                },
+                key);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        return timeUnit.convert(ttlSeconds, TimeUnit.SECONDS);
     }
 
     @Override
@@ -517,12 +566,25 @@ public class ValkeyGlideKeyCommands implements ValkeyKeyCommands {
         Assert.notNull(key, "Key must not be null");
         Assert.notNull(timeUnit, "TimeUnit must not be null");
         
-        Long pTtlMillis = pTtl(key);
-        if (pTtlMillis == null) {
-            return null;
+        try {
+            return connection.execute("PTTL",
+                (Long pTtlMillis) -> {
+                    if (pTtlMillis == null) {
+                        return null;
+                    }
+                    
+                    // Valkey PTTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
+                    // These are special values, not actual time values, so don't convert them
+                    if (pTtlMillis < 0) {
+                        return pTtlMillis;
+                    }
+                    
+                    return timeUnit.convert(pTtlMillis, TimeUnit.MILLISECONDS);
+                },
+                key);
+        } catch (Exception ex) {
+            throw new ValkeyGlideExceptionConverter().convert(ex);
         }
-        
-        return timeUnit.convert(pTtlMillis, TimeUnit.MILLISECONDS);
     }
 
     @Override

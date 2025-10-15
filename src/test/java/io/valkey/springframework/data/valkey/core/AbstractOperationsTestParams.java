@@ -30,6 +30,7 @@ import io.valkey.springframework.data.valkey.StringObjectFactory;
 import io.valkey.springframework.data.valkey.connection.ValkeyConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.serializer.GenericJackson2JsonValkeySerializer;
 import io.valkey.springframework.data.valkey.serializer.GenericToStringSerializer;
@@ -55,6 +56,7 @@ abstract public class AbstractOperationsTestParams {
 		List<Object[]> params = new ArrayList<>();
 		params.addAll(testParams(LettuceConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class)));
 		params.addAll(testParams(JedisConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class)));
+		params.addAll(testParams(ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class)));
 		return params;
 	}
 
