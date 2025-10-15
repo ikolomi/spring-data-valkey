@@ -31,6 +31,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.jedis.extension.JedisConnectionFactoryExtension;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import org.springframework.data.redis.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
@@ -55,6 +56,7 @@ abstract public class AbstractOperationsTestParams {
 		List<Object[]> params = new ArrayList<>();
 		params.addAll(testParams(LettuceConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 		params.addAll(testParams(JedisConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
+		params.addAll(testParams(ValkeyGlideConnectionFactoryExtension.getConnectionFactory(RedisStanalone.class)));
 		return params;
 	}
 

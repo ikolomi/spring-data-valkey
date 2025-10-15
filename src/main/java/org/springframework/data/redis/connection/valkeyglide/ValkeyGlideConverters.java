@@ -492,6 +492,9 @@ public abstract class ValkeyGlideConverters {
             for (Object item : (Object[]) result) {
                 if (item instanceof byte[]) {
                     list.add((byte[]) item);
+                } else if (item instanceof GlideString) {
+                    // Handle GlideString properly - use getBytes() to preserve binary data
+                    list.add(((GlideString) item).getBytes());
                 } else if (item instanceof String) {
                     list.add(((String) item).getBytes(StandardCharsets.UTF_8));
                 } else if (item != null) {

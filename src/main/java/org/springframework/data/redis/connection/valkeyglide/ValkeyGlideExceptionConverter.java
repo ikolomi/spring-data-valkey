@@ -74,6 +74,15 @@ public class ValkeyGlideExceptionConverter {
             return new RedisSystemException(message, ex);
         }
         
+        // Handle NOSCRIPT errors specifically - these are critical for script execution fallback
+        // Valkey-Glide returns "NoScriptError" but Spring's ScriptUtils looks for "NOSCRIPT"
+        // We need to normalize the message so the fallback mechanism works
+        if (message.contains("NoScriptError") || message.contains("No matching script")) {
+            // Convert "NoScriptError" to "NOSCRIPT" for Spring Data Redis compatibility
+            String normalizedMessage = message.replace("NoScriptError", "NOSCRIPT");
+            return new RedisSystemException(normalizedMessage, ex);
+        }
+        
         // For other exceptions, we need more context
         // This implementation can be expanded based on real error patterns observed
         

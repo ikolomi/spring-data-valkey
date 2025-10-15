@@ -152,6 +152,65 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
     }
 
     @Test
+    void testGetExPersistent() {
+        String key = "test:string:getex:persistent";
+        byte[] value = "persistent_value".getBytes();
+        
+        try {
+            // Set key with expiration first
+            connection.stringCommands().set(key.getBytes(), value, Expiration.seconds(60), SetOption.upsert());
+            
+            // Verify key has expiration
+            Long ttlBefore = connection.keyCommands().ttl(key.getBytes());
+            assertThat(ttlBefore).isGreaterThan(0);
+            
+            // Test getEx with persistent expiration (should remove expiration)
+            byte[] retrievedValue = connection.stringCommands().getEx(key.getBytes(), Expiration.persistent());
+            assertThat(retrievedValue).isEqualTo(value);
+            
+            // Verify key no longer has expiration
+            Long ttlAfter = connection.keyCommands().ttl(key.getBytes());
+            assertThat(ttlAfter).isEqualTo(-1L); // -1 means no expiration
+            
+            // Verify value is still accessible
+            byte[] finalValue = connection.stringCommands().get(key.getBytes());
+            assertThat(finalValue).isEqualTo(value);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testGetExKeepTtl() {
+        String key = "test:string:getex:keepttl";
+        byte[] value = "keepttl_value".getBytes();
+        
+        try {
+            // Set key with expiration first
+            connection.stringCommands().set(key.getBytes(), value, Expiration.seconds(60), SetOption.upsert());
+            
+            // Get initial TTL
+            Long ttlBefore = connection.keyCommands().ttl(key.getBytes());
+            assertThat(ttlBefore).isGreaterThan(0);
+            
+            // Test getEx with keepTtl expiration (should preserve existing expiration)
+            byte[] retrievedValue = connection.stringCommands().getEx(key.getBytes(), Expiration.keepTtl());
+            assertThat(retrievedValue).isEqualTo(value);
+            
+            // Verify key still has similar expiration
+            Long ttlAfter = connection.keyCommands().ttl(key.getBytes());
+            assertThat(ttlAfter).isGreaterThan(0);
+            assertThat(ttlAfter).isLessThanOrEqualTo(ttlBefore); // Should be same or slightly less due to time passage
+            
+            // Verify value is still accessible
+            byte[] finalValue = connection.stringCommands().get(key.getBytes());
+            assertThat(finalValue).isEqualTo(value);
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
     void testSetWithOptions() {
         String key = "test:string:setoptions";
         byte[] keyBytes = key.getBytes();
