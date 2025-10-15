@@ -1,0 +1,408 @@
+/*
+ * Copyright 2014-2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.valkey.springframework.data.valkey.connection.jedis;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+
+import redis.clients.jedis.Protocol;
+import redis.clients.jedis.params.GetExParams;
+import redis.clients.jedis.params.SetParams;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.jupiter.api.Test;
+
+import org.springframework.data.domain.Range;
+import io.valkey.springframework.data.valkey.connection.ValkeyServer;
+import io.valkey.springframework.data.valkey.connection.ValkeyStringCommands.SetOption;
+import io.valkey.springframework.data.valkey.core.types.Expiration;
+import io.valkey.springframework.data.valkey.core.types.ValkeyClientInfo;
+import org.springframework.lang.Nullable;
+import org.springframework.test.util.ReflectionTestUtils;
+
+/**
+ * Unit tests for {@link JedisConverters}.
+ *
+ * @author Christoph Strobl
+ * @author Mark Paluch
+ * @author John Blum
+ */
+class JedisConvertersUnitTests {
+
+	private static final String CLIENT_ALL_SINGLE_LINE_RESPONSE = "addr=127.0.0.1:60311 fd=6 name= age=4059 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=32768 obl=0 oll=0 omem=0 events=r cmd=client";
+
+	@Test // DATAREDIS-268
+	void convertingEmptyStringToListOfValkeyClientInfoShouldReturnEmptyList() {
+		assertThat(JedisConverters.toListOfValkeyClientInformation("")).isEqualTo(Collections.<ValkeyClientInfo> emptyList());
+	}
+
+	@Test // DATAREDIS-268
+	void convertingNullToListOfValkeyClientInfoShouldReturnEmptyList() {
+		assertThat(JedisConverters.toListOfValkeyClientInformation(null))
+				.isEqualTo(Collections.<ValkeyClientInfo> emptyList());
+	}
+
+	@Test // DATAREDIS-268
+	void convertingMultipleLiesToListOfValkeyClientInfoReturnsListCorrectly() {
+
+		StringBuilder sb = new StringBuilder();
+		sb.append(CLIENT_ALL_SINGLE_LINE_RESPONSE);
+		sb.append("\r\n");
+		sb.append(CLIENT_ALL_SINGLE_LINE_RESPONSE);
+
+		assertThat(JedisConverters.toListOfValkeyClientInformation(sb.toString()).size()).isEqualTo(2);
+	}
+
+	@Test // DATAREDIS-330
+	void convertsSingleMapToValkeyServerReturnsCollectionCorrectly() {
+
+		Map<String, String> values = getValkeyServerInfoMap("mymaster", 23697);
+		List<ValkeyServer> servers = JedisConverters.toListOfValkeyServer(Collections.singletonList(values));
+
+		assertThat(servers.size()).isEqualTo(1);
+		verifyValkeyServerInfo(servers.get(0), values);
+	}
+
+	@Test // DATAREDIS-330
+	void convertsMultipleMapsToValkeyServerReturnsCollectionCorrectly() {
+
+		List<Map<String, String>> vals = Arrays.asList(getValkeyServerInfoMap("mymaster", 23697),
+				getValkeyServerInfoMap("yourmaster", 23680));
+		List<ValkeyServer> servers = JedisConverters.toListOfValkeyServer(vals);
+
+		assertThat(servers.size()).isEqualTo(vals.size());
+		for (int i = 0; i < vals.size(); i++) {
+			verifyValkeyServerInfo(servers.get(i), vals.get(i));
+		}
+	}
+
+	@Test // DATAREDIS-330
+	void convertsValkeyServersCorrectlyWhenGivenAnEmptyList() {
+		assertThat(JedisConverters.toListOfValkeyServer(Collections.<Map<String, String>> emptyList())).isNotNull();
+	}
+
+	@Test // DATAREDIS-330
+	void convertsValkeyServersCorrectlyWhenGivenNull() {
+		assertThat(JedisConverters.toListOfValkeyServer(null)).isNotNull();
+	}
+
+	/**
+	 */
+	@Test
+	void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(null, defaultValue)).isEqualTo(defaultValue);
+	}
+
+	@Test // DATAREDIS-378
+	void boundaryToBytesForZRangeByLexShouldReturnDefaultValueWhenBoundaryValueIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.unbounded(), defaultValue))
+				.isEqualTo(defaultValue);
+	}
+
+	@Test // DATAREDIS-378
+	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.inclusive(JedisConverters.toBytes("a")), null))
+				.isEqualTo(JedisConverters.toBytes("[a"));
+	}
+
+	@Test // DATAREDIS-378
+	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.exclusive(JedisConverters.toBytes("a")), null))
+				.isEqualTo(JedisConverters.toBytes("(a"));
+	}
+
+	@Test // DATAREDIS-378
+	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsAString() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.exclusive(JedisConverters.toBytes("a")), null))
+				.isEqualTo(JedisConverters.toBytes("(a"));
+	}
+
+	@Test // DATAREDIS-378
+	void boundaryToBytesForZRangeByLexShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRangeByLex(Range.Bound.exclusive(JedisConverters.toBytes("1")), null))
+				.isEqualTo(JedisConverters.toBytes("(1"));
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(null, defaultValue)).isEqualTo(defaultValue);
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldReturnDefaultValueWhenBoundaryValueIsNull() {
+
+		byte[] defaultValue = "tyrion".getBytes();
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.unbounded(), defaultValue)).isEqualTo(defaultValue);
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsIncluing() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.inclusive(JedisConverters.toBytes("a")), null))
+				.isEqualTo(JedisConverters.toBytes("a"));
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsExcluding() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.exclusive(JedisConverters.toBytes("a")), null))
+				.isEqualTo(JedisConverters.toBytes("(a"));
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsAString() {
+
+		assertThat(JedisConverters.boundaryToBytesForZRange(Range.Bound.exclusive("a"), null))
+				.isEqualTo(JedisConverters.toBytes("(a"));
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldReturnValueCorrectlyWhenBoundaryIsANumber() {
+
+		assertThat(
+				JedisConverters.boundaryToBytesForZRange(org.springframework.data.domain.Range.Bound.exclusive(1L), null))
+						.isEqualTo(JedisConverters.toBytes("(1"));
+	}
+
+	@Test // DATAREDIS-352
+	void boundaryToBytesForZRangeByShouldThrowExceptionWhenBoundaryHoldsUnknownType() {
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> JedisConverters.boundaryToBytesForZRange(Range.Bound.exclusive(new Date()), null));
+	}
+
+	@Test // DATAREDIS-316, DATAREDIS-749
+	void toSetCommandExPxOptionShouldReturnEXforSeconds() {
+		assertThat(toString(JedisConverters.toSetCommandExPxArgument(Expiration.seconds(100)))).isEqualTo("ex 100");
+	}
+
+	@Test // DATAREDIS-316, DATAREDIS-749
+	void toSetCommandExPxOptionShouldReturnEXforMilliseconds() {
+		assertThat(toString(JedisConverters.toSetCommandExPxArgument(Expiration.milliseconds(100)))).isEqualTo("px 100");
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToSetPXAT() {
+
+		SetParams mockSetParams = mock(SetParams.class);
+
+		doReturn(mockSetParams).when(mockSetParams).pxAt(anyLong());
+
+		Expiration expiration = Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS);
+
+		assertThat(JedisConverters.toSetCommandExPxArgument(expiration, mockSetParams)).isNotNull();
+
+		verify(mockSetParams, times(1)).pxAt(eq(10L));
+		verifyNoMoreInteractions(mockSetParams);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToSetEXAT() {
+
+		SetParams mockSetParams = mock(SetParams.class);
+
+		doReturn(mockSetParams).when(mockSetParams).exAt(anyLong());
+
+		Expiration expiration = Expiration.unixTimestamp(1, TimeUnit.MINUTES);
+
+		assertThat(JedisConverters.toSetCommandExPxArgument(expiration, mockSetParams)).isNotNull();
+
+		verify(mockSetParams, times(1)).exAt(eq(60L));
+		verifyNoMoreInteractions(mockSetParams);
+	}
+
+	@Test // DATAREDIS-316, DATAREDIS-749
+	void toSetCommandNxXxOptionShouldReturnNXforAbsent() {
+		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifAbsent()))).isEqualTo("nx");
+	}
+
+	@Test // DATAREDIS-316, DATAREDIS-749
+	void toSetCommandNxXxOptionShouldReturnXXforAbsent() {
+		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.ifPresent()))).isEqualTo("xx");
+	}
+
+	@Test // DATAREDIS-316, DATAREDIS-749
+	void toSetCommandNxXxOptionShouldReturnEmptyArrayforUpsert() {
+		assertThat(toString(JedisConverters.toSetCommandNxXxArgument(SetOption.upsert()))).isEqualTo("");
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExEX() {
+
+		GetExParams mockGetExParams = mock(GetExParams.class);
+
+		doReturn(mockGetExParams).when(mockGetExParams).ex(anyLong());
+
+		Expiration expiration = Expiration.seconds(10);
+
+		assertThat(JedisConverters.toGetExParams(expiration, mockGetExParams)).isNotNull();
+
+		verify(mockGetExParams, times(1)).ex(eq(10L));
+		verifyNoMoreInteractions(mockGetExParams);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationWithTimeUnitToGetExEX() {
+
+		GetExParams mockGetExParams = mock(GetExParams.class);
+
+		doReturn(mockGetExParams).when(mockGetExParams).ex(anyLong());
+
+		Expiration expiration = Expiration.from(1, TimeUnit.MINUTES);
+
+		assertThat(JedisConverters.toGetExParams(expiration, mockGetExParams)).isNotNull();
+
+		verify(mockGetExParams, times(1)).ex(eq(60L)); // seconds
+		verifyNoMoreInteractions(mockGetExParams);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExPEX() {
+
+		GetExParams mockGetExParams = mock(GetExParams.class);
+
+		doReturn(mockGetExParams).when(mockGetExParams).px(anyLong());
+
+		Expiration expiration = Expiration.milliseconds(10L);
+
+		assertThat(JedisConverters.toGetExParams(expiration, mockGetExParams)).isNotNull();
+
+		verify(mockGetExParams, times(1)).px(eq(10L));
+		verifyNoMoreInteractions(mockGetExParams);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExEXAT() {
+
+		GetExParams mockGetExParams = mock(GetExParams.class);
+
+		doReturn(mockGetExParams).when(mockGetExParams).exAt(anyLong());
+
+		Expiration expiration = Expiration.unixTimestamp(10, TimeUnit.SECONDS);
+
+		assertThat(JedisConverters.toGetExParams(expiration, mockGetExParams)).isNotNull();
+
+		verify(mockGetExParams, times(1)).exAt(eq(10L));
+		verifyNoMoreInteractions(mockGetExParams);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationWithTimeUnitToGetExEXAT() {
+
+		GetExParams mockGetExParams = mock(GetExParams.class);
+
+		doReturn(mockGetExParams).when(mockGetExParams).exAt(anyLong());
+
+		Expiration expiration = Expiration.unixTimestamp(1, TimeUnit.MINUTES);
+
+		assertThat(JedisConverters.toGetExParams(expiration, mockGetExParams)).isNotNull();
+
+		verify(mockGetExParams, times(1)).exAt(eq(60L));
+		verifyNoMoreInteractions(mockGetExParams);
+	}
+
+	@Test // GH-2050
+	void convertsExpirationToGetExPXAT() {
+
+		GetExParams mockGetExParams = mock(GetExParams.class);
+
+		doReturn(mockGetExParams).when(mockGetExParams).pxAt(anyLong());
+
+		Expiration expiration = Expiration.unixTimestamp(10, TimeUnit.MILLISECONDS);
+
+		assertThat(JedisConverters.toGetExParams(expiration, mockGetExParams)).isNotNull();
+
+		verify(mockGetExParams, times(1)).pxAt(eq(10L));
+		verifyNoMoreInteractions(mockGetExParams);
+	}
+
+	private void verifyValkeyServerInfo(ValkeyServer server, Map<String, String> values) {
+
+		for (Map.Entry<String, String> entry : values.entrySet()) {
+			assertThat(server.get(entry.getKey())).isEqualTo(entry.getValue());
+		}
+	}
+
+	private static String toString(SetParams setParams) {
+
+		StringBuilder stringBuilder = new StringBuilder();
+
+		stringBuilder.append(toString((Protocol.Keyword) ReflectionTestUtils.getField(setParams, "existance")));
+		stringBuilder.append(toString((Protocol.Keyword) ReflectionTestUtils.getField(setParams, "expiration")));
+
+		Long expirationValue = (Long) ReflectionTestUtils.getField(setParams, "expirationValue");
+
+		if (expirationValue != null) {
+			stringBuilder.append(" ").append(expirationValue);
+		}
+
+		return stringBuilder.toString().trim();
+	}
+
+	private static String toString(@Nullable Enum<?> value) {
+		return value != null ? value.name().toLowerCase() : "";
+	}
+
+	private Map<String, String> getValkeyServerInfoMap(String name, int port) {
+		Map<String, String> map = new HashMap<>();
+		map.put("name", name);
+		map.put("ip", "127.0.0.1");
+		map.put("port", Integer.toString(port));
+		map.put("runid", "768c2926e5148d208713bf17cd5821e10f5388e2");
+		map.put("flags", "master");
+		map.put("pending-commands", "0");
+		map.put("last-ping-sent", "0");
+		map.put("last-ok-ping-reply", "534");
+		map.put("last-ping-reply", "534");
+		map.put("down-after-milliseconds", "30000");
+		map.put("info-refresh", "147");
+		map.put("role-reported", "master");
+		map.put("role-reported-time", "41248339");
+		map.put("config-epoch", "7");
+		map.put("num-slaves", "2");
+		map.put("num-other-sentinels", "2");
+		map.put("quorum", "2");
+		map.put("failover-timeout", "180000");
+		map.put("parallel-syncs", "1");
+		return map;
+	}
+}

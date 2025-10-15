@@ -91,7 +91,7 @@
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
-		<!-- REDIS Drivers -->
+		<!-- Valkey Drivers -->
 
 		<dependency>
 			<groupId>redis.clients</groupId>
@@ -324,7 +324,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
 					<systemPropertyVariables>
-						<redis.server.version>${redis.server.version}</redis.server.version>
+						<valkey.server.version>${valkey.server.version}</valkey.server.version>
 						<lettuce>${lettuce}</lettuce>
 						<jedis>${jedis}</jedis>
 					</systemPropertyVariables>
