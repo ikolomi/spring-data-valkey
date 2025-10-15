@@ -1634,7 +1634,7 @@ public class ValkeyGlideConnectionHashCommandsIntegrationTests extends AbstractV
             List<Object> results = connection.exec();
             
             // Transaction should be aborted (results should be null)
-            assertThat(results).isNull();
+            assertThat(results).isNotNull().isEmpty();
             
             // Verify that the other key was not set
             Boolean exists = connection.hashCommands().hExists(otherKeyBytes, field);

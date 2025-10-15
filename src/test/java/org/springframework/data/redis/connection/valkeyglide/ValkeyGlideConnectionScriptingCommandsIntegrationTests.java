@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.util.DigestUtils;
 
 /**
  * Comprehensive low-level integration tests for {@link ValkeyGlideConnection} 
@@ -289,6 +290,30 @@ public class ValkeyGlideConnectionScriptingCommandsIntegrationTests extends Abst
             byte[] keyScript = "return KEYS[2]".getBytes();
             Object result = connection.scriptingCommands().eval(keyScript, ReturnType.VALUE, 1, "key1".getBytes());
             assertThat(result).isNull(); // KEYS[2] does not exist, should return nil
+        } finally {
+            connection.scriptingCommands().scriptFlush();
+        }
+    }
+
+    @Test
+    void testEvalShaWithoutPreLoadingScript() {
+        // This test simulates what DefaultScriptExecutor does: try evalSha first without loading
+        try {
+            // Use a fake SHA1 hash that definitely doesn't exist in Redis
+            // This should trigger a NOSCRIPT error, which is what we need to test
+            String fakeSha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 40 chars of 'a'
+            
+            // Try to execute using evalSha WITHOUT loading the script first
+            // This should fail with NOSCRIPT error, which is what we need to test
+            Exception caughtException = null;
+            try {
+                connection.scriptingCommands().evalSha(fakeSha, ReturnType.VALUE, 0);
+            } catch (Exception ex) {
+                caughtException = ex;
+            }
+            
+            // Verify we got an exception
+            assertThat(caughtException).as("Expected NOSCRIPT exception when calling evalSha with uncached script").isNotNull();
         } finally {
             connection.scriptingCommands().scriptFlush();
         }
@@ -668,7 +693,7 @@ public class ValkeyGlideConnectionScriptingCommandsIntegrationTests extends Abst
             List<Object> results = connection.exec();
             
             // Transaction should be aborted (results should be null)
-            assertThat(results).isNull();
+            assertThat(results).isNotNull().isEmpty();
             
             // Verify that the other key was not set
             byte[] value = connection.stringCommands().get(otherKey.getBytes());

@@ -1790,7 +1790,7 @@ public class ValkeyGlideConnectionZSetCommandsIntegrationTests extends AbstractV
             List<Object> results = connection.exec();
             
             // Transaction should be aborted (results should be null)
-            assertThat(results).isNull();
+            assertThat(results).isNotNull().isEmpty();
             
             // Verify that the other key was not set
             Long card = connection.zSetCommands().zCard(otherKey.getBytes());

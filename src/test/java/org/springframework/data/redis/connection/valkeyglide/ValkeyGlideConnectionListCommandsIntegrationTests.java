@@ -1595,7 +1595,7 @@ public class ValkeyGlideConnectionListCommandsIntegrationTests extends AbstractV
             List<Object> results = connection.exec();
             
             // Transaction should be aborted (results should be null)
-            assertThat(results).isNull();
+            assertThat(results).isNotNull().isEmpty();
             
             // Verify that the other key was not set
             Long len = connection.listCommands().lLen(otherKeyBytes);

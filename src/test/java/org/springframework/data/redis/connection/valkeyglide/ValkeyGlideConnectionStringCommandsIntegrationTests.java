@@ -1219,19 +1219,11 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             connection.stringCommands().set(valueKey.getBytes(), "should_not_be_set".getBytes());
             
             // Execute transaction (should be aborted due to watch conflict)
-            // Note: Different Redis implementations handle this differently
-            // Some return null, others throw exceptions
-            try {
-                java.util.List<Object> results = connection.exec();
-                // If no exception is thrown, results should be null (transaction aborted)
-                if (results != null) {
-                    // If results are returned, the watch conflict wasn't detected
-                    // This might be acceptable depending on implementation
-                }
-            } catch (Exception e) {
-                // Watch conflict exception is acceptable
-                assertThat(e.getMessage()).containsIgnoringCase("watch");
-            }
+            // Redis specification: aborted transactions return empty list
+            java.util.List<Object> results = connection.exec();
+            
+            // Transaction should be aborted - expect empty list (not null or exception)
+            assertThat(results).isNotNull().isEmpty();
             
             // Verify the conditional set was NOT executed
             byte[] result = connection.stringCommands().get(valueKey.getBytes());

@@ -1245,8 +1245,8 @@ public class ValkeyGlideConnectionServerCommandsIntegrationTests extends Abstrac
             // Execute transaction - should be aborted due to WATCH
             List<Object> results = connection.exec();
             
-            // Transaction should be aborted (results should be null)
-            assertThat(results).isNull();
+            // Transaction should be aborted (results should be empty list)
+            assertThat(results).isNotNull().isEmpty();
             
         } finally {
             cleanupKeys(watchKey, otherKey);

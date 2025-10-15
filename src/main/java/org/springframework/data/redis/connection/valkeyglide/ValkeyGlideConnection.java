@@ -376,14 +376,8 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
             
             // Handle transaction abort cases - valkey-glide returns null for WATCH conflicts
             if (results == null) {
-                // Check if we're being called from RedisTemplate context
-                if (isCalledFromRedisTemplate()) {
-                    // For RedisTemplate compatibility, throw exception that can be caught
-                    throw new ValkeyGlideWatchConflictException("Transaction aborted due to WATCH conflict");
-                } else {
-                    // For direct connection usage, return null as per Redis specification
-                    return null;
-                }
+                // Return empty list for WATCH conflicts (matches Jedis behavior and Redis specification)
+                return new ArrayList<>();
             }
             
             // We have to clear the currentBatch before processing results to allow
@@ -414,21 +408,6 @@ public class ValkeyGlideConnection extends AbstractRedisConnection {
         }
     }
     
-    /**
-     * Checks if this method is being called from RedisTemplate context.
-     * This helps us adapt behavior for template vs direct connection usage.
-     */
-    private boolean isCalledFromRedisTemplate() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        for (StackTraceElement element : stackTrace) {
-            if (element.getClassName().contains("RedisTemplate") &&
-                (element.getMethodName().equals("execRaw") || 
-                 element.getMethodName().equals("exec"))) {
-                return true;
-            }
-        }
-        return false;
-    }
     
     /**
      * Convert geo command results to proper Spring Data Redis types for pipeline/transaction mode.

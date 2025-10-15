@@ -375,8 +375,8 @@ public class ValkeyGlideConnectionTxCommandsIntegrationTests extends AbstractVal
             
             List<Object> results = connection.exec();
             
-            // Transaction should be aborted due to WATCH conflict
-            assertThat(results).isNull();
+            // Transaction should be aborted due to WATCH conflict - expect empty list
+            assertThat(results).isNotNull().isEmpty();
             
             // External change should remain
             assertThat(connection.stringCommands().get(key.getBytes())).isEqualTo("external_change".getBytes());
@@ -410,7 +410,7 @@ public class ValkeyGlideConnectionTxCommandsIntegrationTests extends AbstractVal
             connection.stringCommands().set(key2.getBytes(), "tx2".getBytes());
             List<Object> results = connection.exec();
             
-            assertThat(results).isNull();
+            assertThat(results).isNotNull().isEmpty();
             
             // Verify external change persists, original value for unmodified key remains
             assertThat(connection.stringCommands().get(key1.getBytes())).isEqualTo("external1".getBytes());
@@ -718,7 +718,7 @@ public class ValkeyGlideConnectionTxCommandsIntegrationTests extends AbstractVal
             List<Object> results = connection.exec();
             
             // After aborted transaction, should not be in queuing state
-            assertThat(results).isNull();
+            assertThat(results).isNotNull().isEmpty();
             assertThat(connection.isQueueing()).isFalse();
             
         } finally {
@@ -758,7 +758,7 @@ public class ValkeyGlideConnectionTxCommandsIntegrationTests extends AbstractVal
             connection.stringCommands().set(testKey.getBytes(), "should_not_be_set".getBytes());
             List<Object> results = connection.exec();
             
-            assertThat(results).isNull(); // Transaction aborted
+            assertThat(results).isNotNull().isEmpty(); // Transaction aborted
             assertThat(connection.stringCommands().get(testKey.getBytes())).isNull();
             
         } finally {
