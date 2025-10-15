@@ -716,6 +716,106 @@ public class ValkeyGlideConnectionKeyCommandsIntegrationTests extends AbstractVa
     }
 
     @Test
+    void testTtlTimeUnitSpecialValues() {
+        String key = "test:key:ttl:special";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Test TTL on non-existent key with TimeUnit conversion
+            // Should return -2 (key doesn't exist) without conversion
+            Long ttlNonExistentSeconds = connection.keyCommands().ttl("non:existent:key".getBytes(), TimeUnit.SECONDS);
+            assertThat(ttlNonExistentSeconds).isEqualTo(-2L);
+            
+            Long ttlNonExistentMillis = connection.keyCommands().ttl("non:existent:key".getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlNonExistentMillis).isEqualTo(-2L);
+            
+            Long ttlNonExistentMinutes = connection.keyCommands().ttl("non:existent:key".getBytes(), TimeUnit.MINUTES);
+            assertThat(ttlNonExistentMinutes).isEqualTo(-2L);
+            
+            // Test TTL on key without expiration with TimeUnit conversion
+            // Should return -1 (no expiration) without conversion
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            Long ttlNoExpirationSeconds = connection.keyCommands().ttl(key.getBytes(), TimeUnit.SECONDS);
+            assertThat(ttlNoExpirationSeconds).isEqualTo(-1L);
+            
+            Long ttlNoExpirationMillis = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlNoExpirationMillis).isEqualTo(-1L);
+            
+            Long ttlNoExpirationMinutes = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MINUTES);
+            assertThat(ttlNoExpirationMinutes).isEqualTo(-1L);
+            
+            // Test TTL on key with expiration - should convert properly
+            connection.keyCommands().expire(key.getBytes(), 60); // 60 seconds
+            
+            Long ttlWithExpirationSeconds = connection.keyCommands().ttl(key.getBytes(), TimeUnit.SECONDS);
+            assertThat(ttlWithExpirationSeconds).isGreaterThan(0L).isLessThanOrEqualTo(60L);
+            
+            Long ttlWithExpirationMillis = connection.keyCommands().ttl(key.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(ttlWithExpirationMillis).isGreaterThan(0L).isLessThanOrEqualTo(60000L);
+            
+            // Verify conversion is correct: milliseconds should be roughly 1000x seconds
+            if (ttlWithExpirationSeconds != null && ttlWithExpirationSeconds > 0) {
+                double ratio = (double) ttlWithExpirationMillis / ttlWithExpirationSeconds;
+                assertThat(ratio).isBetween(900.0, 1100.0); // Allow some timing variance
+            }
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
+    void testPTtlTimeUnitSpecialValues() {
+        String key = "test:key:pttl:special";
+        byte[] value = "test_value".getBytes();
+        
+        try {
+            // Test PTTL on non-existent key with TimeUnit conversion
+            // Should return -2 (key doesn't exist) without conversion
+            Long pTtlNonExistentSeconds = connection.keyCommands().pTtl("non:existent:key".getBytes(), TimeUnit.SECONDS);
+            assertThat(pTtlNonExistentSeconds).isEqualTo(-2L);
+            
+            Long pTtlNonExistentMillis = connection.keyCommands().pTtl("non:existent:key".getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(pTtlNonExistentMillis).isEqualTo(-2L);
+            
+            Long pTtlNonExistentMinutes = connection.keyCommands().pTtl("non:existent:key".getBytes(), TimeUnit.MINUTES);
+            assertThat(pTtlNonExistentMinutes).isEqualTo(-2L);
+            
+            // Test PTTL on key without expiration with TimeUnit conversion
+            // Should return -1 (no expiration) without conversion
+            connection.stringCommands().set(key.getBytes(), value);
+            
+            Long pTtlNoExpirationSeconds = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.SECONDS);
+            assertThat(pTtlNoExpirationSeconds).isEqualTo(-1L);
+            
+            Long pTtlNoExpirationMillis = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(pTtlNoExpirationMillis).isEqualTo(-1L);
+            
+            Long pTtlNoExpirationMinutes = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.MINUTES);
+            assertThat(pTtlNoExpirationMinutes).isEqualTo(-1L);
+            
+            // Test PTTL on key with expiration - should convert properly
+            connection.keyCommands().pExpire(key.getBytes(), 60000); // 60 seconds in milliseconds
+            
+            Long pTtlWithExpirationMillis = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.MILLISECONDS);
+            assertThat(pTtlWithExpirationMillis).isGreaterThan(0L).isLessThanOrEqualTo(60000L);
+            
+            Long pTtlWithExpirationSeconds = connection.keyCommands().pTtl(key.getBytes(), TimeUnit.SECONDS);
+            assertThat(pTtlWithExpirationSeconds).isGreaterThan(0L).isLessThanOrEqualTo(60L);
+            
+            // Verify conversion is correct: milliseconds should be roughly 1000x seconds
+            if (pTtlWithExpirationSeconds != null && pTtlWithExpirationSeconds > 0) {
+                double ratio = (double) pTtlWithExpirationMillis / pTtlWithExpirationSeconds;
+                assertThat(ratio).isBetween(900.0, 1100.0); // Allow some timing variance
+            }
+            
+        } finally {
+            cleanupKey(key);
+        }
+    }
+
+    @Test
     void testSortComprehensive() {
         String listKey = "test:key:sort:list";
         String storeKey = "test:key:sort:store";

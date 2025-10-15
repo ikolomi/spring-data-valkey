@@ -530,6 +530,12 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
             return null;
         }
         
+        // Redis TTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
+        // These are special values, not actual time values, so don't convert them
+        if (ttlSeconds < 0) {
+            return ttlSeconds;
+        }
+        
         return timeUnit.convert(ttlSeconds, TimeUnit.SECONDS);
     }
 
@@ -556,6 +562,12 @@ public class ValkeyGlideKeyCommands implements RedisKeyCommands {
         Long pTtlMillis = pTtl(key);
         if (pTtlMillis == null) {
             return null;
+        }
+        
+        // Redis PTTL semantics: -2 = key doesn't exist, -1 = key exists but no expiration
+        // These are special values, not actual time values, so don't convert them
+        if (pTtlMillis < 0) {
+            return pTtlMillis;
         }
         
         return timeUnit.convert(pTtlMillis, TimeUnit.MILLISECONDS);
