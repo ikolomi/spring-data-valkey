@@ -1,4 +1,4 @@
 http\://www.springframework.org/schema/valkey/spring-valkey-1.0.xsd=io/valkey/springframework/data/valkey/config/spring-valkey-1.0.xsd
-http\://www.springframework.org/schema/valkey/spring-valkey.xsd=io/valkeys/pringframework/data/valkey/config/spring-valkey-1.0.xsd
+http\://www.springframework.org/schema/valkey/spring-valkey.xsd=io/valkey/springframework/data/valkey/config/spring-valkey-1.0.xsd
 https\://www.springframework.org/schema/valkey/spring-valkey-1.0.xsd=io/valkey/springframework/data/valkey/config/spring-valkey-1.0.xsd
 https\://www.springframework.org/schema/valkey/spring-valkey.xsd=io/valkey/springframework/data/valkey/config/spring-valkey-1.0.xsd
