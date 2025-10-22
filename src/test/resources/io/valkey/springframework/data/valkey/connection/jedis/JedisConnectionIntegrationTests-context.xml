@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+
+	<bean id="jedisConnectionFactory"
+		class="io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory" p:timeout="60000" p:usePool="false">
+		<property name="hostName">
+			<bean class="io.valkey.springframework.data.valkey.SettingsUtils"
+				factory-method="getHost" />
+		</property>
+		<property name="port">
+			<bean class="io.valkey.springframework.data.valkey.SettingsUtils"
+				factory-method="getPort" />
+		</property>
+		<property name="clientName" value="jedis-client" />
+	</bean>
+
+</beans>

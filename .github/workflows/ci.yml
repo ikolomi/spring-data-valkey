@@ -79,15 +79,20 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Install engine
-        uses: ./.github/workflows/actions/install-engine
-        with:
-          engine-type: ${{ matrix.engine }}
-          engine-tag: ${{ matrix.version }}
+      # Alternative: Install engine directly instead of using Makefile
+      # - name: Install engine
+      #   uses: ./.github/workflows/actions/install-engine
+      #   with:
+      #     engine-type: ${{ matrix.engine }}
+      #     engine-tag: ${{ matrix.version }}
+      #
+      # - name: Start engine
+      #   run: |
+      #     ${{ matrix.engine }}-server --daemonize yes
 
       - name: Start engine
         run: |
-          make start
+          make start PROJECT=${{ matrix.engine }} VERSION=${{ matrix.version }} GH_ORG=${{ matrix.engine == 'redis' && 'redis' || 'valkey-io' }}
 
       - name: Test baseline
         run: |
@@ -96,7 +101,7 @@ jobs:
             -Dmaven.repo.local=$HOME/.m2/spring-data-redis \
             test -Pnone \
             -DrunLongTests=true \
-            -Dredis.server.version=${{ matrix.redis-version || matrix.valkey-version }} \
+            -Dvalkey.server.version=${{ matrix.version }} \
             -U -B
 
   ci-runtimehints-tests:
@@ -126,17 +131,23 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-            
-      # Runtime hints tests still need an engine, but can use a single version
-      - name: Install Valkey
-        uses: ./.github/workflows/actions/install-engine
-        with:
-          engine-type: "valkey"
-          engine-tag: "8.0.3"  # Use oldest valkey version for runtime hints tests
 
+      # Alternative: Install engine directly instead of using Makefile
+      # - name: Install Valkey
+      #   uses: ./.github/workflows/actions/install-engine
+      #   with:
+      #     engine-type: "valkey"
+      #     engine-tag: "8.0.3"
+      #
+      # - name: Start Valkey
+      #   run: |
+      #     valkey-server --daemonize yes
+
+      # Runtime hints tests still need an engine, but can use a single version
+      # Use oldest valkey version for runtime hints tests
       - name: Start Valkey
         run: |
-          make start
+          make start PROJECT=valkey VERSION=8.0.3 GH_ORG=valkey-io
 
       - name: Test runtimehints
         run: |

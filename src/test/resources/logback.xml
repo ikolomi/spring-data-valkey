@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="org.springframework.data" level="error" />
+    <logger name="io.valkey.springframework.data" level="error" />
 
     <root level="warn">
         <appender-ref ref="console" />
