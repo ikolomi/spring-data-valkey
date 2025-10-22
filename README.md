@@ -60,8 +60,19 @@ Add the Maven dependency:
 
 ```xml
 <dependency>
-  <groupId>org.springframework.data</groupId>
+  <groupId>io.valkey.springframework.data</groupId>
   <artifactId>spring-data-valkey</artifactId>
+  <version>${version}</version>
+</dependency>
+```
+
+Note that a dependency for the underlying driver is also needed.  It is recommended to use Valkey GLIDE:
+
+```xml
+<dependency>
+  <groupId>io.valkey</groupId>
+  <artifactId>valkey-glide</artifactId>
+  <classifier>${os.classifier}</classifier>
   <version>${version}</version>
 </dependency>
 ```

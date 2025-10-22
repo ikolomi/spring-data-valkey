@@ -26,7 +26,7 @@ Update your `pom.xml`:
 
 <!-- After (Spring Data Valkey with Valkey GLIDE - recommended) -->
 <dependency>
-    <groupId>org.springframework.data</groupId>
+    <groupId>io.valkey.springframework.data</groupId>
     <artifactId>spring-data-valkey</artifactId>
     <version>3.5.1</version>
 </dependency>
@@ -64,7 +64,7 @@ implementation 'org.springframework.data:spring-data-redis:3.5.1'
 implementation 'io.lettuce:lettuce-core'
 
 // After (Spring Data Valkey with Valkey GLIDE - recommended)
-implementation 'org.springframework.data:spring-data-valkey:3.5.1'
+implementation 'io.valkey.springframework.data:spring-data-valkey:3.5.1'
 implementation "io.valkey:valkey-glide:2.1.1:${osdetector.classifier}"
 ```
 
