@@ -1278,7 +1278,7 @@ public class ValkeyGlideConnectionStringCommandsIntegrationTests extends Abstrac
             connection.stringCommands().set(valueKey.getBytes(), "should_not_be_set".getBytes());
             
             // Execute transaction (should be aborted due to watch conflict)
-            // Redis specification: aborted transactions return empty list
+            // Valkey specification: aborted transactions return empty list
             java.util.List<Object> results = connection.exec();
             
             // Transaction should be aborted - expect empty list (not null or exception)

@@ -79,7 +79,6 @@ public class ValkeyGlideConnectionFactory
     implements ValkeyConnectionFactory, InitializingBean, DisposableBean, SmartLifecycle {
         
     private final ValkeyGlideClientConfiguration clientConfiguration;
-    private final ValkeyGlideConnectionProvider connectionProvider;
     
     private boolean initialized = false;
     private boolean running = false;
@@ -88,8 +87,6 @@ public class ValkeyGlideConnectionFactory
     private int phase = 0;
     private final Lock initLock = new ReentrantLock();
     
-    private @Nullable GlideClient client;
-    private @Nullable GlideClusterClient clusterClient;
     private @Nullable ValkeyGlideClusterTopologyProvider topologyProvider;
     private @Nullable ValkeyGlideClusterNodeResourceProvider nodeResourceProvider;
     private @Nullable ClusterCommandExecutor clusterCommandExecutor;
@@ -110,24 +107,9 @@ public class ValkeyGlideConnectionFactory
      * @param clientConfiguration must not be {@literal null}
      */
     public ValkeyGlideConnectionFactory(ValkeyGlideClientConfiguration clientConfiguration) {
-        this(clientConfiguration, new DefaultValkeyGlideConnectionProvider(clientConfiguration));
-    }
-
-    /**
-     * Constructs a new {@link ValkeyGlideConnectionFactory} instance with the given {@link ValkeyGlideClientConfiguration}
-     * and {@link ValkeyGlideConnectionProvider}.
-     *
-     * @param clientConfiguration must not be {@literal null}
-     * @param connectionProvider must not be {@literal null}
-     */
-    public ValkeyGlideConnectionFactory(ValkeyGlideClientConfiguration clientConfiguration,
-            ValkeyGlideConnectionProvider connectionProvider) {
-        
         Assert.notNull(clientConfiguration, "ValkeyGlideClientConfiguration must not be null!");
-        Assert.notNull(connectionProvider, "ValkeyGlideConnectionProvider must not be null!");
         
         this.clientConfiguration = clientConfiguration;
-        this.connectionProvider = connectionProvider;
         
         Duration commandTimeout = clientConfiguration.getCommandTimeout();
         this.timeout = commandTimeout != null ? commandTimeout.toMillis() : 60000;
@@ -136,29 +118,30 @@ public class ValkeyGlideConnectionFactory
     /**
      * Initialize the shared client if not already initialized.
      */
+    @Override
     public void afterPropertiesSet() {
         if (initialized) {
             return;
         }
         
-        initLock.lock();
-        try {
-            if (initialized) {
-                return;
-            }
+        // initLock.lock();
+        // try {
+        //     if (initialized) {
+        //         return;
+        //     }
             
-            if (clientConfiguration.isClusterAware()) {
-                initializeClusterClient();
-                initializeClusterCommandExecutor();
-            } else {
-                initializeClient();
-            }
+        //     if (clientConfiguration.isClusterAware()) {
+        //         initializeClusterClient();
+        //         initializeClusterCommandExecutor();
+        //     } else {
+        //         initializeClient();
+        //     }
             
-            initialized = true;
-            running = true;
-        } finally {
-            initLock.unlock();
-        }
+        //     initialized = true;
+        //     running = true;
+        // } finally {
+        //     initLock.unlock();
+        // }
     }
     
     /**
@@ -180,123 +163,6 @@ public class ValkeyGlideConnectionFactory
         this.clusterCommandExecutor = null;
     }
 
-    /**
-     * Initialize a new standalone client instance using the proper valkey-glide API.
-     */
-    private void initializeClient() {
-        try {
-            // Build the configuration using the proper API
-            GlideClientConfiguration.GlideClientConfigurationBuilder configBuilder = 
-                GlideClientConfiguration.builder();
-            
-            // Set the address
-            clientConfiguration.getHostName().ifPresent(hostname -> {
-                configBuilder.address(NodeAddress.builder()
-                    .host(hostname)
-                    .port(clientConfiguration.getPort())
-                    .build());
-            });
-            
-            // If no hostname specified, use localhost
-            if (clientConfiguration.getHostName().isEmpty()) {
-                configBuilder.address(NodeAddress.builder()
-                    .host("localhost")
-                    .port(clientConfiguration.getPort())
-                    .build());
-            }
-            
-            // Set credentials if available
-            if (hasPassword()) {
-                configBuilder.credentials(glide.api.models.configuration.ServerCredentials.builder()
-                    .password(extractPassword().toString())
-                    .build());
-            }
-            
-            // Note: Database selection is handled after connection for standalone mode
-            // configBuilder.database(clientConfiguration.getDatabase());
-            
-            // Set request timeout
-            Duration timeout = clientConfiguration.getCommandTimeout();
-            if (timeout != null) {
-                configBuilder.requestTimeout((int) timeout.toMillis());
-            }
-            
-            // Set TLS if enabled
-            if (clientConfiguration.isUseSsl()) {
-                configBuilder.useTLS(true);
-            }
-            
-            GlideClientConfiguration config = configBuilder.build();
-            
-            // Create the client using the proper API
-            this.client = GlideClient.createClient(config).get();
-            
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize GlideClient: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Initialize a new cluster client instance using the proper valkey-glide API.
-     */
-    private void initializeClusterClient() {
-        try {
-            // Build the configuration using the proper API
-            GlideClusterClientConfiguration.GlideClusterClientConfigurationBuilder configBuilder = 
-                GlideClusterClientConfiguration.builder();
-            
-            // Set the address
-            clientConfiguration.getHostName().ifPresent(hostname -> {
-                configBuilder.address(NodeAddress.builder()
-                    .host(hostname)
-                    .port(clientConfiguration.getPort())
-                    .build());
-            });
-            
-            // If no hostname specified, use localhost
-            if (clientConfiguration.getHostName().isEmpty()) {
-                configBuilder.address(NodeAddress.builder()
-                    .host("localhost")
-                    .port(clientConfiguration.getPort())
-                    .build());
-            }
-            
-            // Set credentials if available
-            if (hasPassword()) {
-                configBuilder.credentials(glide.api.models.configuration.ServerCredentials.builder()
-                    .password(extractPassword().toString())
-                    .build());
-            }
-            
-            // Set request timeout
-            Duration timeout = clientConfiguration.getCommandTimeout();
-            if (timeout != null) {
-                configBuilder.requestTimeout((int) timeout.toMillis());
-            }
-            
-            // Set TLS if enabled
-            if (clientConfiguration.isUseSsl()) {
-                configBuilder.useTLS(true);
-            }
-            
-            GlideClusterClientConfiguration config = configBuilder.build();
-            
-            // Create the cluster client using the proper API
-            this.clusterClient = GlideClusterClient.createClient(config).get();
-            
-            // Initialize cluster components with placeholder implementations
-            // this.topologyProvider = new ValkeyGlideClusterTopologyProvider(this.clusterClient, timeout);
-            // ValkeyGlideExceptionConverter exceptionConverter = new ValkeyGlideExceptionConverter();
-            // this.nodeResourceProvider = new ValkeyGlideClusterNodeResourceProvider(this.clusterClient, timeout, exceptionConverter);
-            
-            // For now, use null placeholders - these would be properly implemented in a complete integration
-            this.topologyProvider = null;
-            this.nodeResourceProvider = null;
-            
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to initialize GlideClusterClient: " + e.getMessage(), e);
-        }
-    }
 
     /**
      * Builds client options from configuration.
@@ -408,7 +274,9 @@ public class ValkeyGlideConnectionFactory
             return getClusterConnection();
         }
         
-        return connectionProvider.getConnection(getClient());
+        // Create a GlideClient for each connection and wrap it directly in a ValkeyGlideConnection
+        GlideClient client = (GlideClient) createGlideClient();
+        return new ValkeyGlideConnection(client, timeout);
     }
 
     @Override
@@ -418,10 +286,14 @@ public class ValkeyGlideConnectionFactory
         if (!isClusterAware()) {
             throw new InvalidDataAccessResourceUsageException("Cluster is not configured!");
         }
-        
-        return new ValkeyGlideClusterConnection(getClusterClient(), timeout, 
-                topologyProvider, 
-                nodeResourceProvider);
+
+        throw new UnsupportedOperationException("Cluster connections not supported with Valkey-Glide!");
+
+        // // Create a GlideClusterClient for each connection
+        // Object clusterClient = createGlideClusterClient();
+        // return new ValkeyGlideClusterConnection(clusterClient, timeout, 
+        //         topologyProvider, 
+        //         nodeResourceProvider);
     }
 
     @Override
@@ -442,74 +314,129 @@ public class ValkeyGlideConnectionFactory
         doDestroy();
     }
 
-    /**
-     * Reset the connection, closing the shared client.
-     */
-    public void resetConnection() {
-        doDestroy();
-    }
+    // /**
+    //  * Reset the connection, closing the shared client.
+    //  */
+    // public void resetConnection() {
+    //     doDestroy();
+    // }
     
+    /**
+     * Creates a GlideClient instance for each connection.
+     */
+    private Object createGlideClient() {
+        try {
+            // Build the configuration using the proper API
+            GlideClientConfiguration.GlideClientConfigurationBuilder configBuilder = 
+                GlideClientConfiguration.builder();
+            
+            // Set the address
+            clientConfiguration.getHostName().ifPresent(hostname -> {
+                configBuilder.address(NodeAddress.builder()
+                    .host(hostname)
+                    .port(clientConfiguration.getPort())
+                    .build());
+            });
+            
+            // If no hostname specified, use localhost
+            if (clientConfiguration.getHostName().isEmpty()) {
+                configBuilder.address(NodeAddress.builder()
+                    .host("localhost")
+                    .port(clientConfiguration.getPort())
+                    .build());
+            }
+            
+            // Set credentials if available
+            if (hasPassword()) {
+                configBuilder.credentials(glide.api.models.configuration.ServerCredentials.builder()
+                    .password(extractPassword().toString())
+                    .build());
+            }
+            
+            // Set request timeout
+            Duration timeout = clientConfiguration.getCommandTimeout();
+            if (timeout != null) {
+                configBuilder.requestTimeout((int) timeout.toMillis());
+            }
+            
+            // Set TLS if enabled
+            if (clientConfiguration.isUseSsl()) {
+                configBuilder.useTLS(true);
+            }
+            
+            GlideClientConfiguration config = configBuilder.build();
+            
+            // Create the client using the proper API
+            return GlideClient.createClient(config).get();
+            
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to create GlideClient: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Creates a GlideClusterClient instance for each connection.
+     */
+    private Object createGlideClusterClient() {
+        try {
+            // Build the configuration using the proper API
+            GlideClusterClientConfiguration.GlideClusterClientConfigurationBuilder configBuilder = 
+                GlideClusterClientConfiguration.builder();
+            
+            // Set the address
+            clientConfiguration.getHostName().ifPresent(hostname -> {
+                configBuilder.address(NodeAddress.builder()
+                    .host(hostname)
+                    .port(clientConfiguration.getPort())
+                    .build());
+            });
+            
+            // If no hostname specified, use localhost
+            if (clientConfiguration.getHostName().isEmpty()) {
+                configBuilder.address(NodeAddress.builder()
+                    .host("localhost")
+                    .port(clientConfiguration.getPort())
+                    .build());
+            }
+            
+            // Set credentials if available
+            if (hasPassword()) {
+                configBuilder.credentials(glide.api.models.configuration.ServerCredentials.builder()
+                    .password(extractPassword().toString())
+                    .build());
+            }
+            
+            // Set request timeout
+            Duration timeout = clientConfiguration.getCommandTimeout();
+            if (timeout != null) {
+                configBuilder.requestTimeout((int) timeout.toMillis());
+            }
+            
+            // Set TLS if enabled
+            if (clientConfiguration.isUseSsl()) {
+                configBuilder.useTLS(true);
+            }
+            
+            GlideClusterClientConfiguration config = configBuilder.build();
+            
+            // Create the cluster client using the proper API
+            return GlideClusterClient.createClient(config).get();
+            
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to create GlideClusterClient: " + e.getMessage(), e);
+        }
+    }
+
     /**
      * Internal method to perform cleanup without circular calls.
      */
     private void doDestroy() {
-        if (client != null) {
-            try {
-                // Use close() method since GlideClient implements AutoCloseable
-                client.close();
-            } catch (Exception e) {
-                // Ignore if the method doesn't exist or fails
-                System.err.println("Could not close client: " + e.getMessage());
-            }
-        }
-        
-        if (clusterClient != null) {
-            try {
-                // Use close() method since GlideClusterClient implements AutoCloseable
-                clusterClient.close();
-            } catch (Exception e) {
-                // Ignore if the method doesn't exist or fails
-                System.err.println("Could not close cluster client: " + e.getMessage());
-            }
-        }
         
         initialized = false;
         running = false;
-        client = null;
-        clusterClient = null;
         topologyProvider = null;
         nodeResourceProvider = null;
         clusterCommandExecutor = null;
-    }
-
-    /**
-     * @return The client used for standalone connections.
-     * @throws IllegalStateException if the factory is not running
-     */
-    public GlideClient getClient() {
-        if (!isRunning()) {
-            throw new IllegalStateException("Connection factory not initialized or not running");
-        }
-        
-        if (client == null) {
-            afterPropertiesSet();
-        }
-        return client;
-    }
-
-    /**
-     * @return The client used for cluster connections.
-     * @throws IllegalStateException if the factory is not running
-     */
-    public GlideClusterClient getClusterClient() {
-        if (!isRunning()) {
-            throw new IllegalStateException("Connection factory not initialized or not running");
-        }
-        
-        if (clusterClient == null) {
-            afterPropertiesSet();
-        }
-        return clusterClient;
     }
 
     /**
@@ -678,12 +605,6 @@ public class ValkeyGlideConnectionFactory
         return clientConfiguration;
     }
 
-    /**
-     * @return The connection provider used.
-     */
-    public ValkeyGlideConnectionProvider getConnectionProvider() {
-        return connectionProvider;
-    }
 
     /**
      * @return whether this lifecycle component should get started automatically by the container

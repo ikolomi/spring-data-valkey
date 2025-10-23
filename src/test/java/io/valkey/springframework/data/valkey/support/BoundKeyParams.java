@@ -23,6 +23,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
 import io.valkey.springframework.data.valkey.support.atomic.ValkeyAtomicInteger;
 import io.valkey.springframework.data.valkey.support.atomic.ValkeyAtomicLong;
@@ -57,6 +59,15 @@ public class BoundKeyParams {
 		DefaultValkeySet setLT = new DefaultValkeySet("bound:key:setLT", templateLT);
 		ValkeyList listLT = ValkeyList.create("bound:key:listLT", templateLT);
 
+		// ValkeyGlide
+		ValkeyGlideConnectionFactory vgConnFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+
+		StringValkeyTemplate templateVG = new StringValkeyTemplate(vgConnFactory);
+		DefaultValkeyMap mapVG = new DefaultValkeyMap("bound:key:mapVG", templateLT);
+		DefaultValkeySet setVG = new DefaultValkeySet("bound:key:setVG", templateLT);
+		ValkeyList listVG = ValkeyList.create("bound:key:listVG", templateLT);		
+
 		StringObjectFactory sof = new StringObjectFactory();
 
 		return Arrays
@@ -65,6 +76,9 @@ public class BoundKeyParams {
 						{ setJS, sof, templateJS }, { mapJS, sof, templateJS },
 						{ new ValkeyAtomicInteger("bound:key:intLT", lettuceConnFactory), sof, templateLT },
 						{ new ValkeyAtomicLong("bound:key:longLT", lettuceConnFactory), sof, templateLT },
-						{ listLT, sof, templateLT }, { setLT, sof, templateLT }, { mapLT, sof, templateLT } });
+						{ listLT, sof, templateLT }, { setLT, sof, templateLT }, { mapLT, sof, templateLT },
+						{ new ValkeyAtomicInteger("bound:key:intVG", vgConnFactory), sof, templateVG },
+						{ new ValkeyAtomicLong("bound:key:longVG", vgConnFactory), sof, templateVG },
+						{ listVG, sof, templateVG }, { setVG, sof, templateVG }, { mapVG, sof, templateVG } });
 	}
 }

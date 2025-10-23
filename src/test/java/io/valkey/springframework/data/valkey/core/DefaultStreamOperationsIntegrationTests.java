@@ -46,6 +46,7 @@ import io.valkey.springframework.data.valkey.connection.stream.RecordId;
 import io.valkey.springframework.data.valkey.connection.stream.StreamOffset;
 import io.valkey.springframework.data.valkey.connection.stream.StreamReadOptions;
 import io.valkey.springframework.data.valkey.connection.stream.StreamRecords;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.test.condition.EnabledOnCommand;
 import io.valkey.springframework.data.valkey.test.condition.EnabledOnValkeyDriver;
 import io.valkey.springframework.data.valkey.test.condition.EnabledOnValkeyVersion;
@@ -103,6 +104,14 @@ public class DefaultStreamOperationsIntegrationTests<K, HK, HV> {
 		if (ValkeyDetector.isClusterAvailable()) {
 			params.addAll(AbstractOperationsTestParams
 					.testParams(LettuceConnectionFactoryExtension.getConnectionFactory(ValkeyCluster.class)));
+		}
+
+		params.addAll(AbstractOperationsTestParams
+				.testParams(ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class)));
+
+		if (ValkeyDetector.isClusterAvailable()) {
+			params.addAll(AbstractOperationsTestParams
+					.testParams(ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class)));
 		}
 
 		return params;

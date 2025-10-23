@@ -28,6 +28,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.test.extension.ValkeyStanalone;
 import io.valkey.springframework.data.valkey.test.extension.parametrized.MethodSource;
 import io.valkey.springframework.data.valkey.test.extension.parametrized.ParameterizedValkeyTest;
@@ -50,8 +52,9 @@ public class MultithreadedValkeyTemplateIntegrationTests {
 
 		JedisConnectionFactory jedis = JedisConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
 		LettuceConnectionFactory lettuce = LettuceConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
+		ValkeyGlideConnectionFactory valkeyGlide = ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
 
-		return Arrays.asList(jedis, lettuce);
+		return Arrays.asList(jedis, lettuce, valkeyGlide);
 	}
 
 	@ParameterizedValkeyTest // DATAREDIS-300
