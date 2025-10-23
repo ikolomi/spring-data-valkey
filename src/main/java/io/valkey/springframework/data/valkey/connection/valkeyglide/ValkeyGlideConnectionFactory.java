@@ -31,8 +31,6 @@ import io.valkey.springframework.data.valkey.connection.ValkeyClusterConnection;
 import io.valkey.springframework.data.valkey.connection.ValkeyConnection;
 import io.valkey.springframework.data.valkey.connection.ValkeyConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.ValkeyPassword;
-import io.valkey.springframework.data.valkey.connection.ValkeyClusterConfiguration;
-import io.valkey.springframework.data.valkey.connection.ValkeySentinelConfiguration;
 import io.valkey.springframework.data.valkey.connection.ValkeyStandaloneConfiguration;
 import io.valkey.springframework.data.valkey.connection.ValkeySentinelConnection;
 import org.springframework.lang.Nullable;
@@ -82,10 +80,6 @@ public class ValkeyGlideConnectionFactory
         
     private final ValkeyGlideClientConfiguration clientConfiguration;
     private final ValkeyGlideConnectionProvider connectionProvider;
-    
-    private @Nullable ValkeyStandaloneConfiguration standaloneConfig;
-    private @Nullable ValkeySentinelConfiguration sentinelConfig;
-    private @Nullable ValkeyClusterConfiguration clusterConfig;
     
     private boolean initialized = false;
     private boolean running = false;
@@ -139,60 +133,44 @@ public class ValkeyGlideConnectionFactory
      */
     public ValkeyGlideConnectionFactory(ValkeyStandaloneConfiguration standaloneConfiguration,
             ValkeyGlideClientConfiguration clientConfiguration) {
-        
-        Assert.notNull(standaloneConfiguration, "ValkeyStandaloneConfiguration must not be null!");
-        Assert.notNull(clientConfiguration, "ValkeyGlideClientConfiguration must not be null!");
-        
-        this.standaloneConfig = standaloneConfiguration;
-        this.clientConfiguration = clientConfiguration;
-        this.connectionProvider = new DefaultValkeyGlideConnectionProvider(clientConfiguration);
-        
-        Duration commandTimeout = clientConfiguration.getCommandTimeout();
-        this.timeout = commandTimeout != null ? commandTimeout.toMillis() : 60000;
+        this(mergeConfigurations(standaloneConfiguration, clientConfiguration));
     }
 
     /**
-     * Constructs a new {@link ValkeyGlideConnectionFactory} instance using the given {@link ValkeySentinelConfiguration}
-     * and {@link ValkeyGlideClientConfiguration}.
-     *
-     * @param sentinelConfiguration must not be {@literal null}
-     * @param clientConfiguration must not be {@literal null}
-     * @since 2.0
+     * Merges standalone configuration into client configuration.
      */
-    public ValkeyGlideConnectionFactory(ValkeySentinelConfiguration sentinelConfiguration,
-            ValkeyGlideClientConfiguration clientConfiguration) {
-        
-        Assert.notNull(sentinelConfiguration, "ValkeySentinelConfiguration must not be null!");
-        Assert.notNull(clientConfiguration, "ValkeyGlideClientConfiguration must not be null!");
-        
-        this.sentinelConfig = sentinelConfiguration;
-        this.clientConfiguration = clientConfiguration;
-        this.connectionProvider = new DefaultValkeyGlideConnectionProvider(clientConfiguration);
-        
-        Duration commandTimeout = clientConfiguration.getCommandTimeout();
-        this.timeout = commandTimeout != null ? commandTimeout.toMillis() : 60000;
-    }
+    private static ValkeyGlideClientConfiguration mergeConfigurations(
+            ValkeyStandaloneConfiguration standaloneConfig,
+            ValkeyGlideClientConfiguration clientConfig) {
+        Assert.notNull(standaloneConfig, "ValkeyStandaloneConfiguration must not be null");
 
-    /**
-     * Constructs a new {@link ValkeyGlideConnectionFactory} instance using the given {@link ValkeyClusterConfiguration}
-     * and {@link ValkeyGlideClientConfiguration}.
-     *
-     * @param clusterConfiguration must not be {@literal null}
-     * @param clientConfiguration must not be {@literal null}
-     * @since 2.0
-     */
-    public ValkeyGlideConnectionFactory(ValkeyClusterConfiguration clusterConfiguration,
-            ValkeyGlideClientConfiguration clientConfiguration) {
-        
-        Assert.notNull(clusterConfiguration, "ValkeyClusterConfiguration must not be null!");
-        Assert.notNull(clientConfiguration, "ValkeyGlideClientConfiguration must not be null!");
-        
-        this.clusterConfig = clusterConfiguration;
-        this.clientConfiguration = clientConfiguration;
-        this.connectionProvider = new DefaultValkeyGlideConnectionProvider(clientConfiguration);
-        
-        Duration commandTimeout = clientConfiguration.getCommandTimeout();
-        this.timeout = commandTimeout != null ? commandTimeout.toMillis() : 60000;
+        DefaultValkeyGlideClientConfiguration.ValkeyGlideClientConfigurationBuilder builder =
+                DefaultValkeyGlideClientConfiguration.builder()
+                .hostName(standaloneConfig.getHostName())
+                .port(standaloneConfig.getPort())
+                .database(standaloneConfig.getDatabase());
+
+        if (!standaloneConfig.getPassword().equals(ValkeyPassword.none())) {
+            builder.password(standaloneConfig.getPassword());
+        }
+
+        if (clientConfig.getCommandTimeout() != null) {
+            builder.commandTimeout(clientConfig.getCommandTimeout());
+        }
+        if (clientConfig.isUseSsl()) {
+            builder.useSsl();
+        }
+        if (clientConfig.getShutdownTimeout() != null) {
+            builder.shutdownTimeout(clientConfig.getShutdownTimeout());
+        }
+        if (clientConfig.getClientName().isPresent()) {
+            builder.clientName(clientConfig.getClientName().get());
+        }
+        if (clientConfig.getPoolSize().isPresent()) {
+            builder.poolSize(clientConfig.getPoolSize().get());
+        }
+
+        return builder.build();
     }
 
     /**
@@ -421,118 +399,13 @@ public class ValkeyGlideConnectionFactory
         return new Object();
     }
 
-    /**
-     * Returns the {@link ValkeyStandaloneConfiguration}.
-     *
-     * @return the {@link ValkeyStandaloneConfiguration}, may be {@literal null}
-     * @since 2.0
-     */
-    @Nullable
-    public ValkeyStandaloneConfiguration getStandaloneConfiguration() {
-        if (this.standaloneConfig != null) {
-            return this.standaloneConfig;
-        }
-        // Return a configuration based on client settings if no explicit config was provided
-        return createStandaloneConfiguration();
-    }
-
-    /**
-     * Returns the {@link ValkeySentinelConfiguration}.
-     *
-     * @return the {@link ValkeySentinelConfiguration}, may be {@literal null}
-     * @since 2.0
-     */
-    @Nullable
-    public ValkeySentinelConfiguration getSentinelConfiguration() {
-        return this.sentinelConfig;
-    }
-
-    /**
-     * Returns the {@link ValkeyClusterConfiguration}.
-     *
-     * @return the {@link ValkeyClusterConfiguration}, may be {@literal null}
-     * @since 2.0
-     */
-    @Nullable
-    public ValkeyClusterConfiguration getClusterConfiguration() {
-        return this.clusterConfig;
-    }
-
-    /**
-     * Returns the current hostname.
-     *
-     * @return the hostname
-     */
-    public String getHostName() {
-        if (standaloneConfig != null) {
-            return standaloneConfig.getHostName();
-        }
-        if (sentinelConfig != null && !sentinelConfig.getSentinels().isEmpty()) {
-            return sentinelConfig.getSentinels().iterator().next().getHost();
-        }
-        if (clusterConfig != null && !clusterConfig.getClusterNodes().isEmpty()) {
-            return clusterConfig.getClusterNodes().iterator().next().getHost();
-        }
-        return clientConfiguration.getHostName().orElse("localhost");
-    }
-
-    /**
-     * Returns the current port.
-     *
-     * @return the port
-     */
-    public int getPort() {
-        if (standaloneConfig != null) {
-            return standaloneConfig.getPort();
-        }
-        if (sentinelConfig != null && !sentinelConfig.getSentinels().isEmpty()) {
-            return sentinelConfig.getSentinels().iterator().next().getPort();
-        }
-        if (clusterConfig != null && !clusterConfig.getClusterNodes().isEmpty()) {
-            return clusterConfig.getClusterNodes().iterator().next().getPort();
-        }
-        return clientConfiguration.getPort();
-    }
-
-    /**
-     * Returns the index of the database.
-     *
-     * @return the database index
-     */
-    public int getDatabase() {
-        if (standaloneConfig != null) {
-            return standaloneConfig.getDatabase();
-        }
-        if (sentinelConfig != null) {
-            return sentinelConfig.getDatabase();
-        }
-        return clientConfiguration.getDatabase();
-    }
-
-    /**
-     * Returns the connection timeout (in milliseconds).
-     *
-     * @return connection timeout
-     */
-    public long getTimeout() {
-        return this.timeout;
-    }
-
-    /**
-     * Returns whether to use SSL.
-     *
-     * @return use of SSL
-     */
-    public boolean isUseSsl() {
-        return clientConfiguration.isUseSsl();
-    }
-
+    
     /**
      * Creates a {@link ValkeyStandaloneConfiguration} based on this factory's settings.
      *
      * @return a {@link ValkeyStandaloneConfiguration} instance
      */
-    protected ValkeyStandaloneConfiguration createStandaloneConfiguration() {
+    protected ValkeyStandaloneConfiguration getStandaloneConfiguration() {
         ValkeyStandaloneConfiguration config = new ValkeyStandaloneConfiguration();
         // Set hostname and port
         clientConfiguration.getHostName().ifPresent(config::setHostName);
