@@ -114,66 +114,6 @@ public class ValkeyGlideConnectionFactory
     }
 
     /**
-     * Constructs a new {@link ValkeyGlideConnectionFactory} instance using the given {@link ValkeyStandaloneConfiguration}.
-     *
-     * @param standaloneConfiguration must not be {@literal null}
-     * @since 2.0
-     */
-    public ValkeyGlideConnectionFactory(ValkeyStandaloneConfiguration standaloneConfiguration) {
-        this(standaloneConfiguration, DefaultValkeyGlideClientConfiguration.builder().build());
-    }
-
-    /**
-     * Constructs a new {@link ValkeyGlideConnectionFactory} instance using the given {@link ValkeyStandaloneConfiguration}
-     * and {@link ValkeyGlideClientConfiguration}.
-     *
-     * @param standaloneConfiguration must not be {@literal null}
-     * @param clientConfiguration must not be {@literal null}
-     * @since 2.0
-     */
-    public ValkeyGlideConnectionFactory(ValkeyStandaloneConfiguration standaloneConfiguration,
-            ValkeyGlideClientConfiguration clientConfiguration) {
-        this(mergeConfigurations(standaloneConfiguration, clientConfiguration));
-    }
-
-    /**
-     * Merges standalone configuration into client configuration.
-     */
-    private static ValkeyGlideClientConfiguration mergeConfigurations(
-            ValkeyStandaloneConfiguration standaloneConfig,
-            ValkeyGlideClientConfiguration clientConfig) {
-        Assert.notNull(standaloneConfig, "ValkeyStandaloneConfiguration must not be null");
-
-        DefaultValkeyGlideClientConfiguration.ValkeyGlideClientConfigurationBuilder builder =
-                DefaultValkeyGlideClientConfiguration.builder()
-                .hostName(standaloneConfig.getHostName())
-                .port(standaloneConfig.getPort())
-                .database(standaloneConfig.getDatabase());
-
-        if (!standaloneConfig.getPassword().equals(ValkeyPassword.none())) {
-            builder.password(standaloneConfig.getPassword());
-        }
-
-        if (clientConfig.getCommandTimeout() != null) {
-            builder.commandTimeout(clientConfig.getCommandTimeout());
-        }
-        if (clientConfig.isUseSsl()) {
-            builder.useSsl();
-        }
-        if (clientConfig.getShutdownTimeout() != null) {
-            builder.shutdownTimeout(clientConfig.getShutdownTimeout());
-        }
-        if (clientConfig.getClientName().isPresent()) {
-            builder.clientName(clientConfig.getClientName().get());
-        }
-        if (clientConfig.getPoolSize().isPresent()) {
-            builder.poolSize(clientConfig.getPoolSize().get());
-        }
-
-        return builder.build();
-    }
-
-    /**
      * Constructs a new {@link ValkeyGlideConnectionFactory} instance with the given {@link ValkeyGlideClientConfiguration}
      * and {@link ValkeyGlideConnectionProvider}.
      *
