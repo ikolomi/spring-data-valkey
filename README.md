@@ -7,7 +7,7 @@ This module provides integration with the [Valkey](https://valkey.io/) store, a 
 ## Features
 
 * Connection package as low-level abstraction across multiple drivers ([Valkey GLIDE](https://github.com/valkey-io/valkey-glide), [Lettuce](https://github.com/lettuce-io/lettuce-core), and [Jedis](https://github.com/redis/jedis)).
-* Exception translation to Spring's portable Data Access exception hierarchy for driver exceptions
+* Exception translation to Spring's portable Data Access exception hierarchy for driver exceptions.
 * `ValkeyTemplate` that provides a high level abstraction for performing various Valkey operations, exception translation and serialization support.
 * Pubsub support (such as a MessageListenerContainer for message-driven POJOs).
 * Valkey Sentinel and Valkey Cluster support.
@@ -66,31 +66,26 @@ Add the Maven dependency:
 </dependency>
 ```
 
-Note that a dependency for the underlying driver is also needed.  It is recommended to use Valkey GLIDE:
+Note that a dependency for the underlying driver is also needed. It is recommended to use Valkey GLIDE:
 
 ```xml
 <dependency>
   <groupId>io.valkey</groupId>
   <artifactId>valkey-glide</artifactId>
-  <classifier>${os.classifier}</classifier>
+  <classifier>${os.detected.classifier}</classifier>
   <version>${version}</version>
 </dependency>
 ```
 
 ## Building from Source
 
-Spring Data Valkey can be easily built with the [maven wrapper](https://github.com/takari/maven-wrapper).
-You also need JDK 17 or above and `make`.
-The local build environment is managed within a `Makefile` to download, build and spin up Valkey in various configurations (Standalone, Sentinel, Cluster, etc.)
+Spring Data Valkey can be easily built with the [maven wrapper](https://github.com/takari/maven-wrapper). You also need JDK 17 or above and `make`. The local build environment is managed within a `Makefile` to download, build and spin up Valkey in various configurations (Standalone, Sentinel, Cluster, etc.)
 
 ```bash
 $ make test
 ```
 
-The preceding command runs a full build.
-You can use `make start`, `make stop`, and `make clean` commands to control the environment yourself.
-This is useful if you want to avoid constant server restarts.
-Once all Valkey instances have been started, you can either run tests in your IDE or the full Maven build:
+The preceding command runs a full build. You can use `make start`, `make stop`, and `make clean` commands to control the environment yourself. This is useful if you want to avoid constant server restarts. Once all Valkey instances have been started, you can either run tests in your IDE or the full Maven build:
 
 ```bash
 $ ./mvnw clean install

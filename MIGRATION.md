@@ -17,7 +17,7 @@ Update your `pom.xml`:
 <dependency>
     <groupId>org.springframework.data</groupId>
     <artifactId>spring-data-redis</artifactId>
-    <version>3.5.1</version>
+    <version>${version}</version>
 </dependency>
 <dependency>
     <groupId>io.lettuce</groupId>
@@ -28,13 +28,13 @@ Update your `pom.xml`:
 <dependency>
     <groupId>io.valkey.springframework.data</groupId>
     <artifactId>spring-data-valkey</artifactId>
-    <version>3.5.1</version>
+    <version>${version}</version>
 </dependency>
 <dependency>
     <groupId>io.valkey</groupId>
     <artifactId>valkey-glide</artifactId>
     <classifier>${os.detected.classifier}</classifier>
-    <version>2.1.1</version>
+    <version>${version}</version>
 </dependency>
 ```
 
@@ -46,7 +46,7 @@ Valkey GLIDE requires platform-specific native libraries. Add the os-maven-plugi
         <extension>
             <groupId>kr.motd.maven</groupId>
             <artifactId>os-maven-plugin</artifactId>
-            <version>1.7.1</version>
+            <version>${version}</version>
         </extension>
     </extensions>
 </build>
@@ -60,19 +60,19 @@ Update your `build.gradle`:
 
 ```groovy
 // Before (Spring Data Redis with Lettuce)
-implementation 'org.springframework.data:spring-data-redis:3.5.1'
+implementation 'org.springframework.data:spring-data-redis:${version}'
 implementation 'io.lettuce:lettuce-core'
 
 // After (Spring Data Valkey with Valkey GLIDE - recommended)
-implementation 'io.valkey.springframework.data:spring-data-valkey:3.5.1'
-implementation "io.valkey:valkey-glide:2.1.1:${osdetector.classifier}"
+implementation 'io.valkey.springframework.data:spring-data-valkey:${version}'
+implementation "io.valkey:valkey-glide:${version}:${osdetector.classifier}"
 ```
 
 Valkey GLIDE requires platform-specific native libraries. Add the osdetector plugin:
 
 ```groovy
 plugins {
-    id 'com.google.osdetector' version '1.7.3'
+    id 'com.google.osdetector' version '${version}'
 }
 ```
 
@@ -322,6 +322,8 @@ RedisURI uri = RedisURI.create("redis://localhost:6379");
 ValkeyURI uri = ValkeyURI.create("valkey://localhost:6379");
 ```
 
+Note: Valkey also works against the `redis://` URI.
+
 ## Code Examples
 
 ### Basic Template Usage
@@ -406,6 +408,7 @@ public Mono<String> getValue(String key) {
 
 ## Additional Resources
 
-- [Spring Data Valkey Documentation](https://github.com/aws/spring-data-valkey)
 - [Valkey Documentation](https://valkey.io/docs/)
 - [Valkey GLIDE](https://github.com/valkey-io/valkey-glide)
+- [Spring Data Redis Documentation](https://docs.spring.io/spring-data/redis/reference/)
+- [Spring Data Redis](https://github.com/spring-projects/spring-data-redis)
