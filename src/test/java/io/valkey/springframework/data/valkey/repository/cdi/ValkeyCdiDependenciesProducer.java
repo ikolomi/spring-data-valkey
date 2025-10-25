@@ -21,7 +21,7 @@ import jakarta.enterprise.inject.Produces;
 
 import org.springframework.beans.factory.DisposableBean;
 import io.valkey.springframework.data.valkey.connection.ValkeyConnectionFactory;
-import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyKeyValueAdapter;
 import io.valkey.springframework.data.valkey.core.ValkeyKeyValueTemplate;
 import io.valkey.springframework.data.valkey.core.ValkeyOperations;
@@ -39,7 +39,7 @@ public class ValkeyCdiDependenciesProducer {
 	 */
 	@Produces
 	public ValkeyConnectionFactory valkeyConnectionFactory() {
-		return JedisConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
+		return ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
 	}
 
 	/**

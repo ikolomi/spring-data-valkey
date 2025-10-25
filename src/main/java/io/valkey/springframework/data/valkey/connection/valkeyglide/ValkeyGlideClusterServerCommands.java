@@ -20,6 +20,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.dao.DataAccessException;
+import io.valkey.springframework.data.valkey.connection.ValkeyClusterConnection;
 import io.valkey.springframework.data.valkey.connection.ValkeyClusterNode;
 import io.valkey.springframework.data.valkey.connection.ValkeyClusterServerCommands;
 import io.valkey.springframework.data.valkey.connection.ValkeyNode;
@@ -36,14 +37,14 @@ import org.springframework.util.Assert;
  */
 public class ValkeyGlideClusterServerCommands implements ValkeyClusterServerCommands {
 
-    private final ValkeyGlideClusterConnection connection;
+    private final ValkeyClusterConnection connection;
 
     /**
      * Create a new {@link ValkeyGlideClusterServerCommands}.
      *
      * @param connection must not be {@literal null}.
      */
-    public ValkeyGlideClusterServerCommands(ValkeyGlideClusterConnection connection) {
+    public ValkeyGlideClusterServerCommands(ValkeyClusterConnection connection) {
         Assert.notNull(connection, "Connection must not be null!");
         this.connection = connection;
     }

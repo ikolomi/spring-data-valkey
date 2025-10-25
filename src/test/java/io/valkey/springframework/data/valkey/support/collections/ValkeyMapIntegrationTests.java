@@ -29,6 +29,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.Jackson2JsonValkeySerializer;
@@ -132,6 +134,35 @@ public class ValkeyMapIntegrationTests extends AbstractValkeyMapIntegrationTests
 		rawTemplateLtc.setKeySerializer(stringSerializer);
 		rawTemplateLtc.afterPropertiesSet();
 
+		// ValkeyGlide
+		ValkeyGlideConnectionFactory valkeyGlideConnFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+		ValkeyTemplate genericTemplateVkg = new ValkeyTemplate();
+		genericTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		genericTemplateVkg.afterPropertiesSet();
+		
+		ValkeyTemplate<String, Person> xGenericTemplateVkg = new ValkeyTemplate<>();
+		xGenericTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		xGenericTemplateVkg.setDefaultSerializer(serializer);
+		xGenericTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, Person> jackson2JsonPersonTemplateVkg = new ValkeyTemplate<>();
+		jackson2JsonPersonTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		jackson2JsonPersonTemplateVkg.setDefaultSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateVkg.setHashKeySerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateVkg.setHashValueSerializer(jackson2JsonStringSerializer);
+		jackson2JsonPersonTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, String> stringTemplateVkg = new StringValkeyTemplate(valkeyGlideConnFactory);
+		stringTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		stringTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, byte[]> rawTemplateVkg = new ValkeyTemplate<>();
+		rawTemplateVkg.setEnableDefaultSerializer(false);
+		rawTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		rawTemplateVkg.setKeySerializer(stringSerializer);
+		rawTemplateVkg.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate },
 				{ personFactory, personFactory, genericTemplate }, //
 				{ stringFactory, personFactory, genericTemplate }, //
@@ -149,6 +180,17 @@ public class ValkeyMapIntegrationTests extends AbstractValkeyMapIntegrationTests
 				{ personFactory, stringFactory, jackson2JsonPersonTemplateLettuce }, //
 				{ stringFactory, doubleFactory, stringTemplateLtc }, //
 				{ stringFactory, longFactory, stringTemplateLtc }, //
-				{ rawFactory, rawFactory, rawTemplateLtc } });
+				{ rawFactory, rawFactory, rawTemplateLtc },
+			
+				// valkeyglide
+				{ stringFactory, stringFactory, genericTemplateVkg }, //
+				{ personFactory, personFactory, genericTemplateVkg }, //
+				{ stringFactory, personFactory, genericTemplateVkg }, //
+				{ personFactory, stringFactory, genericTemplateVkg }, //
+				{ personFactory, stringFactory, xGenericTemplateVkg }, //
+				{ personFactory, stringFactory, jackson2JsonPersonTemplateVkg }, //
+				{ stringFactory, doubleFactory, stringTemplateVkg }, //
+				{ stringFactory, longFactory, stringTemplateVkg }, //
+				{ rawFactory, rawFactory, rawTemplateVkg } });
 	}
 }

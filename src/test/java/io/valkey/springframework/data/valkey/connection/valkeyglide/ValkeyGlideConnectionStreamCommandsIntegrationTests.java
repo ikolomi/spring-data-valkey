@@ -222,6 +222,107 @@ public class ValkeyGlideConnectionStreamCommandsIntegrationTests extends Abstrac
         }
     }
 
+    @Test
+    void testStreamRangeBoundaryOperations() {
+        String streamKey = "test:stream:boundary";
+        
+        try {
+            // Add exactly 3 records to have clear boundaries for testing
+            List<RecordId> recordIds = new ArrayList<>();
+            for (int i = 0; i < 3; i++) {
+                Map<byte[], byte[]> fields = Map.of(
+                    "index".getBytes(), String.valueOf(i).getBytes(),
+                    "data".getBytes(), ("record" + i).getBytes()
+                );
+                
+                MapRecord<byte[], byte[], byte[]> record = StreamRecords.newRecord()
+                    .in(streamKey.getBytes())
+                    .ofMap(fields);
+                
+                RecordId recordId = connection.streamCommands().xAdd(record);
+                recordIds.add(recordId);
+            }
+            
+            // Verify we have 3 records total
+            assertThat(recordIds).hasSize(3);
+            
+            RecordId firstId = recordIds.get(0);
+            RecordId middleId = recordIds.get(1);
+            RecordId lastId = recordIds.get(2);
+            
+            // Test inclusive range - should include both boundary records
+            List<ByteRecord> inclusiveRange = connection.streamCommands().xRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.inclusive(firstId.getValue())).to(Range.Bound.inclusive(middleId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(inclusiveRange).hasSize(2);
+            assertThat(inclusiveRange.get(0).getId()).isEqualTo(firstId);
+            assertThat(inclusiveRange.get(1).getId()).isEqualTo(middleId);
+            
+            // Test exclusive lower bound - should exclude first record, include middle
+            List<ByteRecord> exclusiveLowerRange = connection.streamCommands().xRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.exclusive(firstId.getValue())).to(Range.Bound.inclusive(middleId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(exclusiveLowerRange).hasSize(1);
+            assertThat(exclusiveLowerRange.get(0).getId()).isEqualTo(middleId);
+            
+            // Test exclusive upper bound - should include first record, exclude middle  
+            List<ByteRecord> exclusiveUpperRange = connection.streamCommands().xRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.inclusive(firstId.getValue())).to(Range.Bound.exclusive(middleId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(exclusiveUpperRange).hasSize(1);
+            assertThat(exclusiveUpperRange.get(0).getId()).isEqualTo(firstId);
+            
+            // Test both bounds exclusive - should return no records (only first and middle are in range)
+            List<ByteRecord> bothExclusiveRange = connection.streamCommands().xRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.exclusive(firstId.getValue())).to(Range.Bound.exclusive(middleId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(bothExclusiveRange).hasSize(0);
+            
+            // Test reverse range with boundaries
+            // Inclusive reverse range - should include both boundary records in reverse order
+            List<ByteRecord> inclusiveRevRange = connection.streamCommands().xRevRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.inclusive(firstId.getValue())).to(Range.Bound.inclusive(lastId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(inclusiveRevRange).hasSize(3);
+            assertThat(inclusiveRevRange.get(0).getId()).isEqualTo(lastId);   // Last record first in reverse
+            assertThat(inclusiveRevRange.get(1).getId()).isEqualTo(middleId); // Middle record
+            assertThat(inclusiveRevRange.get(2).getId()).isEqualTo(firstId);  // First record last in reverse
+            
+            // Exclusive reverse range - exclude first record
+            List<ByteRecord> exclusiveRevRange = connection.streamCommands().xRevRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.exclusive(firstId.getValue())).to(Range.Bound.inclusive(lastId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(exclusiveRevRange).hasSize(2);
+            assertThat(exclusiveRevRange.get(0).getId()).isEqualTo(lastId);   // Last record first
+            assertThat(exclusiveRevRange.get(1).getId()).isEqualTo(middleId); // Middle record second
+            
+            // Exclusive reverse range - exclude last record  
+            List<ByteRecord> exclusiveUpperRevRange = connection.streamCommands().xRevRange(
+                streamKey.getBytes(),
+                Range.from(Range.Bound.inclusive(firstId.getValue())).to(Range.Bound.exclusive(lastId.getValue())),
+                Limit.unlimited()
+            );
+            assertThat(exclusiveUpperRevRange).hasSize(2);
+            assertThat(exclusiveUpperRevRange.get(0).getId()).isEqualTo(middleId); // Middle record first in reverse
+            assertThat(exclusiveUpperRevRange.get(1).getId()).isEqualTo(firstId);  // First record second in reverse
+            
+        } finally {
+            cleanupKey(streamKey);
+        }
+    }
+
     // ==================== Consumer Group Operations ====================
 
     @Test

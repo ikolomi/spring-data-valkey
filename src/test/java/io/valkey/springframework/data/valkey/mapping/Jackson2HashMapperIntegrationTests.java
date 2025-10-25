@@ -31,6 +31,7 @@ import io.valkey.springframework.data.valkey.Person;
 import io.valkey.springframework.data.valkey.connection.ValkeyConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.hash.Jackson2HashMapper;
 import io.valkey.springframework.data.valkey.test.extension.ValkeyStanalone;
@@ -62,7 +63,8 @@ public class Jackson2HashMapperIntegrationTests {
 	public static Collection<ValkeyConnectionFactory> params() {
 
 		return Arrays.asList(JedisConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class),
-				LettuceConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class));
+				LettuceConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class),
+				ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class));
 	}
 
 	@BeforeEach

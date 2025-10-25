@@ -24,8 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import io.valkey.springframework.data.valkey.ObjectFactory;
 import io.valkey.springframework.data.valkey.StringObjectFactory;
-import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory;
-import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyCallback;
 import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
 import io.valkey.springframework.data.valkey.support.collections.ValkeyCollectionFactoryBean.CollectionType;
@@ -45,10 +45,11 @@ public class ValkeyCollectionFactoryBeanTests {
 	protected ValkeyStore col;
 
 	ValkeyCollectionFactoryBeanTests() {
-		JedisConnectionFactory jedisConnFactory = JedisConnectionFactoryExtension
+
+		ValkeyGlideConnectionFactory valkeyGlideConnFactory = ValkeyGlideConnectionFactoryExtension
 				.getConnectionFactory(ValkeyStanalone.class);
 
-		this.template = new StringValkeyTemplate(jedisConnFactory);
+		this.template = new StringValkeyTemplate(valkeyGlideConnFactory);
 	}
 
 	@BeforeEach

@@ -28,6 +28,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.Jackson2JsonValkeySerializer;
@@ -116,6 +118,36 @@ public abstract class CollectionTestParams {
 		rawTemplateLtc.setKeySerializer(stringSerializer);
 		rawTemplateLtc.afterPropertiesSet();
 
+		// ValkeyGlide
+		ValkeyGlideConnectionFactory valkeyGlideConnFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+
+		ValkeyTemplate<String, String> stringTemplateVkg = new StringValkeyTemplate(valkeyGlideConnFactory);
+		ValkeyTemplate<String, Person> personTemplateVkg = new ValkeyTemplate<>();
+		personTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		personTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, String> xstreamStringTemplateVkg = new ValkeyTemplate<>();
+		xstreamStringTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		xstreamStringTemplateVkg.setDefaultSerializer(serializer);
+		xstreamStringTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, Person> xstreamPersonTemplateVkg = new ValkeyTemplate<>();
+		xstreamPersonTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		xstreamPersonTemplateVkg.setValueSerializer(serializer);
+		xstreamPersonTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, Person> jackson2JsonPersonTemplateVkg = new ValkeyTemplate<>();
+		jackson2JsonPersonTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		jackson2JsonPersonTemplateVkg.setValueSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<byte[], byte[]> rawTemplateVkg = new ValkeyTemplate<>();
+		rawTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		rawTemplateVkg.setEnableDefaultSerializer(false);
+		rawTemplateVkg.setKeySerializer(stringSerializer);
+		rawTemplateVkg.afterPropertiesSet();
+		
 		return Arrays.asList(new Object[][] { { stringFactory, stringTemplate }, //
 				{ doubleAsStringObjectFactory, stringTemplate }, //
 				{ personFactory, personTemplate }, //
@@ -132,6 +164,16 @@ public abstract class CollectionTestParams {
 				{ stringFactory, xstreamStringTemplateLtc }, //
 				{ personFactory, xstreamPersonTemplateLtc }, //
 				{ personFactory, jackson2JsonPersonTemplateLtc }, //
-				{ rawFactory, rawTemplateLtc } });
+				{ rawFactory, rawTemplateLtc },
+
+				// ValkeyGlide
+				{ stringFactory, stringTemplateVkg }, //
+				{ personFactory, personTemplateVkg }, //
+				{ doubleAsStringObjectFactory, stringTemplateVkg }, //
+				{ personFactory, personTemplateVkg }, //
+				{ stringFactory, xstreamStringTemplateVkg }, //
+				{ personFactory, xstreamPersonTemplateVkg }, //
+				{ personFactory, jackson2JsonPersonTemplateVkg }, //
+				{ rawFactory, rawTemplateVkg } });
 	}
 }

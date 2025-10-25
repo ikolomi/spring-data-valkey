@@ -36,6 +36,8 @@ import io.valkey.springframework.data.valkey.StringObjectFactory;
 import io.valkey.springframework.data.valkey.connection.ExpirationOptions;
 import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ExpireChanges.ExpiryChangeState;
 import io.valkey.springframework.data.valkey.core.types.Expirations.TimeToLive;
 import io.valkey.springframework.data.valkey.test.condition.EnabledOnCommand;
@@ -88,8 +90,23 @@ public class DefaultHashOperationsIntegrationTests<K, HK, HV> {
 		rawTemplate.setEnableDefaultSerializer(false);
 		rawTemplate.afterPropertiesSet();
 
+		ValkeyGlideConnectionFactory valkeyGlideConnectionFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+
+		ValkeyTemplate<String, String> vgStringTemplate = new StringValkeyTemplate();
+		vgStringTemplate.setConnectionFactory(valkeyGlideConnectionFactory);
+		vgStringTemplate.afterPropertiesSet();
+
+		ValkeyTemplate<byte[], byte[]> vgRawTemplate = new ValkeyTemplate<>();
+		vgRawTemplate.setConnectionFactory(valkeyGlideConnectionFactory);
+		vgRawTemplate.setEnableDefaultSerializer(false);
+		vgRawTemplate.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { { stringTemplate, stringFactory, stringFactory, stringFactory },
-				{ rawTemplate, rawFactory, rawFactory, rawFactory } });
+				{ rawTemplate, rawFactory, rawFactory, rawFactory },
+				{ vgStringTemplate, stringFactory, stringFactory, stringFactory },
+				{ vgRawTemplate, rawFactory, rawFactory, rawFactory },
+			 });
 	}
 
 	@BeforeEach

@@ -28,6 +28,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.serializer.GenericJackson2JsonValkeySerializer;
 import io.valkey.springframework.data.valkey.serializer.JdkSerializationValkeySerializer;
 import io.valkey.springframework.data.valkey.serializer.OxmSerializer;
@@ -37,6 +39,9 @@ import io.valkey.springframework.data.valkey.test.XstreamOxmSerializerSingleton;
 import io.valkey.springframework.data.valkey.test.condition.ValkeyDetector;
 import io.valkey.springframework.data.valkey.test.extension.ValkeyCluster;
 import io.valkey.springframework.data.valkey.test.extension.ValkeyStanalone;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
 
 /**
@@ -63,6 +68,11 @@ class CacheTestParams {
 				.getConnectionFactory(ValkeyStanalone.class);
 		factoryList.add(lettuceConnectionFactory);
 
+		// ValkeyGlide Standalone
+		ValkeyGlideConnectionFactory valkeyGlideConnectionFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+		factoryList.add(valkeyGlideConnectionFactory);
+
 		if (clusterAvailable()) {
 
 			// Jedis Cluster
@@ -76,6 +86,13 @@ class CacheTestParams {
 					.getConnectionFactory(ValkeyCluster.class);
 			factoryList
 					.add(lettuceClusterConnectionFactory);
+
+			// Valkey-Glide Cluster
+			LogFactory.getLog(CacheTestParams.class).warn("Skipping Cluster Mode for Valkey-Glide driver - enable when cluster support is implemented");
+			// ValkeyGlideConnectionFactory valkeyGlideClusterConnectionFactory = ValkeyGlideConnectionFactoryExtension
+			// 		.getConnectionFactory(ValkeyCluster.class);
+			// factoryList
+			// 		.add(valkeyGlideClusterConnectionFactory);
 		}
 
 		return factoryList;
