@@ -4,7 +4,7 @@ This guide helps you migrate from Spring Data Redis to Spring Data Valkey.
 
 ## Overview
 
-Spring Data Valkey is a fork of Spring Data Redis that has been rebranded to work with [Valkey](https://valkey.io/), an open source high-performance key/value datastore that is fully compatible with Redis. The migration primarily involves updating package names, class names, and configuration properties. Spring Data Valkey also adds support for [Valkey GLIDE](https://github.com/valkey-io/valkey-glide), a high-performance client library that is now the recommended default driver alongside existing Lettuce and Jedis support.
+Spring Data Valkey is a fork of Spring Data Redis that has been rebranded to work with [Valkey](https://valkey.io/), an open source high-performance key/value datastore that is fully compatible with Redis. The migration primarily involves updating package names, class names, and configuration properties from Redis to Valkey. Spring Data Valkey also adds support for [Valkey GLIDE](https://github.com/valkey-io/valkey-glide), a high-performance client library that is now the recommended default driver alongside existing Lettuce and Jedis support.
 
 ## Dependency Changes
 
@@ -52,7 +52,7 @@ Valkey GLIDE requires platform-specific native libraries. Add the os-maven-plugi
 </build>
 ```
 
-Note: You can continue using Lettuce or Jedis if preferred.
+Note: You can continue using Lettuce or Jedis if preferred, but Valkey GLIDE is recommended for optimal performance and full Valkey support.
 
 ### Gradle
 
@@ -107,10 +107,14 @@ Classes containing "Redis" in their name have been renamed to use "Valkey" inste
 ### Pattern
 
 ```
-*Redis* →  *Valkey*
+*Redis* → *Valkey*
 ```
 
-### Core Classes
+### Examples
+
+The following is a list of the more common classes, it is not exhaustive.
+
+#### Core Classes
 
 | Spring Data Redis | Spring Data Valkey |
 |-------------------|-------------------|
@@ -123,7 +127,7 @@ Classes containing "Redis" in their name have been renamed to use "Valkey" inste
 | `RedisCallback` | `ValkeyCallback` |
 | `RedisSerializer` | `ValkeySerializer` |
 
-### Connection Classes
+#### Connection Classes
 
 | Spring Data Redis | Spring Data Valkey |
 |-------------------|-------------------|
@@ -136,7 +140,23 @@ Classes containing "Redis" in their name have been renamed to use "Valkey" inste
 | `RedisNode` | `ValkeyNode` |
 | `RedisClusterNode` | `ValkeyClusterNode` |
 
-### Reactive Classes
+#### Repository Classes
+
+| Spring Data Redis | Spring Data Valkey |
+|-------------------|-------------------|
+| `@EnableRedisRepositories` | `@EnableValkeyRepositories` |
+| `RedisRepository` | `ValkeyRepository` |
+| `@RedisHash` | `@ValkeyHash` |
+
+#### Cache Classes
+
+| Spring Data Redis | Spring Data Valkey |
+|-------------------|-------------------|
+| `RedisCacheManager` | `ValkeyCacheManager` |
+| `RedisCacheConfiguration` | `ValkeyCacheConfiguration` |
+| `RedisCacheWriter` | `ValkeyCacheWriter` |
+
+#### Reactive Classes
 
 | Spring Data Redis | Spring Data Valkey |
 |-------------------|-------------------|
@@ -145,29 +165,27 @@ Classes containing "Redis" in their name have been renamed to use "Valkey" inste
 | `ReactiveRedisOperations` | `ReactiveValkeyOperations` |
 | `ReactiveRedisTemplate` | `ReactiveValkeyTemplate` |
 
-### Repository Classes
+#### Pub/Sub Classes
 
 | Spring Data Redis | Spring Data Valkey |
 |-------------------|-------------------|
-| `@EnableRedisRepositories` | `@EnableValkeyRepositories` |
-| `RedisRepository` | `ValkeyRepository` |
-| `@RedisHash` | `@ValkeyHash` |
+| `RedisMessageListenerContainer` | `ValkeyMessageListenerContainer` |
+| `MessageListenerAdapter` | `MessageListenerAdapter` (unchanged) |
 
-### Cache Classes
+#### Scripting Classes
 
 | Spring Data Redis | Spring Data Valkey |
 |-------------------|-------------------|
-| `RedisCacheManager` | `ValkeyCacheManager` |
-| `RedisCacheConfiguration` | `ValkeyCacheConfiguration` |
-| `RedisCacheWriter` | `ValkeyCacheWriter` |
+| `RedisScript` | `ValkeyScript` |
+| `DefaultRedisScript` | `DefaultValkeyScript` |
 
-### Valkey GLIDE Support
+#### Migrating to Valkey GLIDE
 
-Spring Data Valkey adds support for [Valkey GLIDE](https://github.com/valkey-io/valkey-glide) as a new connection driver:
+Spring Data Valkey adds support for [Valkey GLIDE](https://github.com/valkey-io/valkey-glide) as a new high-performance driver. To migrate from Lettuce or Jedis:
 
 | Class | Description |
 |-------|-------------|
-| `ValkeyGlideConnectionFactory` | Connection factory for Valkey GLIDE |
+| `ValkeyGlideConnectionFactory` | Replaces `LettuceConnectionFactory` or `JedisConnectionFactory` |
 | `ValkeyGlideConnection` | Connection implementation using GLIDE |
 | `ValkeyGlideClientConfiguration` | Configuration for GLIDE client |
 
@@ -225,7 +243,7 @@ public class ValkeyConfig {
 
 ### Spring Boot Configuration
 
-Since a Spring Boot starter is not yet available, add a custom configuration in that case:
+Since a Spring Boot starter is not yet available, add a custom configuration:
 
 ```java
 @Configuration
@@ -272,120 +290,16 @@ public class ValkeyConfig {
 }
 ```
 
-### Spring Boot Properties
-
-Update your `application.properties` or `application.yml`:
+The configuration above reads from these properties in your `application.properties` or `application.yml`:
 
 ```properties
 # Before
 spring.redis.host=localhost
 spring.redis.port=6379
-spring.redis.password=secret
-spring.redis.database=0
-spring.redis.timeout=60000
 
 # After
 spring.valkey.host=localhost
 spring.valkey.port=6379
-spring.valkey.password=secret
-spring.valkey.database=0
-spring.valkey.timeout=60000
-```
-
-### XML Configuration
-
-```xml
-<!-- Before -->
-<beans xmlns:redis="http://www.springframework.org/schema/redis"
-       xsi:schemaLocation="http://www.springframework.org/schema/redis
-                           https://www.springframework.org/schema/redis/spring-redis.xsd">
-    <redis:repositories base-package="com.example.repositories" />
-</beans>
-
-<!-- After -->
-<beans xmlns:valkey="http://www.springframework.org/schema/valkey"
-       xsi:schemaLocation="http://www.springframework.org/schema/valkey
-                           https://www.springframework.org/schema/valkey/spring-valkey.xsd">
-    <valkey:repositories base-package="com.example.repositories" />
-</beans>
-```
-
-## URI and Connection String Changes
-
-Update connection URIs from `redis://` to `valkey://`:
-
-```java
-// Before
-RedisURI uri = RedisURI.create("redis://localhost:6379");
-
-// After
-ValkeyURI uri = ValkeyURI.create("valkey://localhost:6379");
-```
-
-Note: Valkey also works against the `redis://` URI.
-
-## Code Examples
-
-### Basic Template Usage
-
-```java
-// Before
-@Autowired
-private StringRedisTemplate redisTemplate;
-
-public void saveValue(String key, String value) {
-    redisTemplate.opsForValue().set(key, value);
-}
-
-// After
-@Autowired
-private StringValkeyTemplate valkeyTemplate;
-
-public void saveValue(String key, String value) {
-    valkeyTemplate.opsForValue().set(key, value);
-}
-```
-
-### Repository Usage
-
-```java
-// Before
-@RedisHash("users")
-public class User {
-    @Id String id;
-    String name;
-}
-
-interface UserRepository extends RedisRepository<User, String> {}
-
-// After
-@ValkeyHash("users")
-public class User {
-    @Id String id;
-    String name;
-}
-
-interface UserRepository extends ValkeyRepository<User, String> {}
-```
-
-### Reactive Usage
-
-```java
-// Before
-@Autowired
-private ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
-
-public Mono<String> getValue(String key) {
-    return reactiveRedisTemplate.opsForValue().get(key);
-}
-
-// After
-@Autowired
-private ReactiveValkeyTemplate<String, String> reactiveValkeyTemplate;
-
-public Mono<String> getValue(String key) {
-    return reactiveValkeyTemplate.opsForValue().get(key);
-}
 ```
 
 ## Migration Checklist
@@ -394,11 +308,8 @@ public Mono<String> getValue(String key) {
 - [ ] Update all package imports from `org.springframework.data.redis` to `io.valkey.springframework.data.valkey`
 - [ ] Rename all `*Redis*` classes to `*Valkey*`
 - [ ] Update annotations (`@EnableRedisRepositories` → `@EnableValkeyRepositories`, `@RedisHash` → `@ValkeyHash`)
+- [ ] Update bean names in code and configuration (e.g., `redisTemplate` to `valkeyTemplate`)
 - [ ] Update Spring Boot properties from `spring.redis.*` to `spring.valkey.*`
-- [ ] Update XML schema namespaces from `redis` to `valkey`
-- [ ] Update connection URIs from `redis://` to `valkey://`
-- [ ] Update bean names in configuration (e.g., `redisTemplate` to `valkeyTemplate`)
-- [ ] Run tests to verify functionality
 
 ## Compatibility Notes
 
