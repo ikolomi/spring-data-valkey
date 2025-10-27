@@ -18,13 +18,12 @@ package io.valkey.springframework.data.valkey.support.atomic;
 import java.util.Arrays;
 import java.util.Collection;
 
-import io.valkey.springframework.data.valkey.connection.ValkeyStandaloneConfiguration;
 import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
-import io.valkey.springframework.data.valkey.connection.lettuce.LettuceClientConfiguration;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
-import io.valkey.springframework.data.valkey.test.extension.LettuceTestClientResources;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.test.extension.ValkeyStanalone;
 
 /**
@@ -45,6 +44,10 @@ abstract class AtomicCountersParam {
 		LettuceConnectionFactory lettuceConnFactory = LettuceConnectionFactoryExtension
 				.getConnectionFactory(ValkeyStanalone.class, false);
 
-		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory } });
+		// Valkey-Glide
+		ValkeyGlideConnectionFactory valkeyGlideConnFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+
+		return Arrays.asList(new Object[][] { { jedisConnFactory }, { lettuceConnFactory }, { valkeyGlideConnFactory } });
 	}
 }

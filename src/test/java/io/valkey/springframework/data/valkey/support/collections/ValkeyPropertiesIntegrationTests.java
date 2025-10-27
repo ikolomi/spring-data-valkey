@@ -36,6 +36,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.lettuce.extension.LettuceConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.Jackson2JsonValkeySerializer;
@@ -232,6 +234,23 @@ public class ValkeyPropertiesIntegrationTests extends ValkeyMapIntegrationTests 
 		jackson2JsonPersonTemplateLtc.setHashValueSerializer(jackson2JsonStringSerializer);
 		jackson2JsonPersonTemplateLtc.afterPropertiesSet();
 
+		// ValkeyGlide
+		ValkeyGlideConnectionFactory valkeyGlideConnFactory = ValkeyGlideConnectionFactoryExtension
+				.getConnectionFactory(ValkeyStanalone.class);
+				
+		ValkeyTemplate<String, String> genericTemplateVkg = new StringValkeyTemplate(valkeyGlideConnFactory);
+		ValkeyTemplate<String, Person> xGenericTemplateVkg = new ValkeyTemplate<>();
+		xGenericTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		xGenericTemplateVkg.setDefaultSerializer(serializer);
+		xGenericTemplateVkg.afterPropertiesSet();
+
+		ValkeyTemplate<String, Person> jackson2JsonPersonTemplateVkg = new ValkeyTemplate<>();
+		jackson2JsonPersonTemplateVkg.setConnectionFactory(valkeyGlideConnFactory);
+		jackson2JsonPersonTemplateVkg.setDefaultSerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateVkg.setHashKeySerializer(jackson2JsonSerializer);
+		jackson2JsonPersonTemplateVkg.setHashValueSerializer(jackson2JsonStringSerializer);
+		jackson2JsonPersonTemplateVkg.afterPropertiesSet();
+
 		return Arrays.asList(new Object[][] { { stringFactory, stringFactory, genericTemplate }, //
 				{ stringFactory, stringFactory, genericTemplate }, //
 				{ stringFactory, stringFactory, genericTemplate }, //
@@ -239,15 +258,25 @@ public class ValkeyPropertiesIntegrationTests extends ValkeyMapIntegrationTests 
 				{ stringFactory, stringFactory, xstreamGenericTemplate }, //
 				{ stringFactory, stringFactory, jackson2JsonPersonTemplate }, //
 
-						// lettuce
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, genericTemplateLtc }, //
-						{ stringFactory, doubleFactory, genericTemplateLtc }, //
-						{ stringFactory, longFactory, genericTemplateLtc }, //
-						{ stringFactory, stringFactory, xGenericTemplateLtc }, //
-						{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc } });
+				// lettuce
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, genericTemplateLtc }, //
+				{ stringFactory, doubleFactory, genericTemplateLtc }, //
+				{ stringFactory, longFactory, genericTemplateLtc }, //
+				{ stringFactory, stringFactory, xGenericTemplateLtc }, //
+				{ stringFactory, stringFactory, jackson2JsonPersonTemplateLtc },
+			
+				// ValkeyGlide
+				{ stringFactory, stringFactory, genericTemplateVkg }, //
+				{ stringFactory, stringFactory, genericTemplateVkg }, //
+				{ stringFactory, stringFactory, genericTemplateVkg }, //	
+				{ stringFactory, stringFactory, genericTemplateVkg }, //
+				{ stringFactory, doubleFactory, genericTemplateVkg }, //
+				{ stringFactory, longFactory, genericTemplateVkg }, //
+				{ stringFactory, stringFactory, xGenericTemplateVkg }, //
+				{ stringFactory, stringFactory, jackson2JsonPersonTemplateVkg } });
 	}
 
 }

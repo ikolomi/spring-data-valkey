@@ -476,8 +476,24 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
             List<Object> args = new ArrayList<>();
             args.add(key);
             
-            Object lowerBound = range.getLowerBound().getValue().orElse("-");
-            Object upperBound = range.getUpperBound().getValue().orElse("+");
+            // Handle lower bound with exclusive/inclusive semantics
+            Object lowerBound;
+            if (range.getLowerBound().isBounded()) {
+                Object value = range.getLowerBound().getValue().orElse("-");
+                lowerBound = range.getLowerBound().isInclusive() ? String.valueOf(value) : "(" + String.valueOf(value);
+            } else {
+                lowerBound = "-";
+            }
+            
+            // Handle upper bound with exclusive/inclusive semantics  
+            Object upperBound;
+            if (range.getUpperBound().isBounded()) {
+                Object value = range.getUpperBound().getValue().orElse("+");
+                upperBound = range.getUpperBound().isInclusive() ? String.valueOf(value) : "(" + String.valueOf(value);
+            } else {
+                upperBound = "+";
+            }
+            
             args.add(lowerBound);
             args.add(upperBound);
 
@@ -601,8 +617,24 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
             List<Object> args = new ArrayList<>();
             args.add(key);
             
-            Object upperBound = range.getUpperBound().getValue().orElse("+");
-            Object lowerBound = range.getLowerBound().getValue().orElse("-");
+            // Handle upper bound with exclusive/inclusive semantics (note: xRevRange has reversed argument order)
+            Object upperBound;
+            if (range.getUpperBound().isBounded()) {
+                Object value = range.getUpperBound().getValue().orElse("+");
+                upperBound = range.getUpperBound().isInclusive() ? String.valueOf(value) : "(" + String.valueOf(value);
+            } else {
+                upperBound = "+";
+            }
+            
+            // Handle lower bound with exclusive/inclusive semantics
+            Object lowerBound;
+            if (range.getLowerBound().isBounded()) {
+                Object value = range.getLowerBound().getValue().orElse("-");
+                lowerBound = range.getLowerBound().isInclusive() ? String.valueOf(value) : "(" + String.valueOf(value);
+            } else {
+                lowerBound = "-";
+            }
+            
             args.add(upperBound);
             args.add(lowerBound);
 
@@ -750,7 +782,7 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
             return reverseOrder ? -comparison : comparison;
         });
 
-        // Valkey-Glide encodes entry of an ID encoded as Object[[field, value]]
+        // Parse Valkey-Glide stream record format using converter patterns
         for (Map.Entry<?, ?> entry : sortedEntries) {
             String recordIdString = ((GlideString) entry.getKey()).toString();
             Map<byte[], byte[]> fields = new HashMap<>();
@@ -786,8 +818,14 @@ public class ValkeyGlideStreamCommands implements ValkeyStreamCommands {
                 Object streamKeyObj = streamEntry.getKey();
                 Map<?, ?> streamRecordsObj = (Map<?, ?>) streamEntry.getValue();
                 
-                byte[] streamKey = streamKeyObj instanceof byte[] ? 
-                    (byte[]) streamKeyObj : streamKeyObj.toString().getBytes();
+                byte[] streamKey;
+                if (streamKeyObj instanceof byte[]) {
+                    streamKey = (byte[]) streamKeyObj;
+                } else if (streamKeyObj instanceof GlideString) {
+                    streamKey = ((GlideString) streamKeyObj).getBytes();
+                } else {
+                    streamKey = streamKeyObj.toString().getBytes(StandardCharsets.UTF_8);
+                }
                 
                 List<ByteRecord> streamRecords = parseByteRecords(streamRecordsObj, streamKey, false);
                 allRecords.addAll(streamRecords);

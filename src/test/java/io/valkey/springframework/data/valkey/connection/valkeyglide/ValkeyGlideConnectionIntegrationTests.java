@@ -288,34 +288,33 @@ public class ValkeyGlideConnectionIntegrationTests extends AbstractValkeyGlideIn
             connection.setCommands().sCard(setKey.getBytes());
             
             // ZSet commands
-            System.err.println("⚠️  WARNING: Uncomment ZSet commands when reworked for the unified invocation approach");
-            //connection.zSetCommands().zAdd(zsetKey.getBytes(), 1.0, "zset_member".getBytes());
-            //connection.zSetCommands().zCard(zsetKey.getBytes());
+            connection.zSetCommands().zAdd(zsetKey.getBytes(), 1.0, "zset_member".getBytes());
+            connection.zSetCommands().zCard(zsetKey.getBytes());
             
             List<Object> results = connection.closePipeline();
             
-            assertThat(results).hasSize(8);
+            assertThat(results).hasSize(10);
             
             // Verify write results
             assertThat(results.get(0)).isEqualTo(true); // SET
             assertThat(results.get(2)).isEqualTo(true); // HSET
             assertThat(results.get(4)).isEqualTo(1L);   // LPUSH (returns length)
             assertThat(results.get(6)).isEqualTo(1L);   // SADD (returns count added)
-            //assertThat(results.get(8)).isEqualTo(true); // ZADD
+            assertThat(results.get(8)).isEqualTo(true); // ZADD
             
             // Verify read results
             assertThat(results.get(1)).isEqualTo("string_value".getBytes()); // GET
             assertThat(results.get(3)).isEqualTo("hash_value".getBytes());   // HGET
             assertThat(results.get(5)).isEqualTo(1L);                        // LLEN
             assertThat(results.get(7)).isEqualTo(1L);                        // SCARD
-            //assertThat(results.get(9)).isEqualTo(1L);                        // ZCARD
+            assertThat(results.get(9)).isEqualTo(1L);                        // ZCARD
             
             // Verify values exist outside pipeline
             assertThat(connection.stringCommands().get(stringKey.getBytes())).isEqualTo("string_value".getBytes());
             assertThat(connection.hashCommands().hGet(hashKey.getBytes(), "field1".getBytes())).isEqualTo("hash_value".getBytes());
             assertThat(connection.listCommands().lLen(listKey.getBytes())).isEqualTo(1L);
             assertThat(connection.setCommands().sCard(setKey.getBytes())).isEqualTo(1L);
-            //assertThat(connection.zSetCommands().zCard(zsetKey.getBytes())).isEqualTo(1L);
+            assertThat(connection.zSetCommands().zCard(zsetKey.getBytes())).isEqualTo(1L);
             
         } finally {
             cleanupKeys(stringKey, hashKey, listKey, setKey, zsetKey);

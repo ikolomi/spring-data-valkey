@@ -78,8 +78,6 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
     private final GlideClient client;
     private final long timeout;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final boolean isShared;
-    private final ValkeyGlideConnectionProvider connectionProvider;
 
     private @Nullable Batch currentBatch;
     private final List<ResultMapper<?, ?>> batchCommandsConverters = new ArrayList<>();
@@ -101,42 +99,16 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
 
     /**
      * Creates a new {@link ValkeyGlideConnection} with a dedicated client.
+     * Each connection owns and manages its own GlideClient instance.
      *
      * @param client valkey-glide client
      * @param timeout command timeout in milliseconds
-     * @param connectionProvider the connection provider
      */
-    public ValkeyGlideConnection(GlideClient client, long timeout, ValkeyGlideConnectionProvider connectionProvider) {
-        this(client, timeout, connectionProvider, false);
-    }
-
-    /**
-     * Creates a new {@link ValkeyGlideConnection} with a client (generic Object type for compatibility).
-     *
-     * @param client valkey-glide client as Object
-     * @param timeout command timeout in milliseconds
-     * @param connectionProvider the connection provider
-     */
-    public ValkeyGlideConnection(Object client, long timeout, ValkeyGlideConnectionProvider connectionProvider) {
-        this((GlideClient) client, timeout, connectionProvider, false);
-    }
-
-    /**
-     * Creates a new {@link ValkeyGlideConnection}.
-     *
-     * @param client valkey-glide client
-     * @param timeout command timeout in milliseconds
-     * @param connectionProvider the connection provider
-     * @param isShared flag indicating whether the client is shared or dedicated to this connection
-     */
-    public ValkeyGlideConnection(GlideClient client, long timeout, ValkeyGlideConnectionProvider connectionProvider, boolean isShared) {
+    public ValkeyGlideConnection(GlideClient client, long timeout) {
         Assert.notNull(client, "Client must not be null");
-        Assert.notNull(connectionProvider, "ConnectionProvider must not be null");
         
         this.client = client;
         this.timeout = timeout;
-        this.isShared = isShared;
-        this.connectionProvider = connectionProvider;
         
         // Initialize command interfaces
         this.keyCommands = new ValkeyGlideKeyCommands(this);
@@ -247,12 +219,10 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
     @Override
     public void close() throws DataAccessException {
         if (closed.compareAndSet(false, true)) {
-            if (!isShared) {
-                try {
-                    connectionProvider.release(client);
-                } catch (Exception ex) {
-                    throw new DataAccessException("Error closing Valkey-Glide connection", ex) {};
-                }
+            try {
+                client.close();
+            } catch (Exception ex) {
+                throw new DataAccessException("Error closing Valkey-Glide connection", ex) {};
             }
             
             if (subscription != null) {
@@ -376,7 +346,7 @@ public class ValkeyGlideConnection extends AbstractValkeyConnection {
             
             // Handle transaction abort cases - valkey-glide returns null for WATCH conflicts
             if (results == null) {
-                // Return empty list for WATCH conflicts (matches Jedis behavior and Redis specification)
+                // Return empty list for WATCH conflicts (matches Jedis behavior and Valkey specification)
                 return new ArrayList<>();
             }
             

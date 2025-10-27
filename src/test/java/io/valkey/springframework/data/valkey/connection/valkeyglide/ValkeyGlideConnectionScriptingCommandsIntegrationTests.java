@@ -301,7 +301,7 @@ public class ValkeyGlideConnectionScriptingCommandsIntegrationTests extends Abst
     void testEvalShaWithoutPreLoadingScript() {
         // This test simulates what DefaultScriptExecutor does: try evalSha first without loading
         try {
-            // Use a fake SHA1 hash that definitely doesn't exist in Redis
+            // Use a fake SHA1 hash that definitely doesn't exist in Valkey
             // This should trigger a NOSCRIPT error, which is what we need to test
             String fakeSha = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 40 chars of 'a'
             

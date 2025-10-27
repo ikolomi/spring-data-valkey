@@ -35,8 +35,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
-import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory;
-import io.valkey.springframework.data.valkey.connection.jedis.extension.JedisConnectionFactoryExtension;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.extension.ValkeyGlideConnectionFactoryExtension;
 import io.valkey.springframework.data.valkey.core.ValkeyHash;
 import io.valkey.springframework.data.valkey.core.ValkeyKeyValueAdapter;
 import io.valkey.springframework.data.valkey.core.ValkeyKeyValueTemplate;
@@ -57,7 +57,7 @@ import org.springframework.data.repository.query.FluentQuery;
  */
 class QueryByExampleValkeyExecutorIntegrationTests {
 
-	private static JedisConnectionFactory connectionFactory;
+	private static ValkeyGlideConnectionFactory connectionFactory;
 	private ValkeyMappingContext mappingContext = new ValkeyMappingContext();
 	private ValkeyKeyValueTemplate kvTemplate;
 
@@ -65,7 +65,7 @@ class QueryByExampleValkeyExecutorIntegrationTests {
 
 	@BeforeAll
 	static void beforeAll() {
-		connectionFactory = JedisConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
+		connectionFactory = ValkeyGlideConnectionFactoryExtension.getConnectionFactory(ValkeyStanalone.class);
 	}
 
 	@BeforeEach
