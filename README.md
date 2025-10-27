@@ -30,7 +30,7 @@ public class Example {
 
     // inject the actual template
     @Autowired
-    private ValkeyTemplate<String, String> valkeyTemplate;
+    private StringValkeyTemplate valkeyTemplate;
 
     // inject the template as ListOperations
     // can also inject as Value, Set, ZSet, and HashOperations
@@ -47,10 +47,15 @@ public class Example {
 @Configuration
 class ApplicationConfig {
 
-  @Bean
-  public ValkeyConnectionFactory valkeyConnectionFactory() {
-    return new ValkeyGlideConnectionFactory();
-  }
+    @Bean
+    public ValkeyConnectionFactory valkeyConnectionFactory() {
+        return new ValkeyGlideConnectionFactory();
+    }
+
+    @Bean
+    public StringValkeyTemplate valkeyTemplate(ValkeyConnectionFactory factory) {
+        return new StringValkeyTemplate(factory);
+    }
 }
 ```
 
