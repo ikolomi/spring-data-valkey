@@ -140,6 +140,8 @@ The following is a list of the more common classes, it is not exhaustive.
 | `RedisNode` | `ValkeyNode` |
 | `RedisClusterNode` | `ValkeyClusterNode` |
 
+Note: Jedis and Lettuce are external driver libraries. Their package names (e.g., `redis.clients.jedis`) and class names (e.g., `RedisURI`, `RedisClient`) should not be changed during migration.
+
 #### Repository Classes
 
 | Spring Data Redis | Spring Data Valkey |
@@ -262,29 +264,18 @@ public class ValkeyConfig {
     @Value("${spring.valkey.password:#{null}}")
     private String password;
 
-    @Value("${spring.valkey.cluster.nodes:#{null}}")
-    private List<String> clusterNodes;
-
     @Bean
-    @ConditionalOnProperty("spring.valkey.cluster.nodes") // Use cluster if configured
-    public ValkeyConnectionFactory clusterFactory() {
-        ValkeyClusterConfiguration config = new ValkeyClusterConfiguration(clusterNodes);
-        return new ValkeyGlideConnectionFactory(config);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean // Otherwise use a standalone instance
     public ValkeyConnectionFactory valkeyConnectionFactory() {
         ValkeyStandaloneConfiguration config = new ValkeyStandaloneConfiguration(host, port);
         config.setDatabase(database);
         if (password != null) {
-            config.setPassword(password);
+            config.setPassword(ValkeyPassword.of(password));
         }
-        return new ValkeyGlideConnectionFactory(config);
+        return ValkeyGlideConnectionFactory.createValkeyGlideConnectionFactory(config);
     }
 
     @Bean
-    public ValkeyTemplate<String, String> valkeyTemplate(ValkeyConnectionFactory factory) {
+    public StringValkeyTemplate valkeyTemplate(ValkeyConnectionFactory factory) {
         return new StringValkeyTemplate(factory);
     }
 }
