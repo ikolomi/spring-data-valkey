@@ -82,6 +82,20 @@ Note that a dependency for the underlying driver is also needed. It is recommend
 </dependency>
 ```
 
+Valkey GLIDE requires platform-specific native libraries. Add the os-maven-plugin to resolve `${os.detected.classifier}`:
+
+```xml
+<build>
+  <extensions>
+    <extension>
+      <groupId>kr.motd.maven</groupId>
+      <artifactId>os-maven-plugin</artifactId>
+      <version>1.7.1</version>
+    </extension>
+  </extensions>
+</build>
+```
+
 ## Building from Source
 
 Spring Data Valkey can be easily built with the [maven wrapper](https://github.com/takari/maven-wrapper). You also need JDK 17 or above and `make`. The local build environment is managed within a `Makefile` to download, build and spin up Valkey in various configurations (Standalone, Sentinel, Cluster, etc.)

@@ -38,7 +38,7 @@ Update your `pom.xml`:
 </dependency>
 ```
 
-Valkey GLIDE requires platform-specific native libraries. Add the os-maven-plugin extension to your `pom.xml`:
+Valkey GLIDE requires platform-specific native libraries. Add the os-maven-plugin to resolve `${os.detected.classifier}`:
 
 ```xml
 <build>
@@ -68,7 +68,7 @@ implementation 'io.valkey.springframework.data:spring-data-valkey:${version}'
 implementation "io.valkey:valkey-glide:${version}:${osdetector.classifier}"
 ```
 
-Valkey GLIDE requires platform-specific native libraries. Add the osdetector plugin:
+Add the osdetector plugin to resolve `${osdetector.classifier}`:
 
 ```groovy
 plugins {
@@ -307,6 +307,59 @@ spring.valkey.port=6379
 - Valkey is fully compatible with Redis features, protocols, and commands
 - Existing Redis servers can be used with Spring Data Valkey without changes
 - Valkey GLIDE is the recommended driver for new applications
+
+## Automated Migration Script
+
+While updating dependencies and adding new configurations must be done manually, the renaming of packages and classes can be automated with a script. Here's an example using `sed`:
+
+```bash
+find path/to/project -type f \( -name "*.java" -o -name "*.properties" -o -name "*.yml" \) -exec sed -i \
+  `# Packages` \
+  -e 's/org\.springframework\.data\.redis\./io.valkey.springframework.data.valkey./g' \
+  `# Classes` \
+  -e 's/DefaultRedisScript/DefaultValkeyScript/g' \
+  -e 's/EnableRedisRepositories/EnableValkeyRepositories/g' \
+  -e 's/GenericJacksonJsonRedisSerializer/GenericJacksonJsonValkeySerializer/g' \
+  -e 's/JacksonJsonRedisSerializer/JacksonJsonValkeySerializer/g' \
+  -e 's/ReactiveRedisConnection/ReactiveValkeyConnection/g' \
+  -e 's/ReactiveRedisConnectionFactory/ReactiveValkeyConnectionFactory/g' \
+  -e 's/ReactiveRedisOperations/ReactiveValkeyOperations/g' \
+  -e 's/ReactiveRedisTemplate/ReactiveValkeyTemplate/g' \
+  -e 's/ReactiveStringRedisTemplate/ReactiveStringValkeyTemplate/g' \
+  -e 's/RedisCacheConfiguration/ValkeyCacheConfiguration/g' \
+  -e 's/RedisCacheManager/ValkeyCacheManager/g' \
+  -e 's/RedisCacheWriter/ValkeyCacheWriter/g' \
+  -e 's/RedisCallback/ValkeyCallback/g' \
+  -e 's/RedisClusterConfiguration/ValkeyClusterConfiguration/g' \
+  -e 's/RedisClusterNode/ValkeyClusterNode/g' \
+  -e 's/RedisConnection/ValkeyConnection/g' \
+  -e 's/RedisConnectionFactory/ValkeyConnectionFactory/g' \
+  -e 's/RedisGeoCommands/ValkeyGeoCommands/g' \
+  -e 's/RedisHash/ValkeyHash/g' \
+  -e 's/RedisMessageListenerContainer/ValkeyMessageListenerContainer/g' \
+  -e 's/RedisNode/ValkeyNode/g' \
+  -e 's/RedisOperations/ValkeyOperations/g' \
+  -e 's/RedisPassword/ValkeyPassword/g' \
+  -e 's/RedisRepository/ValkeyRepository/g' \
+  -e 's/RedisScript/ValkeyScript/g' \
+  -e 's/RedisSentinelConfiguration/ValkeySentinelConfiguration/g' \
+  -e 's/RedisSerializationContext/ValkeySerializationContext/g' \
+  -e 's/RedisSerializationContextBuilder/ValkeySerializationContextBuilder/g' \
+  -e 's/RedisSerializer/ValkeySerializer/g' \
+  -e 's/RedisStandaloneConfiguration/ValkeyStandaloneConfiguration/g' \
+  -e 's/RedisSystemException/ValkeySystemException/g' \
+  -e 's/RedisTemplate\b/ValkeyTemplate/g' \
+  -e 's/StringRedisSerializer/StringValkeySerializer/g' \
+  -e 's/StringRedisTemplate\b/StringValkeyTemplate/g' \
+  `# Variables` \
+  -e 's/"reactiveRedisTemplate"/"reactiveValkeyTemplate"/g' \
+  -e 's/"redisConnectionFactory"/"valkeyConnectionFactory"/g' \
+  -e 's/"redisTemplate"/"valkeyTemplate"/g' \
+  -e 's/"stringRedisTemplate"/"stringValkeyTemplate"/g' \
+  `# Properties` \
+  -e 's/spring\.redis\./spring.valkey./g' \
+  {} \;
+```
 
 ## Additional Resources
 
