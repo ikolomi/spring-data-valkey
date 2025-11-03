@@ -23,6 +23,7 @@
 		<beanutils>1.9.4</beanutils>
 		<xstream>1.4.21</xstream>
 		<pool>2.11.1</pool>
+		<valkey.glide>2.1.1</valkey.glide>
 		<lettuce>6.6.0.RELEASE</lettuce>
 		<jedis>6.0.0</jedis>
 		<multithreadedtc>1.01</multithreadedtc>
@@ -111,7 +112,8 @@
 			<groupId>io.valkey</groupId>
 			<artifactId>valkey-glide</artifactId>
 			<classifier>${os.detected.classifier}</classifier>
-			<version>[2.0.0,)</version>
+			<version>${valkey.glide}</version>
+			<optional>true</optional>
 		</dependency>
 
 		<dependency>
@@ -325,6 +327,7 @@
 				<configuration>
 					<systemPropertyVariables>
 						<valkey.server.version>${valkey.server.version}</valkey.server.version>
+						<valkey.glide>${valkey.glide}</valkey.glide>
 						<lettuce>${lettuce}</lettuce>
 						<jedis>${jedis}</jedis>
 					</systemPropertyVariables>
