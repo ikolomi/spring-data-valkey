@@ -32,12 +32,13 @@ public class TransactionsExample {
 		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
-		template.setConnectionFactory(connectionFactory);
-		template.setDefaultSerializer(StringValkeySerializer.UTF_8);
-		template.afterPropertiesSet();
+		try {
+			ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
+			template.setConnectionFactory(connectionFactory);
+			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
+			template.afterPropertiesSet();
 
-		// Basic transaction
+			// Basic transaction
 		System.out.println("=== Basic Transaction ===");
 		List<Object> results = template.execute((ValkeyCallback<List<Object>>) connection -> {
 			connection.multi();
@@ -60,8 +61,9 @@ public class TransactionsExample {
 			connection.stringCommands().set("counter".getBytes(), String.valueOf(counter + 1).getBytes());
 			return connection.exec();
 		});
-		System.out.println("Counter after transaction: " + template.opsForValue().get("counter"));
-
-		connectionFactory.destroy();
+			System.out.println("Counter after transaction: " + template.opsForValue().get("counter"));
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 }

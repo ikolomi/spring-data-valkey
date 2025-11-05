@@ -32,19 +32,21 @@ public class SerializationExample {
 		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		// JSON serialization
-		ValkeyTemplate<String, User> jsonTemplate = new ValkeyTemplate<>();
-		jsonTemplate.setConnectionFactory(connectionFactory);
-		jsonTemplate.setKeySerializer(new StringValkeySerializer());
-		jsonTemplate.setValueSerializer(new Jackson2JsonValkeySerializer<>(User.class));
-		jsonTemplate.afterPropertiesSet();
+		try {
+			// JSON serialization
+			ValkeyTemplate<String, User> jsonTemplate = new ValkeyTemplate<>();
+			jsonTemplate.setConnectionFactory(connectionFactory);
+			jsonTemplate.setKeySerializer(new StringValkeySerializer());
+			jsonTemplate.setValueSerializer(new Jackson2JsonValkeySerializer<>(User.class));
+			jsonTemplate.afterPropertiesSet();
 
-		User user = new User("alice", "alice@example.com", 25);
-		jsonTemplate.opsForValue().set("user:1", user);
-		User retrieved = jsonTemplate.opsForValue().get("user:1");
-		System.out.println("Retrieved user: " + retrieved);
-
-		connectionFactory.destroy();
+			User user = new User("alice", "alice@example.com", 25);
+			jsonTemplate.opsForValue().set("user:1", user);
+			User retrieved = jsonTemplate.opsForValue().get("user:1");
+			System.out.println("Retrieved user: " + retrieved);
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 
 	static class User implements Serializable {

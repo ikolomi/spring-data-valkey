@@ -29,15 +29,17 @@ public class QuickstartExample {
 		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
-		template.setConnectionFactory(connectionFactory);
-		template.setDefaultSerializer(StringValkeySerializer.UTF_8);
-		template.afterPropertiesSet();
+		try {
+			ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
+			template.setConnectionFactory(connectionFactory);
+			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
+			template.afterPropertiesSet();
 
-		template.opsForValue().set("message", "Hello, Valkey!");
-		String value = template.opsForValue().get("message");
-		System.out.println("Retrieved: " + value);
-
-		connectionFactory.destroy();
+			template.opsForValue().set("message", "Hello, Valkey!");
+			String value = template.opsForValue().get("message");
+			System.out.println("Retrieved: " + value);
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 }

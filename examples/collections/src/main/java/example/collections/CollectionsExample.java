@@ -32,12 +32,13 @@ public class CollectionsExample {
 		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
-		template.setConnectionFactory(connectionFactory);
-		template.setDefaultSerializer(StringValkeySerializer.UTF_8);
-		template.afterPropertiesSet();
+		try {
+			ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
+			template.setConnectionFactory(connectionFactory);
+			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
+			template.afterPropertiesSet();
 
-		// ValkeyList
+			// ValkeyList
 		System.out.println("=== ValkeyList ===");
 		DefaultValkeyList<String> list = new DefaultValkeyList<>("mylist", template);
 		list.add("item1");
@@ -53,11 +54,12 @@ public class CollectionsExample {
 
 		// Atomic counter
 		System.out.println("\n=== Atomic Counter ===");
-		ValkeyAtomicLong counter = new ValkeyAtomicLong("counter", connectionFactory);
-		System.out.println("Initial: " + counter.get());
-		System.out.println("Increment: " + counter.incrementAndGet());
-		System.out.println("Add 5: " + counter.addAndGet(5));
-
-		connectionFactory.destroy();
+			ValkeyAtomicLong counter = new ValkeyAtomicLong("counter", connectionFactory);
+			System.out.println("Initial: " + counter.get());
+			System.out.println("Increment: " + counter.incrementAndGet());
+			System.out.println("Add 5: " + counter.addAndGet(5));
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 }

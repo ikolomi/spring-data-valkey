@@ -30,12 +30,13 @@ public class OperationsExample {
 		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
-		template.setConnectionFactory(connectionFactory);
-		template.setDefaultSerializer(StringValkeySerializer.UTF_8);
-		template.afterPropertiesSet();
+		try {
+			ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
+			template.setConnectionFactory(connectionFactory);
+			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
+			template.afterPropertiesSet();
 
-		// List operations
+			// List operations
 		System.out.println("=== List Operations ===");
 		template.opsForList().rightPush("mylist", "one");
 		template.opsForList().rightPush("mylist", "two");
@@ -63,9 +64,10 @@ public class OperationsExample {
 		// Geo operations
 		System.out.println("\n=== Geo Operations ===");
 		template.opsForGeo().add("locations", new Point(-122.27652, 37.805186), "San Francisco");
-		template.opsForGeo().add("locations", new Point(-118.24368, 34.05223), "Los Angeles");
-		System.out.println("Locations: " + template.opsForGeo().position("locations", "San Francisco"));
-
-		connectionFactory.destroy();
+			template.opsForGeo().add("locations", new Point(-118.24368, 34.05223), "Los Angeles");
+			System.out.println("Locations: " + template.opsForGeo().position("locations", "San Francisco"));
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 }

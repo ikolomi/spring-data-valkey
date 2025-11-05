@@ -32,12 +32,13 @@ public class ScriptingExample {
 		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
-		ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
-		template.setConnectionFactory(connectionFactory);
-		template.setDefaultSerializer(StringValkeySerializer.UTF_8);
-		template.afterPropertiesSet();
+		try {
+			ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
+			template.setConnectionFactory(connectionFactory);
+			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
+			template.afterPropertiesSet();
 
-		// Simple script
+			// Simple script
 		System.out.println("=== Simple Script ===");
 		String script = "return redis.call('SET', KEYS[1], ARGV[1])";
 		DefaultValkeyScript<String> valkeyScript = new DefaultValkeyScript<>(script, String.class);
@@ -50,9 +51,10 @@ public class ScriptingExample {
 		template.opsForValue().set("counter", "10");
 		String incrementScript = "local val = redis.call('GET', KEYS[1]); return redis.call('SET', KEYS[1], val + ARGV[1])";
 		DefaultValkeyScript<String> incrementValkeyScript = new DefaultValkeyScript<>(incrementScript, String.class);
-		template.execute(incrementValkeyScript, Collections.singletonList("counter"), "5");
-		System.out.println("Counter: " + template.opsForValue().get("counter"));
-
-		connectionFactory.destroy();
+			template.execute(incrementValkeyScript, Collections.singletonList("counter"), "5");
+			System.out.println("Counter: " + template.opsForValue().get("counter"));
+		} finally {
+			connectionFactory.destroy();
+		}
 	}
 }
