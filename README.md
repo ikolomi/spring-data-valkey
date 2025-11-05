@@ -96,6 +96,10 @@ Valkey GLIDE requires platform-specific native libraries. Add the os-maven-plugi
 </build>
 ```
 
+### Examples
+
+For more comprehensive examples covering templates, repositories, caching, and other Spring Data functionality, see the [examples](examples/) directory.
+
 ## Building from Source
 
 Spring Data Valkey can be easily built with the [maven wrapper](https://github.com/takari/maven-wrapper). You also need JDK 17 or above and `make`. The local build environment is managed within a `Makefile` to download, build and spin up Valkey in various configurations (Standalone, Sentinel, Cluster, etc.)

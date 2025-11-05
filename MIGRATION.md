@@ -313,7 +313,7 @@ spring.valkey.port=6379
 While updating dependencies and adding new configurations must be done manually, the renaming of packages and classes can be automated with a script. Here's an example using `sed`:
 
 ```bash
-find path/to/project -type f \( -name "*.java" -o -name "*.properties" -o -name "*.yml" \) -exec sed -i \
+$ find path/to/project -type f \( -name "*.java" -o -name "*.properties" -o -name "*.yml" \) -exec sed -i \
   `# Packages` \
   -e 's/org\.springframework\.data\.redis\./io.valkey.springframework.data.valkey./g' \
   `# Classes` \

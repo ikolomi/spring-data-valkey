@@ -15,20 +15,22 @@ Note that the `Makefile` in the root directory can be used to start a Valkey ins
 Each example can be run independently using Maven, from the examples root directory:
 
 ```bash
-mvn compile exec:java -pl <example-name>
+$ cd examples
+$ mvn compile exec:java -pl <example-name>
 ```
 
 Or the specific example directory:
 
 ```bash
-cd examples/<example-name>
-mvn compile exec:java
+$ cd examples/<example-name>
+$ mvn compile exec:java
 ```
 
 To run all examples sequentially:
 
 ```bash
-for module in $(ls -d */ | grep -v target | sed 's|/||'); do
+$ cd examples
+$ for module in $(ls -d */ | grep -v target | sed 's|/||'); do
   echo "=== Running $module ==="
   mvn -q compile exec:java -pl $module
   echo ""
