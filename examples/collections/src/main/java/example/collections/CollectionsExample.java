@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,18 +39,20 @@ public class CollectionsExample {
 			template.afterPropertiesSet();
 
 			// ValkeyList
-		System.out.println("=== ValkeyList ===");
-		DefaultValkeyList<String> list = new DefaultValkeyList<>("mylist", template);
-		list.add("item1");
-		list.add("item2");
-		System.out.println("List: " + list);
+			System.out.println("=== ValkeyList ===");
+			DefaultValkeyList<String> list = new DefaultValkeyList<>("mylist", template);
+			list.add("item1");
+			list.add("item2");
+			System.out.println("List size: " + list.size());
+			System.out.println("List contents: " + list.stream().toList());
 
-		// ValkeySet
-		System.out.println("\n=== ValkeySet ===");
-		DefaultValkeySet<String> set = new DefaultValkeySet<>("myset", template);
-		set.add("element1");
-		set.add("element2");
-		System.out.println("Set: " + set);
+			// ValkeySet
+			System.out.println("\n=== ValkeySet ===");
+			DefaultValkeySet<String> set = new DefaultValkeySet<>("myset", template);
+			set.add("element1");
+			set.add("element2");
+			System.out.println("Set size: " + set.size());
+			System.out.println("Set contains 'element1': " + set.contains("element1"));
 
 		// Atomic counter
 		System.out.println("\n=== Atomic Counter ===");
