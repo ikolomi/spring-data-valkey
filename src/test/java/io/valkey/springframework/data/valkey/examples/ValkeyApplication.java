@@ -18,7 +18,7 @@ package io.valkey.springframework.data.valkey.examples;
 // tag::file[]
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 
@@ -28,7 +28,7 @@ public class ValkeyApplication {
 
 	public static void main(String[] args) {
 
-		LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
+		ValkeyGlideConnectionFactory connectionFactory = new ValkeyGlideConnectionFactory();
 		connectionFactory.afterPropertiesSet();
 
 		ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
