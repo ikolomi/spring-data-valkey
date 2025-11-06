@@ -16,7 +16,8 @@
 package example.transactions;
 
 import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
-import io.valkey.springframework.data.valkey.core.ValkeyCallback;
+import io.valkey.springframework.data.valkey.core.SessionCallback;
+import io.valkey.springframework.data.valkey.core.ValkeyOperations;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 
@@ -39,35 +40,55 @@ public class TransactionsExample {
 			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
 			template.afterPropertiesSet();
 
-			// Basic transaction
-		System.out.println("=== Basic Transaction ===");
-		List<Object> results = template.execute((ValkeyCallback<List<Object>>) connection -> {
-			connection.multi();
-			connection.stringCommands().set("key1".getBytes(), "value1".getBytes());
-			connection.stringCommands().set("key2".getBytes(), "value2".getBytes());
-			return connection.exec();
-		});
-		System.out.println("Transaction results: " + results);
+			// Basic transaction using SessionCallback
+			System.out.println("=== Basic Transaction ===");
+			List<Object> results = template.execute(new SessionCallback<List<Object>>() {
+				@Override
+				public List<Object> execute(ValkeyOperations operations) {
+					operations.multi();
+					operations.opsForValue().set("key1", "value1");
+					operations.opsForValue().set("key2", "value2");
+					return operations.exec();
+				}
+			});
+			System.out.println("Transaction results: " + results);
 
-		// Transaction with WATCH
-		System.out.println("\n=== Transaction with WATCH ===");
-		template.opsForValue().set("counter", "0");
+			// Transaction with WATCH (optimistic locking)
+			System.out.println("\n=== Transaction with WATCH ===");
+			template.opsForValue().set("counter", "0");
 
-		List<Object> watchResults = template.execute((ValkeyCallback<List<Object>>) connection -> {
-			connection.watch("counter".getBytes());
-			String value = new String(connection.stringCommands().get("counter".getBytes()));
-			int counter = Integer.parseInt(value);
+			// Retry loop for optimistic locking
+			boolean success = false;
+			int attempts = 0;
+			while (!success && attempts < 3) {
+				attempts++;
+				List<Object> watchResults = template.execute(new SessionCallback<List<Object>>() {
+					@Override
+					public List<Object> execute(ValkeyOperations operations) {
+						// Watch key BEFORE reading
+						operations.watch("counter");
 
-			connection.multi();
-			connection.stringCommands().set("counter".getBytes(), String.valueOf(counter + 1).getBytes());
-			return connection.exec();
-		});
+						// Read current value
+						String value = (String) operations.opsForValue().get("counter");
+						int counter = Integer.parseInt(value);
 
-		if (watchResults != null && !watchResults.isEmpty()) {
-			System.out.println("Transaction succeeded. Counter: " + template.opsForValue().get("counter"));
-		} else {
-			System.out.println("Transaction failed (key was modified)");
-		}
+						// Start transaction
+						operations.multi();
+						operations.opsForValue().set("counter", String.valueOf(counter + 1));
+						return operations.exec();
+					}
+				});
+
+				if (watchResults != null && !watchResults.isEmpty()) {
+					success = true;
+					System.out.println("Transaction succeeded on attempt " + attempts + ". Counter: " + template.opsForValue().get("counter"));
+				} else {
+					System.out.println("Attempt " + attempts + " failed (key was modified), retrying...");
+				}
+			}
+			if (!success) {
+				System.out.println("Transaction failed after " + attempts + " attempts");
+			}
 
 			// Cleanup
 			template.delete(Arrays.asList("key1", "key2", "counter"));

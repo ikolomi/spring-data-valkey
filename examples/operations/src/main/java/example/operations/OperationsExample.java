@@ -69,8 +69,21 @@ public class OperationsExample {
 			template.opsForGeo().add("locations", new Point(-118.24368, 34.05223), "Los Angeles");
 			System.out.println("Locations: " + template.opsForGeo().position("locations", "San Francisco"));
 
+			// HyperLogLog operations
+			System.out.println("\n=== HyperLogLog Operations ===");
+			template.opsForHyperLogLog().add("visitors", "user1", "user2", "user3");
+			template.opsForHyperLogLog().add("visitors", "user2", "user4"); // user2 counted once
+			Long uniqueCount = template.opsForHyperLogLog().size("visitors");
+			System.out.println("Unique visitors (approximate): " + uniqueCount);
+
+			// Stream operations
+			System.out.println("\n=== Stream Operations ===");
+			template.opsForStream().add("mystream", java.util.Map.of("sensor", "temperature", "value", "23.5"));
+			template.opsForStream().add("mystream", java.util.Map.of("sensor", "humidity", "value", "65"));
+			System.out.println("Stream length: " + template.opsForStream().size("mystream"));
+
 			// Cleanup
-			template.delete(Arrays.asList("mylist", "myset", "myhash", "myzset", "locations"));
+			template.delete(Arrays.asList("mylist", "myset", "myhash", "myzset", "locations", "visitors", "mystream"));
 		} finally {
 			connectionFactory.destroy();
 		}

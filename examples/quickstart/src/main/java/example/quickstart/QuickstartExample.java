@@ -16,8 +16,10 @@
 package example.quickstart;
 
 import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
-import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
-import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
+import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Quickstart example demonstrating basic ValkeyTemplate usage.
@@ -30,17 +32,24 @@ public class QuickstartExample {
 		connectionFactory.afterPropertiesSet();
 
 		try {
-			ValkeyTemplate<String, String> template = new ValkeyTemplate<>();
-			template.setConnectionFactory(connectionFactory);
-			template.setDefaultSerializer(StringValkeySerializer.UTF_8);
-			template.afterPropertiesSet();
+			// StringValkeyTemplate is a convenience class for String keys and values
+			StringValkeyTemplate template = new StringValkeyTemplate(connectionFactory);
 
+			// Basic operations
+			System.out.println("=== Basic Operations ===");
 			template.opsForValue().set("message", "Hello, Valkey!");
 			String value = template.opsForValue().get("message");
 			System.out.println("Retrieved: " + value);
 
+			// Set with expiration (TTL)
+			System.out.println("\n=== TTL Operations ===");
+			template.opsForValue().set("session:123", "user-data", Duration.ofSeconds(60));
+			Long ttl = template.getExpire("session:123", TimeUnit.SECONDS);
+			System.out.println("Session TTL: " + ttl + " seconds");
+
 			// Cleanup
 			template.delete("message");
+			template.delete("session:123");
 		} finally {
 			connectionFactory.destroy();
 		}

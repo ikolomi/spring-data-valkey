@@ -40,20 +40,31 @@ public class ScriptingExample {
 			template.afterPropertiesSet();
 
 			// Simple script
-		System.out.println("=== Simple Script ===");
-		String script = "return redis.call('SET', KEYS[1], ARGV[1])";
-		DefaultValkeyScript<String> valkeyScript = new DefaultValkeyScript<>(script, String.class);
-		String result = template.execute(valkeyScript, Collections.singletonList("mykey"), "myvalue");
-		System.out.println("Script result: " + result);
-		System.out.println("Value: " + template.opsForValue().get("mykey"));
+			System.out.println("=== Simple Script ===");
+			String script = "return redis.call('SET', KEYS[1], ARGV[1])";
+			DefaultValkeyScript<String> valkeyScript = new DefaultValkeyScript<>(script, String.class);
+			String result = template.execute(valkeyScript, Collections.singletonList("mykey"), "myvalue");
+			System.out.println("Script result: " + result);
+			System.out.println("Value: " + template.opsForValue().get("mykey"));
 
-		// Atomic increment script
-		System.out.println("\n=== Atomic Increment ===");
-		template.opsForValue().set("counter", "10");
-		String incrementScript = "local val = redis.call('GET', KEYS[1]); return redis.call('SET', KEYS[1], val + ARGV[1])";
-		DefaultValkeyScript<String> incrementValkeyScript = new DefaultValkeyScript<>(incrementScript, String.class);
-			template.execute(incrementValkeyScript, Collections.singletonList("counter"), "5");
-			System.out.println("Counter: " + template.opsForValue().get("counter"));
+			// Atomic increment script with proper Lua syntax
+			System.out.println("\n=== Atomic Increment ===");
+			template.opsForValue().set("counter", "10");
+			String incrementScript =
+				"local val = redis.call('GET', KEYS[1])\n" +
+				"local newval = tonumber(val) + tonumber(ARGV[1])\n" +
+				"redis.call('SET', KEYS[1], tostring(newval))\n" +
+				"return newval";
+			DefaultValkeyScript<Long> incrementValkeyScript = new DefaultValkeyScript<>(incrementScript, Long.class);
+			Long newValue = template.execute(incrementValkeyScript, Collections.singletonList("counter"), "5");
+			System.out.println("Counter after increment: " + newValue);
+
+			// Reuse script (demonstrates EVALSHA caching)
+			System.out.println("\n=== Script Reuse (EVALSHA) ===");
+			for (int i = 0; i < 3; i++) {
+				Long val = template.execute(incrementValkeyScript, Collections.singletonList("counter"), "1");
+				System.out.println("Increment " + (i + 1) + ": " + val);
+			}
 
 			// Cleanup
 			template.delete(Arrays.asList("mykey", "counter"));
