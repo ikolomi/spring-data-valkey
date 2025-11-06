@@ -13,16 +13,16 @@
 	<description>Example projects demonstrating Spring Data Valkey features</description>
 
 	<modules>
-		<module>quickstart</module>
-		<module>repositories</module>
-		<module>operations</module>
-		<module>serialization</module>
-		<module>transactions</module>
-		<module>scripting</module>
 		<module>cache</module>
 		<module>collections</module>
+		<module>operations</module>
 		<module>pipeline</module>
+		<module>quickstart</module>
+		<module>repositories</module>
+		<module>scripting</module>
+		<module>serialization</module>
 		<module>streams</module>
+		<module>transactions</module>
 	</modules>
 
 	<properties>

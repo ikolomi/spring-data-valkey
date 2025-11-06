@@ -5,7 +5,7 @@ This directory contains standalone examples demonstrating various features of Sp
 ## Prerequisites
 
 - JDK 17 or higher
-- Maven 3.8+
+- Maven 3.8 or higher
 - Valkey server running on `localhost:6379` (or configure connection in examples)
 
 Note that the `Makefile` in the root directory can be used to start a Valkey instance for testing.
@@ -56,6 +56,6 @@ done
 
 ## Notes
 
-- All examples use **Valkey GLIDE** as the connection driver (Lettuce and Jedis are also supported)
+- All examples use Valkey GLIDE as the connection driver (Lettuce and Jedis are also supported)
 - Most examples create resources directly in `main()` for simplicity; see `cache` and `repositories` for Spring `@Configuration` examples
-- Each example cleans up any data it creates in Valkey
+- Each example cleans up any data it creates in the datastore
