@@ -49,25 +49,22 @@ public class CollectionsExample {
 			System.out.println("List contents: " + list.stream().toList());
 
 			// ValkeySet - Java Set interface backed by Valkey
-			System.out.println();
 			DefaultValkeySet<String> set = new DefaultValkeySet<>("myset", template);
 			set.add("element1");
 			set.add("element2");
-			System.out.println("Set size: " + set.size());
+			System.out.println("\nSet size: " + set.size());
 			System.out.println("Set members: " + set.stream().toList());
 
 			// ValkeyMap - Java Map interface backed by Valkey
-			System.out.println();
 			DefaultValkeyMap<String, String> map = new DefaultValkeyMap<>("mymap", template);
 			map.put("key1", "value1");
 			map.put("key2", "value2");
-			System.out.println("Map size: " + map.size());
+			System.out.println("\nMap size: " + map.size());
 			System.out.println("Map entries: " + map.entrySet().stream().toList());
 
 			// Atomic counter
-			System.out.println();
 			ValkeyAtomicLong counter = new ValkeyAtomicLong("counter", connectionFactory);
-			System.out.println("Initial counter: " + counter.get());
+			System.out.println("\nInitial counter: " + counter.get());
 			System.out.println("Increment: " + counter.incrementAndGet());
 			System.out.println("Add 5: " + counter.addAndGet(5));
 			System.out.println("Compare and set: " + counter.compareAndSet(6, 10));

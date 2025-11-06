@@ -50,6 +50,7 @@ done
 | **serialization** | Different serialization strategies (String, JSON, JDK) for storing objects |
 | **transactions** | MULTI/EXEC transactions with WATCH for optimistic locking |
 | **pipeline** | Pipelining multiple commands for improved performance |
+| **streams** | Valkey Streams for event sourcing and message queues (XADD, XREAD, consumer groups) |
 | **collections** | Valkey-backed Java collections (ValkeyList, ValkeySet, ValkeyMap) and atomic counters |
 | **scripting** | Lua script execution (EVAL, EVALSHA) for atomic operations |
 

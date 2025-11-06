@@ -22,6 +22,7 @@
 		<module>cache</module>
 		<module>collections</module>
 		<module>pipeline</module>
+		<module>streams</module>
 	</modules>
 
 	<properties>
