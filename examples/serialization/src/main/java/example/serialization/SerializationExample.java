@@ -37,7 +37,7 @@ public class SerializationExample {
 		try {
 			User user = new User("alice", "alice@example.com", 25);
 
-			// 1. JSON serialization (recommended for human-readable data)
+			// 1. JSON serialization
 			ValkeyTemplate<String, User> jsonTemplate = new ValkeyTemplate<>();
 			jsonTemplate.setConnectionFactory(connectionFactory);
 			jsonTemplate.setKeySerializer(new StringValkeySerializer());
@@ -47,10 +47,8 @@ public class SerializationExample {
 			jsonTemplate.opsForValue().set("user:json", user);
 			User jsonRetrieved = jsonTemplate.opsForValue().get("user:json");
 			System.out.println("JSON retrieved: " + jsonRetrieved);
-			System.out.println("Stored as: " + new String((byte[]) jsonTemplate.getConnectionFactory().getConnection().stringCommands().get("user:json".getBytes())));
 
-			// 2. JDK serialization (Java-specific, includes class metadata)
-			System.out.println();
+			// 2. JDK serialization
 			ValkeyTemplate<String, User> jdkTemplate = new ValkeyTemplate<>();
 			jdkTemplate.setConnectionFactory(connectionFactory);
 			jdkTemplate.setKeySerializer(new StringValkeySerializer());
@@ -59,11 +57,9 @@ public class SerializationExample {
 
 			jdkTemplate.opsForValue().set("user:jdk", user);
 			User jdkRetrieved = jdkTemplate.opsForValue().get("user:jdk");
-			System.out.println("JDK retrieved: " + jdkRetrieved);
-			System.out.println("Stored as binary (not human-readable)");
+			System.out.println("\nJDK retrieved: " + jdkRetrieved);
 
-			// 3. String serialization (for simple string values)
-			System.out.println();
+			// 3. String serialization
 			ValkeyTemplate<String, String> stringTemplate = new ValkeyTemplate<>();
 			stringTemplate.setConnectionFactory(connectionFactory);
 			stringTemplate.setDefaultSerializer(StringValkeySerializer.UTF_8);
@@ -71,13 +67,7 @@ public class SerializationExample {
 
 			stringTemplate.opsForValue().set("message", "Hello, Valkey!");
 			String message = stringTemplate.opsForValue().get("message");
-			System.out.println("String retrieved: " + message);
-
-			System.out.println();
-			System.out.println("Serialization comparison:");
-			System.out.println("  JSON: Human-readable, language-agnostic, recommended");
-			System.out.println("  JDK: Binary format, Java-only, includes class metadata");
-			System.out.println("  String: Simplest, for plain text data");
+			System.out.println("\nString retrieved: " + message);
 
 			// Cleanup
 			jsonTemplate.delete(Arrays.asList("user:json", "user:jdk", "message"));

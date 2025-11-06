@@ -41,10 +41,9 @@ public class QuickstartExample {
 			System.out.println("Retrieved: " + value);
 
 			// Set with expiration (TTL)
-			System.out.println();
 			template.opsForValue().set("session:123", "user-data", Duration.ofSeconds(60));
 			Long ttl = template.getExpire("session:123", TimeUnit.SECONDS);
-			System.out.println("Session key expires in " + ttl + " seconds");
+			System.out.println("\nSession key expires in " + ttl + " seconds");
 
 			// Cleanup
 			template.delete("message");

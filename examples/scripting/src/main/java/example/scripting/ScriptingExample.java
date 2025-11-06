@@ -47,7 +47,6 @@ public class ScriptingExample {
 			System.out.println("Value: " + template.opsForValue().get("mykey"));
 
 			// Atomic increment script with proper Lua syntax
-			System.out.println();
 			template.opsForValue().set("counter", "10");
 			String incrementScript =
 				"local val = redis.call('GET', KEYS[1])\n" +
@@ -56,7 +55,7 @@ public class ScriptingExample {
 				"return newval";
 			DefaultValkeyScript<Long> incrementValkeyScript = new DefaultValkeyScript<>(incrementScript, Long.class);
 			Long newValue = template.execute(incrementValkeyScript, Collections.singletonList("counter"), "5");
-			System.out.println("Counter after increment: " + newValue);
+			System.out.println("\nCounter after increment: " + newValue);
 
 			// Reuse script (demonstrates EVALSHA caching)
 			System.out.println();

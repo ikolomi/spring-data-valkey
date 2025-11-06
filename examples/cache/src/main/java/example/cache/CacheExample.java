@@ -38,10 +38,14 @@ public class CacheExample {
 		UserService userService = context.getBean(UserService.class);
 
 		System.out.println("First call (cache miss):");
+		long start = System.currentTimeMillis();
 		System.out.println(userService.getUserById("1"));
+		System.out.println("Time: " + (System.currentTimeMillis() - start) + "ms");
 
 		System.out.println("\nSecond call (cache hit):");
+		start = System.currentTimeMillis();
 		System.out.println(userService.getUserById("1"));
+		System.out.println("Time: " + (System.currentTimeMillis() - start) + "ms");
 
 		// Cleanup
 		context.getBean(ValkeyCacheManager.class).getCacheNames()
@@ -80,6 +84,12 @@ public class CacheExample {
 		@Cacheable("users")
 		public String getUserById(String id) {
 			System.out.println("Fetching user from database...");
+			// Simulate slow database query
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+			}
 			return "User-" + id;
 		}
 	}

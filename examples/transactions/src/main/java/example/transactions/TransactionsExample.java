@@ -53,7 +53,6 @@ public class TransactionsExample {
 			System.out.println("Basic transaction results: " + results);
 
 			// Transaction with WATCH (optimistic locking)
-			System.out.println();
 			template.opsForValue().set("counter", "0");
 
 			// Retry loop for optimistic locking
@@ -80,9 +79,9 @@ public class TransactionsExample {
 
 				if (watchResults != null && !watchResults.isEmpty()) {
 					success = true;
-					System.out.println("Transaction succeeded on attempt " + attempts + ". Counter: " + template.opsForValue().get("counter"));
+					System.out.println("\nTransaction succeeded on attempt " + attempts + ". Counter: " + template.opsForValue().get("counter"));
 				} else {
-					System.out.println("Attempt " + attempts + " failed (key was modified), retrying...");
+					System.out.println("\nAttempt " + attempts + " failed (key was modified), retrying...");
 				}
 			}
 			if (!success) {

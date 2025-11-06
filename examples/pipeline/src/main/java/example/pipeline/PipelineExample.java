@@ -40,15 +40,15 @@ public class PipelineExample {
 			template.afterPropertiesSet();
 
 			// Without pipeline - multiple round trips
+			System.out.println("Setting 100 keys without pipeline:");
 			long start = System.currentTimeMillis();
 			for (int i = 0; i < 100; i++) {
 				template.opsForValue().set("key:" + i, "value:" + i);
 			}
-			long elapsed = System.currentTimeMillis() - start;
-			System.out.println("Without pipeline: " + elapsed + "ms");
+			System.out.println("Time: " + (System.currentTimeMillis() - start) + "ms");
 
 			// With pipeline - single round trip
-			System.out.println();
+			System.out.println("\nSetting 100 keys with pipeline:");
 			start = System.currentTimeMillis();
 			List<Object> results = template.executePipelined((ValkeyCallback<Object>) connection -> {
 				for (int i = 0; i < 100; i++) {
@@ -58,11 +58,9 @@ public class PipelineExample {
 				}
 				return null;
 			});
-			elapsed = System.currentTimeMillis() - start;
-			System.out.println("With pipeline: " + elapsed + "ms (" + results.size() + " results)");
+			System.out.println("Time: " + (System.currentTimeMillis() - start) + "ms");
 
 			// Pipeline with mixed operations
-			System.out.println();
 			results = template.executePipelined((ValkeyCallback<Object>) connection -> {
 				connection.stringCommands().set("user:1:name".getBytes(), "Alice".getBytes());
 				connection.stringCommands().set("user:1:age".getBytes(), "30".getBytes());
@@ -71,11 +69,10 @@ public class PipelineExample {
 				connection.hashCommands().hSet("user:1:profile".getBytes(), "city".getBytes(), "NYC".getBytes());
 				return null;
 			});
-			System.out.println("Mixed operations executed: " + results.size());
+			System.out.println("\nPipeline mixed operations executed: " + results.size());
 
 			// Verify results
-			System.out.println();
-			System.out.println("Name: " + template.opsForValue().get("user:1:name"));
+			System.out.println("\nName: " + template.opsForValue().get("user:1:name"));
 			System.out.println("Age: " + template.opsForValue().get("user:1:age"));
 			System.out.println("Tags: " + template.opsForList().range("user:1:tags", 0, -1));
 			System.out.println("City: " + template.opsForHash().get("user:1:profile", "city"));
