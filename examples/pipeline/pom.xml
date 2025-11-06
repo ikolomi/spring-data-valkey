@@ -10,8 +10,8 @@
 		<version>3.5.1</version>
 	</parent>
 
-	<artifactId>spring-data-valkey-example-scripting</artifactId>
-	<name>Spring Data Valkey - Scripting Example</name>
+	<artifactId>spring-data-valkey-example-pipeline</artifactId>
+	<name>Spring Data Valkey - Pipeline Example</name>
 
 	<dependencies>
 		<dependency>
@@ -31,7 +31,7 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>example.scripting.ScriptingExample</mainClass>
+					<mainClass>example.pipeline.PipelineExample</mainClass>
 					<cleanupDaemonThreads>false</cleanupDaemonThreads>
 				</configuration>
 			</plugin>

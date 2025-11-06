@@ -1,77 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.valkey.springframework.data</groupId>
-    <artifactId>spring-data-valkey-examples</artifactId>
-    <version>3.5.1</version>
-    <packaging>pom</packaging>
+	<groupId>io.valkey.springframework.data</groupId>
+	<artifactId>spring-data-valkey-examples</artifactId>
+	<version>3.5.1</version>
+	<packaging>pom</packaging>
 
-    <name>Spring Data Valkey - Examples</name>
-    <description>Example projects demonstrating Spring Data Valkey features</description>
+	<name>Spring Data Valkey - Examples</name>
+	<description>Example projects demonstrating Spring Data Valkey features</description>
 
-    <modules>
-        <module>quickstart</module>
-        <module>repositories</module>
-        <module>operations</module>
-        <module>serialization</module>
-        <module>transactions</module>
-        <module>scripting</module>
-        <module>cache</module>
-        <module>collections</module>
-    </modules>
+	<modules>
+		<module>quickstart</module>
+		<module>repositories</module>
+		<module>operations</module>
+		<module>serialization</module>
+		<module>transactions</module>
+		<module>scripting</module>
+		<module>cache</module>
+		<module>collections</module>
+		<module>pipeline</module>
+	</modules>
 
-    <properties>
-        <maven.compiler.release>17</maven.compiler.release>
-        <spring-data-valkey.version>3.5.1</spring-data-valkey.version>
-        <valkey.glide.version>2.1.1</valkey.glide.version>
-    </properties>
+	<properties>
+		<maven.compiler.release>17</maven.compiler.release>
+		<spring-data-valkey.version>3.5.1</spring-data-valkey.version>
+		<valkey.glide.version>2.1.1</valkey.glide.version>
+	</properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>io.valkey.springframework.data</groupId>
-                <artifactId>spring-data-valkey</artifactId>
-                <version>${spring-data-valkey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.valkey</groupId>
-                <artifactId>valkey-glide</artifactId>
-                <classifier>${os.detected.classifier}</classifier>
-                <version>${valkey.glide.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.valkey.springframework.data</groupId>
+				<artifactId>spring-data-valkey</artifactId>
+				<version>${spring-data-valkey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>io.valkey</groupId>
+				<artifactId>valkey-glide</artifactId>
+				<classifier>${os.detected.classifier}</classifier>
+				<version>${valkey.glide.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
-    <build>
-        <extensions>
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>1.7.1</version>
-            </extension>
-        </extensions>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
-                    <configuration>
-                        <release>${maven.compiler.release}</release>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <version>3.1.0</version>
-                    <configuration>
-                        <cleanupDaemonThreads>false</cleanupDaemonThreads>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+	<build>
+		<extensions>
+			<extension>
+				<groupId>kr.motd.maven</groupId>
+				<artifactId>os-maven-plugin</artifactId>
+				<version>1.7.1</version>
+			</extension>
+		</extensions>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.11.0</version>
+					<configuration>
+						<release>${maven.compiler.release}</release>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>3.1.0</version>
+					<configuration>
+						<cleanupDaemonThreads>false</cleanupDaemonThreads>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>

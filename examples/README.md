@@ -42,13 +42,14 @@ done
 | Example | Description |
 |---------|-------------|
 | **quickstart** | Basic ValkeyTemplate usage for simple key-value operations |
-| **repositories** | Spring Data repository abstraction with @ValkeyHash entities and custom finder methods |
 | **operations** | Comprehensive examples of all Valkey data structures (List, Set, Hash, ZSet, Geo, Stream, HyperLogLog) |
+| **cache** | Spring Cache abstraction with Valkey backend (@Cacheable, TTL configuration) |
+| **repositories** | Spring Data repository abstraction with @ValkeyHash entities and custom finder methods |
 | **serialization** | Different serialization strategies (String, JSON, JDK) for storing objects |
 | **transactions** | MULTI/EXEC transactions with WATCH for optimistic locking |
-| **scripting** | Lua script execution (EVAL, EVALSHA) for atomic operations |
-| **cache** | Spring Cache abstraction with Valkey backend (@Cacheable, TTL configuration) |
+| **pipeline** | Pipelining multiple commands for improved performance |
 | **collections** | Valkey-backed Java collections (ValkeyList, ValkeySet, ValkeyMap) and atomic counters |
+| **scripting** | Lua script execution (EVAL, EVALSHA) for atomic operations |
 
 ## Notes
 

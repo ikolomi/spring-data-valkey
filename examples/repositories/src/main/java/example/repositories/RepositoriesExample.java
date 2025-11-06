@@ -19,11 +19,12 @@ import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideC
 import io.valkey.springframework.data.valkey.core.ValkeyKeyValueAdapter;
 import io.valkey.springframework.data.valkey.core.ValkeyKeyValueTemplate;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
+import io.valkey.springframework.data.valkey.core.mapping.ValkeyMappingContext;
 import io.valkey.springframework.data.valkey.repository.configuration.EnableValkeyRepositories;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.keyvalue.core.KeyValueTemplate;
+
 
 /**
  * Example demonstrating Spring Data Valkey repositories.
@@ -70,8 +71,8 @@ public class RepositoriesExample {
 		}
 
 		@Bean
-		public KeyValueTemplate keyValueTemplate(ValkeyKeyValueAdapter adapter) {
-			return new KeyValueTemplate(adapter);
+		public ValkeyKeyValueTemplate valkeyKeyValueTemplate(ValkeyKeyValueAdapter adapter) {
+			return new ValkeyKeyValueTemplate(adapter, new ValkeyMappingContext());
 		}
 	}
 }

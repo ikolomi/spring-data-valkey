@@ -20,6 +20,7 @@ import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 import io.valkey.springframework.data.valkey.support.atomic.ValkeyAtomicLong;
 import io.valkey.springframework.data.valkey.support.collections.DefaultValkeyList;
+import io.valkey.springframework.data.valkey.support.collections.DefaultValkeyMap;
 import io.valkey.springframework.data.valkey.support.collections.DefaultValkeySet;
 
 /**
@@ -54,12 +55,21 @@ public class CollectionsExample {
 			System.out.println("Set size: " + set.size());
 			System.out.println("Set contains 'element1': " + set.contains("element1"));
 
-		// Atomic counter
-		System.out.println("\n=== Atomic Counter ===");
+			// ValkeyMap
+			System.out.println("\n=== ValkeyMap ===");
+			DefaultValkeyMap<String, String> map = new DefaultValkeyMap<>("mymap", template);
+			map.put("key1", "value1");
+			map.put("key2", "value2");
+			System.out.println("Map size: " + map.size());
+			System.out.println("Map get 'key1': " + map.get("key1"));
+
+			// Atomic counter
+			System.out.println("\n=== Atomic Counter ===");
 			ValkeyAtomicLong counter = new ValkeyAtomicLong("counter", connectionFactory);
 			System.out.println("Initial: " + counter.get());
 			System.out.println("Increment: " + counter.incrementAndGet());
 			System.out.println("Add 5: " + counter.addAndGet(5));
+			System.out.println("Compare and set: " + counter.compareAndSet(6, 10));
 		} finally {
 			connectionFactory.destroy();
 		}

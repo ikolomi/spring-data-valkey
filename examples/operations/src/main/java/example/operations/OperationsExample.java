@@ -37,33 +37,33 @@ public class OperationsExample {
 			template.afterPropertiesSet();
 
 			// List operations
-		System.out.println("=== List Operations ===");
-		template.opsForList().rightPush("mylist", "one");
-		template.opsForList().rightPush("mylist", "two");
-		template.opsForList().rightPush("mylist", "three");
-		System.out.println("List: " + template.opsForList().range("mylist", 0, -1));
+			System.out.println("=== List Operations ===");
+			template.opsForList().rightPush("mylist", "one");
+			template.opsForList().rightPush("mylist", "two");
+			template.opsForList().rightPush("mylist", "three");
+			System.out.println("List: " + template.opsForList().range("mylist", 0, -1));
 
-		// Set operations
-		System.out.println("\n=== Set Operations ===");
-		template.opsForSet().add("myset", "apple", "banana", "cherry");
-		System.out.println("Set members: " + template.opsForSet().members("myset"));
+			// Set operations
+			System.out.println("\n=== Set Operations ===");
+			template.opsForSet().add("myset", "apple", "banana", "cherry");
+			System.out.println("Set members: " + template.opsForSet().members("myset"));
 
-		// Hash operations
-		System.out.println("\n=== Hash Operations ===");
-		template.opsForHash().put("myhash", "field1", "value1");
-		template.opsForHash().put("myhash", "field2", "value2");
-		System.out.println("Hash: " + template.opsForHash().entries("myhash"));
+			// Hash operations
+			System.out.println("\n=== Hash Operations ===");
+			template.opsForHash().put("myhash", "field1", "value1");
+			template.opsForHash().put("myhash", "field2", "value2");
+			System.out.println("Hash: " + template.opsForHash().entries("myhash"));
 
-		// Sorted Set operations
-		System.out.println("\n=== Sorted Set Operations ===");
-		template.opsForZSet().add("myzset", "member1", 1.0);
-		template.opsForZSet().add("myzset", "member2", 2.0);
-		template.opsForZSet().add("myzset", "member3", 3.0);
-		System.out.println("ZSet range: " + template.opsForZSet().range("myzset", 0, -1));
+			// Sorted Set operations
+			System.out.println("\n=== Sorted Set Operations ===");
+			template.opsForZSet().add("myzset", "member1", 1.0);
+			template.opsForZSet().add("myzset", "member2", 2.0);
+			template.opsForZSet().add("myzset", "member3", 3.0);
+			System.out.println("ZSet range: " + template.opsForZSet().range("myzset", 0, -1));
 
-		// Geo operations
-		System.out.println("\n=== Geo Operations ===");
-		template.opsForGeo().add("locations", new Point(-122.27652, 37.805186), "San Francisco");
+			// Geo operations
+			System.out.println("\n=== Geo Operations ===");
+			template.opsForGeo().add("locations", new Point(-122.27652, 37.805186), "San Francisco");
 			template.opsForGeo().add("locations", new Point(-118.24368, 34.05223), "Los Angeles");
 			System.out.println("Locations: " + template.opsForGeo().position("locations", "San Francisco"));
 		} finally {

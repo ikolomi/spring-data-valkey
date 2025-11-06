@@ -61,7 +61,12 @@ public class TransactionsExample {
 			connection.stringCommands().set("counter".getBytes(), String.valueOf(counter + 1).getBytes());
 			return connection.exec();
 		});
-			System.out.println("Counter after transaction: " + template.opsForValue().get("counter"));
+
+		if (watchResults != null && !watchResults.isEmpty()) {
+			System.out.println("Transaction succeeded. Counter: " + template.opsForValue().get("counter"));
+		} else {
+			System.out.println("Transaction failed (key was modified)");
+		}
 		} finally {
 			connectionFactory.destroy();
 		}
