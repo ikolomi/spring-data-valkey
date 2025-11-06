@@ -32,7 +32,6 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<configuration>
 					<mainClass>example.transactions.TransactionsExample</mainClass>
-					<cleanupDaemonThreads>false</cleanupDaemonThreads>
 				</configuration>
 			</plugin>
 		</plugins>

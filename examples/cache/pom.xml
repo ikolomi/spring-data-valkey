@@ -26,7 +26,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>6.2.1</version>
         </dependency>
     </dependencies>
 
@@ -37,7 +36,6 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>example.cache.CacheExample</mainClass>
-                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
                 </configuration>
             </plugin>
         </plugins>
