@@ -41,7 +41,6 @@ public class TransactionsExample {
 			template.afterPropertiesSet();
 
 			// Basic transaction using SessionCallback
-			System.out.println("=== Basic Transaction ===");
 			List<Object> results = template.execute(new SessionCallback<List<Object>>() {
 				@Override
 				public List<Object> execute(ValkeyOperations operations) {
@@ -51,10 +50,10 @@ public class TransactionsExample {
 					return operations.exec();
 				}
 			});
-			System.out.println("Transaction results: " + results);
+			System.out.println("Basic transaction results: " + results);
 
 			// Transaction with WATCH (optimistic locking)
-			System.out.println("\n=== Transaction with WATCH ===");
+			System.out.println();
 			template.opsForValue().set("counter", "0");
 
 			// Retry loop for optimistic locking

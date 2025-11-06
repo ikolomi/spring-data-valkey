@@ -40,16 +40,15 @@ public class PipelineExample {
 			template.afterPropertiesSet();
 
 			// Without pipeline - multiple round trips
-			System.out.println("=== Without Pipeline ===");
 			long start = System.currentTimeMillis();
 			for (int i = 0; i < 100; i++) {
 				template.opsForValue().set("key:" + i, "value:" + i);
 			}
 			long elapsed = System.currentTimeMillis() - start;
-			System.out.println("Time: " + elapsed + "ms");
+			System.out.println("Without pipeline: " + elapsed + "ms");
 
 			// With pipeline - single round trip
-			System.out.println("\n=== With Pipeline ===");
+			System.out.println();
 			start = System.currentTimeMillis();
 			List<Object> results = template.executePipelined((ValkeyCallback<Object>) connection -> {
 				for (int i = 0; i < 100; i++) {
@@ -60,11 +59,10 @@ public class PipelineExample {
 				return null;
 			});
 			elapsed = System.currentTimeMillis() - start;
-			System.out.println("Time: " + elapsed + "ms");
-			System.out.println("Results count: " + results.size());
+			System.out.println("With pipeline: " + elapsed + "ms (" + results.size() + " results)");
 
 			// Pipeline with mixed operations
-			System.out.println("\n=== Pipeline with Mixed Operations ===");
+			System.out.println();
 			results = template.executePipelined((ValkeyCallback<Object>) connection -> {
 				connection.stringCommands().set("user:1:name".getBytes(), "Alice".getBytes());
 				connection.stringCommands().set("user:1:age".getBytes(), "30".getBytes());
@@ -73,10 +71,10 @@ public class PipelineExample {
 				connection.hashCommands().hSet("user:1:profile".getBytes(), "city".getBytes(), "NYC".getBytes());
 				return null;
 			});
-			System.out.println("Operations executed: " + results.size());
+			System.out.println("Mixed operations executed: " + results.size());
 
 			// Verify results
-			System.out.println("\n=== Verify Results ===");
+			System.out.println();
 			System.out.println("Name: " + template.opsForValue().get("user:1:name"));
 			System.out.println("Age: " + template.opsForValue().get("user:1:age"));
 			System.out.println("Tags: " + template.opsForList().range("user:1:tags", 0, -1));

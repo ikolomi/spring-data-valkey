@@ -39,45 +39,44 @@ public class OperationsExample {
 			template.afterPropertiesSet();
 
 			// List operations
-			System.out.println("=== List Operations ===");
 			template.opsForList().rightPush("mylist", "one");
 			template.opsForList().rightPush("mylist", "two");
 			template.opsForList().rightPush("mylist", "three");
 			System.out.println("List: " + template.opsForList().range("mylist", 0, -1));
 
 			// Set operations
-			System.out.println("\n=== Set Operations ===");
+			System.out.println();
 			template.opsForSet().add("myset", "apple", "banana", "cherry");
 			System.out.println("Set members: " + template.opsForSet().members("myset"));
 
 			// Hash operations
-			System.out.println("\n=== Hash Operations ===");
+			System.out.println();
 			template.opsForHash().put("myhash", "field1", "value1");
 			template.opsForHash().put("myhash", "field2", "value2");
 			System.out.println("Hash: " + template.opsForHash().entries("myhash"));
 
 			// Sorted Set operations
-			System.out.println("\n=== Sorted Set Operations ===");
+			System.out.println();
 			template.opsForZSet().add("myzset", "member1", 1.0);
 			template.opsForZSet().add("myzset", "member2", 2.0);
 			template.opsForZSet().add("myzset", "member3", 3.0);
 			System.out.println("ZSet range: " + template.opsForZSet().range("myzset", 0, -1));
 
 			// Geo operations
-			System.out.println("\n=== Geo Operations ===");
+			System.out.println();
 			template.opsForGeo().add("locations", new Point(-122.27652, 37.805186), "San Francisco");
 			template.opsForGeo().add("locations", new Point(-118.24368, 34.05223), "Los Angeles");
 			System.out.println("Locations: " + template.opsForGeo().position("locations", "San Francisco"));
 
 			// HyperLogLog operations
-			System.out.println("\n=== HyperLogLog Operations ===");
+			System.out.println();
 			template.opsForHyperLogLog().add("visitors", "user1", "user2", "user3");
 			template.opsForHyperLogLog().add("visitors", "user2", "user4"); // user2 counted once
 			Long uniqueCount = template.opsForHyperLogLog().size("visitors");
 			System.out.println("Unique visitors (approximate): " + uniqueCount);
 
 			// Stream operations
-			System.out.println("\n=== Stream Operations ===");
+			System.out.println();
 			template.opsForStream().add("mystream", java.util.Map.of("sensor", "temperature", "value", "23.5"));
 			template.opsForStream().add("mystream", java.util.Map.of("sensor", "humidity", "value", "65"));
 			System.out.println("Stream length: " + template.opsForStream().size("mystream"));

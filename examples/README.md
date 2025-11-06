@@ -31,9 +31,11 @@ To run all examples sequentially:
 ```bash
 $ cd examples
 $ for module in $(ls -d */ | grep -v target | sed 's|/||'); do
-  echo "===== Running $module ====="
-  mvn -q compile exec:java -pl $module
   echo ""
+  echo "====================================="
+  echo "Running: $module"
+  echo "====================================="
+  mvn -q compile exec:java -pl $module
 done
 ```
 

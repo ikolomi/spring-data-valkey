@@ -42,7 +42,6 @@ public class CollectionsExample {
 			template.afterPropertiesSet();
 
 			// ValkeyList
-			System.out.println("=== ValkeyList ===");
 			DefaultValkeyList<String> list = new DefaultValkeyList<>("mylist", template);
 			list.add("item1");
 			list.add("item2");
@@ -50,7 +49,7 @@ public class CollectionsExample {
 			System.out.println("List contents: " + list.stream().toList());
 
 			// ValkeySet
-			System.out.println("\n=== ValkeySet ===");
+			System.out.println();
 			DefaultValkeySet<String> set = new DefaultValkeySet<>("myset", template);
 			set.add("element1");
 			set.add("element2");
@@ -58,7 +57,7 @@ public class CollectionsExample {
 			System.out.println("Set contains 'element1': " + set.contains("element1"));
 
 			// ValkeyMap
-			System.out.println("\n=== ValkeyMap ===");
+			System.out.println();
 			DefaultValkeyMap<String, String> map = new DefaultValkeyMap<>("mymap", template);
 			map.put("key1", "value1");
 			map.put("key2", "value2");
@@ -66,7 +65,7 @@ public class CollectionsExample {
 			System.out.println("Map get 'key1': " + map.get("key1"));
 
 			// Atomic counter
-			System.out.println("\n=== Atomic Counter ===");
+			System.out.println();
 			ValkeyAtomicLong counter = new ValkeyAtomicLong("counter", connectionFactory);
 			System.out.println("Initial: " + counter.get());
 			System.out.println("Increment: " + counter.incrementAndGet());

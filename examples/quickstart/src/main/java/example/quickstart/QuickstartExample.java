@@ -36,16 +36,15 @@ public class QuickstartExample {
 			StringValkeyTemplate template = new StringValkeyTemplate(connectionFactory);
 
 			// Basic operations
-			System.out.println("=== Basic Operations ===");
 			template.opsForValue().set("message", "Hello, Valkey!");
 			String value = template.opsForValue().get("message");
 			System.out.println("Retrieved: " + value);
 
 			// Set with expiration (TTL)
-			System.out.println("\n=== TTL Operations ===");
+			System.out.println();
 			template.opsForValue().set("session:123", "user-data", Duration.ofSeconds(60));
 			Long ttl = template.getExpire("session:123", TimeUnit.SECONDS);
-			System.out.println("Session TTL: " + ttl + " seconds");
+			System.out.println("Session key expires in " + ttl + " seconds");
 
 			// Cleanup
 			template.delete("message");
