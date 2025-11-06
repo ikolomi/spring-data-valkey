@@ -20,6 +20,7 @@ import io.valkey.springframework.data.valkey.core.ValkeyCallback;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -80,6 +81,17 @@ public class PipelineExample {
 			System.out.println("Age: " + template.opsForValue().get("user:1:age"));
 			System.out.println("Tags: " + template.opsForList().range("user:1:tags", 0, -1));
 			System.out.println("City: " + template.opsForHash().get("user:1:profile", "city"));
+
+			// Cleanup
+			List<String> keysToDelete = new ArrayList<>();
+			keysToDelete.add("user:1:name");
+			keysToDelete.add("user:1:age");
+			keysToDelete.add("user:1:tags");
+			keysToDelete.add("user:1:profile");
+			for (int i = 0; i < 100; i++) {
+				keysToDelete.add("key:" + i);
+			}
+			template.delete(keysToDelete);
 		} finally {
 			connectionFactory.destroy();
 		}

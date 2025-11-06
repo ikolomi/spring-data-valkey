@@ -20,6 +20,7 @@ import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.core.script.DefaultValkeyScript;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -53,6 +54,9 @@ public class ScriptingExample {
 		DefaultValkeyScript<String> incrementValkeyScript = new DefaultValkeyScript<>(incrementScript, String.class);
 			template.execute(incrementValkeyScript, Collections.singletonList("counter"), "5");
 			System.out.println("Counter: " + template.opsForValue().get("counter"));
+
+			// Cleanup
+			template.delete(Arrays.asList("mykey", "counter"));
 		} finally {
 			connectionFactory.destroy();
 		}

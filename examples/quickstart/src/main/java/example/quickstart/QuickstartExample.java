@@ -38,6 +38,9 @@ public class QuickstartExample {
 			template.opsForValue().set("message", "Hello, Valkey!");
 			String value = template.opsForValue().get("message");
 			System.out.println("Retrieved: " + value);
+
+			// Cleanup
+			template.delete("message");
 		} finally {
 			connectionFactory.destroy();
 		}

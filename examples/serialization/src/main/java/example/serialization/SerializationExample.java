@@ -44,6 +44,9 @@ public class SerializationExample {
 			jsonTemplate.opsForValue().set("user:1", user);
 			User retrieved = jsonTemplate.opsForValue().get("user:1");
 			System.out.println("Retrieved user: " + retrieved);
+
+			// Cleanup
+			jsonTemplate.delete("user:1");
 		} finally {
 			connectionFactory.destroy();
 		}

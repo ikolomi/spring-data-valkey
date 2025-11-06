@@ -20,6 +20,8 @@ import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 import org.springframework.data.geo.Point;
 
+import java.util.Arrays;
+
 /**
  * Example demonstrating various Valkey data structure operations.
  */
@@ -66,6 +68,9 @@ public class OperationsExample {
 			template.opsForGeo().add("locations", new Point(-122.27652, 37.805186), "San Francisco");
 			template.opsForGeo().add("locations", new Point(-118.24368, 34.05223), "Los Angeles");
 			System.out.println("Locations: " + template.opsForGeo().position("locations", "San Francisco"));
+
+			// Cleanup
+			template.delete(Arrays.asList("mylist", "myset", "myhash", "myzset", "locations"));
 		} finally {
 			connectionFactory.destroy();
 		}

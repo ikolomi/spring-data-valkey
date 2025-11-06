@@ -23,6 +23,8 @@ import io.valkey.springframework.data.valkey.support.collections.DefaultValkeyLi
 import io.valkey.springframework.data.valkey.support.collections.DefaultValkeyMap;
 import io.valkey.springframework.data.valkey.support.collections.DefaultValkeySet;
 
+import java.util.Arrays;
+
 /**
  * Example demonstrating Valkey-backed Java collections.
  */
@@ -70,6 +72,9 @@ public class CollectionsExample {
 			System.out.println("Increment: " + counter.incrementAndGet());
 			System.out.println("Add 5: " + counter.addAndGet(5));
 			System.out.println("Compare and set: " + counter.compareAndSet(6, 10));
+
+			// Cleanup
+			template.delete(Arrays.asList("mylist", "myset", "mymap", "counter"));
 		} finally {
 			connectionFactory.destroy();
 		}

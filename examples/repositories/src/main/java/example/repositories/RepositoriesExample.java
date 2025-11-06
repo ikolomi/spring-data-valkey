@@ -46,6 +46,9 @@ public class RepositoriesExample {
 		System.out.println("\nPersons with lastname 'Doe':");
 		repository.findByLastname("Doe").forEach(System.out::println);
 
+		// Cleanup
+		repository.deleteAll();
+
 		context.close();
 	}
 

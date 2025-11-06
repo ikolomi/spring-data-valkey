@@ -31,7 +31,7 @@ To run all examples sequentially:
 ```bash
 $ cd examples
 $ for module in $(ls -d */ | grep -v target | sed 's|/||'); do
-  echo "=== Running $module ==="
+  echo "===== Running $module ====="
   mvn -q compile exec:java -pl $module
   echo ""
 done
@@ -55,4 +55,4 @@ done
 
 - All examples use **Valkey GLIDE** as the connection driver (Lettuce and Jedis are also supported)
 - Most examples create resources directly in `main()` for simplicity; see `cache` and `repositories` for Spring `@Configuration` examples
-- Each example is self-contained and can be copied as a starting point for your project
+- Each example cleans up any data it creates in Valkey

@@ -43,6 +43,10 @@ public class CacheExample {
 		System.out.println("\nSecond call (cache hit):");
 		System.out.println(userService.getUserById("1"));
 
+		// Cleanup
+		context.getBean(ValkeyCacheManager.class).getCacheNames()
+				.forEach(name -> context.getBean(ValkeyCacheManager.class).getCache(name).clear());
+
 		context.close();
 	}
 

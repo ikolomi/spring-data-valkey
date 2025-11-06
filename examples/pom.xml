@@ -30,6 +30,14 @@
 		<valkey.glide.version>2.1.1</valkey.glide.version>
 	</properties>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>2.0.9</version>
+		</dependency>
+	</dependencies>
+
 	<dependencyManagement>
 		<dependencies>
 			<dependency>

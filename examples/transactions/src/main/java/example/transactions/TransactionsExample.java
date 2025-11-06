@@ -20,6 +20,7 @@ import io.valkey.springframework.data.valkey.core.ValkeyCallback;
 import io.valkey.springframework.data.valkey.core.ValkeyTemplate;
 import io.valkey.springframework.data.valkey.serializer.StringValkeySerializer;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -67,6 +68,9 @@ public class TransactionsExample {
 		} else {
 			System.out.println("Transaction failed (key was modified)");
 		}
+
+			// Cleanup
+			template.delete(Arrays.asList("key1", "key2", "counter"));
 		} finally {
 			connectionFactory.destroy();
 		}
