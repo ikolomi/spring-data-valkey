@@ -5,10 +5,10 @@ This directory contains standalone examples demonstrating various features of Sp
 ## Prerequisites
 
 - JDK 17 or higher
-- Maven 3.8 or higher
+- Maven 3.9.9 or higher (use `../mvnw` from root directory)
 - Valkey server running on `localhost:6379` (or configure connection in examples)
 
-Note that the `Makefile` in the root directory can be used to start a Valkey instance for testing.
+See instructions on starting a Valkey server using the `Makefile` in the root [README](../README.md#building-from-source).
 
 ## Running Examples
 
@@ -16,14 +16,14 @@ Each example can be run independently using Maven, from the examples root direct
 
 ```bash
 $ cd examples
-$ mvn compile exec:java -pl <example-name>
+$ ../mvnw compile exec:java -pl <example-name>
 ```
 
 Or the specific example directory:
 
 ```bash
 $ cd examples/<example-name>
-$ mvn compile exec:java
+$ ../../mvnw compile exec:java
 ```
 
 To run all examples sequentially:
@@ -35,7 +35,7 @@ $ for module in $(ls -d */ | grep -v target | sed 's|/||'); do
   echo "====================================="
   echo "Running: $module"
   echo "====================================="
-  mvn -q compile exec:java -pl $module
+  ../mvnw -q compile exec:java -pl $module
 done
 ```
 

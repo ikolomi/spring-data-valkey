@@ -30,7 +30,7 @@
 		<maven.compiler.release>17</maven.compiler.release>
 		<spring-data-valkey.version>3.5.1</spring-data-valkey.version>
 		<spring-framework.version>6.2.1</spring-framework.version>
-		<valkey.glide.version>2.1.1</valkey.glide.version>
+		<valkey-glide.version>2.1.1</valkey-glide.version>
 		<jackson.version>2.15.2</jackson.version>
 		<slf4j.version>2.0.9</slf4j.version>
 	</properties>
@@ -60,7 +60,7 @@
 				<groupId>io.valkey</groupId>
 				<artifactId>valkey-glide</artifactId>
 				<classifier>${os.detected.classifier}</classifier>
-				<version>${valkey.glide.version}</version>
+				<version>${valkey-glide.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
