@@ -1,0 +1,61 @@
+# Spring Data Valkey Examples
+
+This directory contains standalone examples demonstrating various features of Spring Data Valkey using Valkey GLIDE as the driver.
+
+## Prerequisites
+
+- JDK 17 or higher
+- Maven 3.9.9 or higher (use `../mvnw` from root directory)
+- Valkey server running on `localhost:6379` (or configure connection in examples)
+
+See instructions on starting a Valkey server using the `Makefile` in the root [README](../README.md#building-from-source).
+
+## Running Examples
+
+Each example can be run independently using Maven, from the examples root directory:
+
+```bash
+$ cd examples
+$ ../mvnw compile exec:java -pl <example-name>
+```
+
+Or the specific example directory:
+
+```bash
+$ cd examples/<example-name>
+$ ../../mvnw compile exec:java
+```
+
+To run all examples sequentially:
+
+```bash
+$ cd examples
+$ for module in $(ls -d */ | grep -v target | sed 's|/||'); do
+  echo ""
+  echo "====================================="
+  echo "Running: $module"
+  echo "====================================="
+  ../mvnw -q compile exec:java -pl $module
+done
+```
+
+## Available Examples
+
+| Example | Description |
+|---------|-------------|
+| **quickstart** | Basic ValkeyTemplate usage for simple key-value operations |
+| **operations** | Comprehensive examples of all Valkey data structures (List, Set, Hash, ZSet, Geo, Stream, HyperLogLog) |
+| **cache** | Spring Cache abstraction with Valkey backend (@Cacheable, TTL configuration) |
+| **repositories** | Spring Data repository abstraction with @ValkeyHash entities and custom finder methods |
+| **serialization** | Different serialization strategies (String, JSON, JDK) for storing objects |
+| **transactions** | MULTI/EXEC transactions with WATCH for optimistic locking |
+| **pipeline** | Pipelining multiple commands for improved performance |
+| **streams** | Valkey Streams for event sourcing and message queues (XADD, XREAD, consumer groups) |
+| **collections** | Valkey-backed Java collections (ValkeyList, ValkeySet, ValkeyMap) and atomic counters |
+| **scripting** | Lua script execution (EVAL, EVALSHA) for atomic operations |
+
+## Notes
+
+- All examples use Valkey GLIDE as the connection driver (Lettuce and Jedis are also supported)
+- Most examples create resources directly in `main()` for simplicity; see `cache` and `repositories` for Spring `@Configuration` examples
+- Each example cleans up any data it creates in the datastore
