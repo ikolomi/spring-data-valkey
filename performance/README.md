@@ -10,13 +10,13 @@ Test ValkeyTemplate operations (SET, GET, DELETE) with different clients:
 
 ```bash
 # Default (Valkey GLIDE)
-mvn exec:java
+mvn compile exec:java
 
 # Lettuce client
-mvn exec:java -Dclient=lettuce
+mvn compile exec:java -Dclient=lettuce
 
 # Jedis client  
-mvn exec:java -Dclient=jedis
+mvn compile exec:java -Dclient=jedis
 ```
 
 ### Adding New Performance Tests
