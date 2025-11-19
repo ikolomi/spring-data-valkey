@@ -86,7 +86,9 @@ public class ValkeyGlideConnectionFactory
     private boolean earlyStartup = true;
     private int phase = 0;
     private final Lock initLock = new ReentrantLock();
-    
+
+    private final ThreadLocal<GlideClient> threadLocalClient = new ThreadLocal<>();
+
     private @Nullable ValkeyGlideClusterTopologyProvider topologyProvider;
     private @Nullable ValkeyGlideClusterNodeResourceProvider nodeResourceProvider;
     private @Nullable ClusterCommandExecutor clusterCommandExecutor;
@@ -273,9 +275,14 @@ public class ValkeyGlideConnectionFactory
         if (isClusterAware()) {
             return getClusterConnection();
         }
-        
-        // Create a GlideClient for each connection and wrap it directly in a ValkeyGlideConnection
-        GlideClient client = (GlideClient) createGlideClient();
+
+        // Get or create ThreadLocal GlideClient
+        GlideClient client = threadLocalClient.get();
+        if (client == null) {
+            client = (GlideClient) createGlideClient();
+            threadLocalClient.set(client);
+        }
+
         return new ValkeyGlideConnection(client, timeout);
     }
 
