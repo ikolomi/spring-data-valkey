@@ -39,7 +39,6 @@ public class TemplatePerformanceTest {
 
 		ValkeyConnectionFactory factory = createConnectionFactory(clientType);
 		
-		// Initialize factory if it implements InitializingBean
 		if (factory instanceof org.springframework.beans.factory.InitializingBean) {
 			((org.springframework.beans.factory.InitializingBean) factory).afterPropertiesSet();
 		}
@@ -48,7 +47,6 @@ public class TemplatePerformanceTest {
 			StringValkeyTemplate template = new StringValkeyTemplate(factory);
 			runPerformanceTest(template);
 		} finally {
-			// Destroy factory if it implements DisposableBean
 			if (factory instanceof org.springframework.beans.factory.DisposableBean) {
 				((org.springframework.beans.factory.DisposableBean) factory).destroy();
 			}

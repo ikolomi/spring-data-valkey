@@ -4,41 +4,45 @@ Performance benchmarks for Spring Data Valkey operations across different client
 
 ## Running Tests
 
-### Template Performance Test
+### Template Performance Test (Spring Data Valkey)
 
 Test ValkeyTemplate operations (SET, GET, DELETE) with different clients:
 
 ```bash
 # Default (Valkey GLIDE)
-mvn compile exec:java
+mvn exec:java
 
 # Lettuce client
-mvn compile exec:java -Dclient=lettuce
+mvn exec:java -Dclient=lettuce
 
 # Jedis client  
-mvn compile exec:java -Dclient=jedis
+mvn exec:java -Dclient=jedis
 ```
 
-### Adding New Performance Tests
+### Direct Client Performance Test (No Spring Data overhead)
 
-1. Create a new class in `src/main/java/performance/`
-2. Follow the pattern of `TemplatePerformanceTest`
-3. Update the exec plugin configuration in `pom.xml` if needed
+Test direct client operations without Spring Data Valkey:
 
-## Test Configuration
+```bash
+# Default (Valkey GLIDE)
+mvn exec:java@direct-test -Dclient=valkeyglide
 
-- **Operations**: 10,000 per test by default
-- **Key Pattern**: `perf:test:{index}`
-- **Clients**: valkeyglide (default), lettuce, jedis
+# Lettuce client
+mvn exec:java@direct-test -Dclient=lettuce
+
+# Jedis client
+mvn exec:java@direct-test -Dclient=jedis
+```
 
 ## Sample Output
 
+### Spring Data Valkey Template
 ```
 Running ValkeyTemplate Performance Test
 Client: valkeyglide
 Operations: 10,000
 ----------------------------------------
-SET:    45,234 ops/sec (221.05 ms total)
-GET:    52,108 ops/sec (191.91 ms total)
-DELETE: 48,876 ops/sec (204.60 ms total)
+SET:    1,006 ops/sec (9934.83 ms total)
+GET:    1,121 ops/sec (8913.64 ms total)
+DELETE: 1,154 ops/sec (8661.76 ms total)
 ```

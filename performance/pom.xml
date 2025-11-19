@@ -73,6 +73,14 @@
 					<mainClass>performance.TemplatePerformanceTest</mainClass>
 					<cleanupDaemonThreads>false</cleanupDaemonThreads>
 				</configuration>
+				<executions>
+					<execution>
+						<id>direct-test</id>
+						<configuration>
+							<mainClass>performance.DirectClientPerformanceTest</mainClass>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
