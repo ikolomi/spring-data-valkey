@@ -9,13 +9,13 @@ Performance benchmarks for Spring Data Valkey operations across different client
 Test ValkeyTemplate operations (SET, GET, DELETE) with different clients:
 
 ```bash
-# Valkey GLIDE client
+# Valkey GLIDE (default)
 mvn compile exec:java
 
-# Lettuce client
+# Lettuce
 mvn compile exec:java -Dclient=lettuce
 
-# Jedis client  
+# Jedis  
 mvn compile exec:java -Dclient=jedis
 ```
 
@@ -24,12 +24,27 @@ mvn compile exec:java -Dclient=jedis
 Test direct client operations without Spring Data Valkey:
 
 ```bash
-# Direct Valkey GLIDE
+# Valkey GLIDE (default)
 mvn compile exec:java@direct-test
 
-# Direct Lettuce
+# Lettuce
 mvn compile exec:java@direct-test -Dclient=lettuce
 
-# Direct Jedis
+# Jedis
 mvn compile exec:java@direct-test -Dclient=jedis
+```
+
+### Multi-Threaded Performance Test
+
+Test temaplte use across mulitple threads:
+
+```bash
+# Valkey GLIDE (default)
+mvn compile exec:java@threaded-test
+
+# Lettuce
+mvn compile exec:java@threaded-test -Dclient=lettuce
+
+# Jedis
+mvn compile exec:java@threaded-test -Dclient=jedis
 ```

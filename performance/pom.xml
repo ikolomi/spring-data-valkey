@@ -80,6 +80,12 @@
 							<mainClass>performance.DirectClientPerformanceTest</mainClass>
 						</configuration>
 					</execution>
+					<execution>
+						<id>threaded-test</id>
+						<configuration>
+							<mainClass>performance.MultiThreadedPerformanceTest</mainClass>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
