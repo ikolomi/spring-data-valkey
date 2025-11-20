@@ -61,6 +61,7 @@ public class DirectClientPerformanceTest {
 				client.set(GlideString.of(KEY_PREFIX + i), GlideString.of("value" + i)).get();
 			}
 			long setTime = System.nanoTime() - start;
+			printResult("SET", setTime);
 
 			// GET operations
 			start = System.nanoTime();
@@ -68,6 +69,7 @@ public class DirectClientPerformanceTest {
 				client.get(GlideString.of(KEY_PREFIX + i)).get();
 			}
 			long getTime = System.nanoTime() - start;
+			printResult("GET", getTime);
 
 			// DELETE operations
 			start = System.nanoTime();
@@ -75,8 +77,7 @@ public class DirectClientPerformanceTest {
 				client.del(new GlideString[]{GlideString.of(KEY_PREFIX + i)}).get();
 			}
 			long deleteTime = System.nanoTime() - start;
-
-			printResults(setTime, getTime, deleteTime);
+			printResult("DELETE", deleteTime);
 		}
 	}
 
@@ -92,6 +93,7 @@ public class DirectClientPerformanceTest {
 				commands.set(KEY_PREFIX + i, "value" + i);
 			}
 			long setTime = System.nanoTime() - start;
+			printResult("SET", setTime);
 
 			// GET operations
 			start = System.nanoTime();
@@ -99,6 +101,7 @@ public class DirectClientPerformanceTest {
 				commands.get(KEY_PREFIX + i);
 			}
 			long getTime = System.nanoTime() - start;
+			printResult("GET", getTime);
 
 			// DELETE operations
 			start = System.nanoTime();
@@ -106,8 +109,7 @@ public class DirectClientPerformanceTest {
 				commands.del(KEY_PREFIX + i);
 			}
 			long deleteTime = System.nanoTime() - start;
-
-			printResults(setTime, getTime, deleteTime);
+			printResult("DELETE", deleteTime);
 		} finally {
 			client.shutdown();
 		}
@@ -121,6 +123,7 @@ public class DirectClientPerformanceTest {
 				jedis.set(KEY_PREFIX + i, "value" + i);
 			}
 			long setTime = System.nanoTime() - start;
+			printResult("SET", setTime);
 
 			// GET operations
 			start = System.nanoTime();
@@ -128,6 +131,7 @@ public class DirectClientPerformanceTest {
 				jedis.get(KEY_PREFIX + i);
 			}
 			long getTime = System.nanoTime() - start;
+			printResult("GET", getTime);
 
 			// DELETE operations
 			start = System.nanoTime();
@@ -135,17 +139,12 @@ public class DirectClientPerformanceTest {
 				jedis.del(KEY_PREFIX + i);
 			}
 			long deleteTime = System.nanoTime() - start;
-
-			printResults(setTime, getTime, deleteTime);
+			printResult("DELETE", deleteTime);
 		}
 	}
 
-	private static void printResults(long setTime, long getTime, long deleteTime) {
-		System.out.printf("SET:    %,d ops/sec (%.2f ms total)%n", 
-			(long) (OPERATIONS / (setTime / 1_000_000_000.0)), setTime / 1_000_000.0);
-		System.out.printf("GET:    %,d ops/sec (%.2f ms total)%n", 
-			(long) (OPERATIONS / (getTime / 1_000_000_000.0)), getTime / 1_000_000.0);
-		System.out.printf("DELETE: %,d ops/sec (%.2f ms total)%n", 
-			(long) (OPERATIONS / (deleteTime / 1_000_000_000.0)), deleteTime / 1_000_000.0);
+	private static void printResult(String operation, long duration) {
+		System.out.printf("%s:    %,d ops/sec (%.2f ms total)%n", 
+			operation, (long) (OPERATIONS / (duration / 1_000_000_000.0)), duration / 1_000_000.0);
 	}
 }

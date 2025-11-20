@@ -20,6 +20,8 @@ import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFac
 import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
 import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
 import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * Performance test for ValkeyTemplate operations across different clients.
@@ -38,17 +40,16 @@ public class TemplatePerformanceTest {
 		System.out.println("----------------------------------------");
 
 		ValkeyConnectionFactory factory = createConnectionFactory(clientType);
-		
-		if (factory instanceof org.springframework.beans.factory.InitializingBean) {
-			((org.springframework.beans.factory.InitializingBean) factory).afterPropertiesSet();
+		if (factory instanceof InitializingBean) {
+			((InitializingBean) factory).afterPropertiesSet();
 		}
 
 		try {
 			StringValkeyTemplate template = new StringValkeyTemplate(factory);
 			runPerformanceTest(template);
 		} finally {
-			if (factory instanceof org.springframework.beans.factory.DisposableBean) {
-				((org.springframework.beans.factory.DisposableBean) factory).destroy();
+			if (factory instanceof DisposableBean) {
+				((DisposableBean) factory).destroy();
 			}
 		}
 	}
@@ -69,6 +70,7 @@ public class TemplatePerformanceTest {
 			template.opsForValue().set(KEY_PREFIX + i, "value" + i);
 		}
 		long setTime = System.nanoTime() - start;
+		printResult("SET", setTime);
 
 		// GET operations
 		start = System.nanoTime();
@@ -76,6 +78,7 @@ public class TemplatePerformanceTest {
 			template.opsForValue().get(KEY_PREFIX + i);
 		}
 		long getTime = System.nanoTime() - start;
+		printResult("GET", getTime);
 
 		// DELETE operations
 		start = System.nanoTime();
@@ -83,16 +86,11 @@ public class TemplatePerformanceTest {
 			template.delete(KEY_PREFIX + i);
 		}
 		long deleteTime = System.nanoTime() - start;
-
-		printResults(setTime, getTime, deleteTime);
+		printResult("DELETE", deleteTime);
 	}
 
-	private static void printResults(long setTime, long getTime, long deleteTime) {
-		System.out.printf("SET:    %,d ops/sec (%.2f ms total)%n", 
-			(long) (OPERATIONS / (setTime / 1_000_000_000.0)), setTime / 1_000_000.0);
-		System.out.printf("GET:    %,d ops/sec (%.2f ms total)%n", 
-			(long) (OPERATIONS / (getTime / 1_000_000_000.0)), getTime / 1_000_000.0);
-		System.out.printf("DELETE: %,d ops/sec (%.2f ms total)%n", 
-			(long) (OPERATIONS / (deleteTime / 1_000_000_000.0)), deleteTime / 1_000_000.0);
+	private static void printResult(String operation, long duration) {
+		System.out.printf("%s:    %,d ops/sec (%.2f ms total)%n", 
+			operation, (long) (OPERATIONS / (duration / 1_000_000_000.0)), duration / 1_000_000.0);
 	}
 }

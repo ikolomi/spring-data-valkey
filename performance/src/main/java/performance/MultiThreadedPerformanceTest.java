@@ -15,17 +15,19 @@
  */
 package performance;
 
-import io.valkey.springframework.data.valkey.connection.ValkeyConnectionFactory;
-import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory;
-import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
-import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
-import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+
+import io.valkey.springframework.data.valkey.connection.ValkeyConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.jedis.JedisConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.lettuce.LettuceConnectionFactory;
+import io.valkey.springframework.data.valkey.connection.valkeyglide.ValkeyGlideConnectionFactory;
+import io.valkey.springframework.data.valkey.core.StringValkeyTemplate;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Multi-threaded performance test to demonstrate client creation bottleneck.
@@ -39,7 +41,7 @@ public class MultiThreadedPerformanceTest {
 	public static void main(String[] args) throws Exception {
 		String clientType = System.getProperty("client", "valkeyglide");
 		
-		System.out.println("Running Multi-threaded Performance Test");
+		System.out.println("Running Multi-Threaded Performance Test");
 		System.out.println("Client: " + clientType);
 		System.out.println("Threads: " + THREADS);
 		System.out.println("Operations per thread: " + OPERATIONS_PER_THREAD);
@@ -47,16 +49,15 @@ public class MultiThreadedPerformanceTest {
 		System.out.println("----------------------------------------");
 
 		ValkeyConnectionFactory factory = createConnectionFactory(clientType);
-
-		if (factory instanceof org.springframework.beans.factory.InitializingBean) {
-			((org.springframework.beans.factory.InitializingBean) factory).afterPropertiesSet();
+		if (factory instanceof InitializingBean) {
+			((InitializingBean) factory).afterPropertiesSet();
 		}
 
 		try {
 			runMultiThreadedTest(factory);
 		} finally {
-			if (factory instanceof org.springframework.beans.factory.DisposableBean) {
-				((org.springframework.beans.factory.DisposableBean) factory).destroy();
+			if (factory instanceof DisposableBean) {
+				((DisposableBean) factory).destroy();
 			}
 		}
 	}
@@ -73,9 +74,9 @@ public class MultiThreadedPerformanceTest {
 	private static void runMultiThreadedTest(ValkeyConnectionFactory factory) throws InterruptedException {
 		long startTime = System.currentTimeMillis();
 
-		StringValkeyTemplate template = new StringValkeyTemplate(factory);
-
 		ExecutorService executorService = Executors.newFixedThreadPool(THREADS);
+
+		StringValkeyTemplate template = new StringValkeyTemplate(factory);
 
 		AtomicInteger setOperations = new AtomicInteger(0);
 		AtomicInteger getOperations = new AtomicInteger(0);
@@ -129,36 +130,18 @@ public class MultiThreadedPerformanceTest {
 
 			executorService.shutdown();
 			boolean finished = executorService.awaitTermination(30, TimeUnit.SECONDS);
-
 			long duration = System.currentTimeMillis() - startTime;
-			long setTime = duration;
-			long getTime = duration;
-			long deleteTime = duration;
 
-			printOperationResults("SET", setOperations.get(), setFailures.get(), TOTAL_OPERATIONS, setTime);
-			printOperationResults("GET", getOperations.get(), getFailures.get(), TOTAL_OPERATIONS, getTime);
-			printOperationResults("DELETE", deleteOperations.get(), deleteFailures.get(), TOTAL_OPERATIONS, deleteTime);
-			
-			int totalOps = setOperations.get() + getOperations.get() + deleteOperations.get();
-			int totalFailures = setFailures.get() + getFailures.get() + deleteFailures.get();
-			int expectedOps = TOTAL_OPERATIONS * 3; // SET + GET + DELETE
-			
-			System.out.println("----------------------------------------");
-			System.out.println("Total successful operations: " + totalOps + " / " + expectedOps + " expected");
-			System.out.println("Total failures: " + totalFailures);
-			System.out.println("Overall success rate: " + String.format("%.1f%%", (totalOps * 100.0 / expectedOps)));
-			System.out.println("Completed in " + (duration / 1000.0) + " seconds");
+			printResult("SET", duration, setOperations.get(), setFailures.get());
+			printResult("GET", duration, getOperations.get(), getFailures.get());
+			printResult("DELETE", duration, deleteOperations.get(), deleteFailures.get());
 		} finally {
 			executorService.shutdown();
 		}
 	}
 
-	private static void printOperationResults(String operation, int successful, int failed, int expected, long timeMs) {
-		if (successful > 0) {
-			long opsPerSec = (long) (successful / (timeMs / 1000.0));
-			System.out.printf("%s:    %,d ops/sec (%.2f ms total)%n", operation, opsPerSec, timeMs / 1.0);
-		} else {
-			System.out.printf("%s:    0 ops/sec (%.2f ms total)%n", operation, timeMs / 1.0);
-		}
+	private static void printResult(String operation, long duration, int successful, int failed) {
+		System.out.printf("%s:    %,d ops/sec (%.2f ms total), %.1f%% successful%n", 
+			operation, (long) (successful * 1000.0 / duration), duration / 1.0, (successful * 100.0 / TOTAL_OPERATIONS));
 	}
 }
