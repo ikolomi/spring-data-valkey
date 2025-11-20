@@ -75,15 +75,21 @@
 				</configuration>
 				<executions>
 					<execution>
+						<id>threaded-test</id>
+						<configuration>
+							<mainClass>performance.MultiThreadedPerformanceTest</mainClass>
+						</configuration>
+					</execution>
+					<execution>
 						<id>direct-test</id>
 						<configuration>
 							<mainClass>performance.DirectClientPerformanceTest</mainClass>
 						</configuration>
 					</execution>
 					<execution>
-						<id>threaded-test</id>
+						<id>threaded-direct-test</id>
 						<configuration>
-							<mainClass>performance.MultiThreadedPerformanceTest</mainClass>
+							<mainClass>performance.ThreadedDirectClientPerformanceTest</mainClass>
 						</configuration>
 					</execution>
 				</executions>

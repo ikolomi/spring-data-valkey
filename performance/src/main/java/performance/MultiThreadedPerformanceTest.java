@@ -30,7 +30,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
 /**
- * Multi-threaded performance test to demonstrate client creation bottleneck.
+ * Multi-threaded performance test.
  */
 public class MultiThreadedPerformanceTest {
 
