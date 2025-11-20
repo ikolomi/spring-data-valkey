@@ -29,7 +29,7 @@ jobs:
 
       - name: Start Valkey
         run: |
-          make start PROJECT=valkey VERSION=8.0.3 GH_ORG=valkey-io
+          make start PROJECT=valkey VERSION=8.1.1 GH_ORG=valkey-io
 
       - name: Test and build release artifacts
         run: |
@@ -39,7 +39,7 @@ jobs:
             clean package source:jar javadoc:jar test \
             -Pnone \
             -DrunLongTests=true \
-            -Dvalkey.server.version=8.0.3 \
+            -Dvalkey.server.version=8.1.1 \
             -U -B
 
       - name: Create draft release
